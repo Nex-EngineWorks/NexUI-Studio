@@ -18,6 +18,7 @@ namespace emiteat.NexUI.Designer.Editor.Utilities
         private readonly List<ToolEntry> _tools = new()
         {
             Header("utilities.category.workspace", "utilities.category.workspace.description"),
+            Window("setupDoctor", "emiteat.NexUI.Designer.Editor.Productivity.NexUISetupDoctorWindow, emiteat.NexUI.Designer.Editor", "doctor readiness dependency install setup 진단 준비 의존성 설치"),
             Window("projectSetup", "emiteat.NexUI.Editor.ProjectSetup.NexUIProjectSetupWindow, emiteat.NexUI.Editor.ProjectSetup", "setup defaults install 설정 기본 설치"),
             Action("projectSettings", () => SettingsService.OpenProjectSettings("Project/NexUI"), "settings preferences 설정 환경설정"),
             Window("validator", "emiteat.NexUI.Editor.Validator.NexUIValidatorWindow, emiteat.NexUI.Editor.Validator", "validate errors warnings 검사 오류 경고"),
@@ -39,14 +40,16 @@ namespace emiteat.NexUI.Designer.Editor.Utilities
 
             Header("utilities.category.motion", "utilities.category.motion.description"),
             Window("motionClip", "emiteat.NexUI.Designer.Editor.MotionClipEditor.MotionClipEditorWindow, emiteat.NexUI.Designer.Editor", "animation timeline clip 애니메이션 타임라인 클립"),
-            Window("motionGraph", "emiteat.NexUI.Designer.Editor.GraphV2.MotionGraphV2Window, emiteat.NexUI.Designer.Editor", "animation graph 애니메이션 그래프"),
-            Window("motionStateMachine", "emiteat.NexUI.Designer.Editor.StateMachine.MotionStateMachineWindow, emiteat.NexUI.Designer.Editor", "animation state transition 애니메이션 상태 전환"),
             Window("motionBudget", "emiteat.NexUI.Designer.Editor.MotionBudget.MotionBudgetWindow, emiteat.NexUI.Designer.Editor", "animation performance 애니메이션 성능"),
-            Window("screenFlow", "emiteat.NexUI.Designer.Editor.ScreenFlow.ScreenFlowWindow, emiteat.NexUI.Designer.Editor", "navigation graph screen 내비게이션 화면"),
             Window("scenarioEditor", "emiteat.NexUI.Designer.Editor.Scenario.ScenarioEditorWindow, emiteat.NexUI.Designer.Editor", "scenario timeline test 시나리오 테스트"),
             Window("inputPreview", "emiteat.NexUI.Designer.Editor.InputPreview.InputPreviewWindow, emiteat.NexUI.Designer.Editor", "input device preview 입력 장치 미리보기"),
             Window("loadingStrategy", "emiteat.NexUI.Designer.Editor.LoadingStrategy.LoadingStrategyWindow, emiteat.NexUI.Designer.Editor", "load addressables performance 로딩 성능"),
             Window("syncPublish", "emiteat.NexUI.Designer.Editor.Sync.SyncPublishWindow, emiteat.NexUI.Designer.Editor", "sync publish export 동기화 게시"),
+
+            Header("utilities.category.experimental", "utilities.category.experimental.description"),
+            Window("motionGraph", "emiteat.NexUI.Designer.Editor.GraphV2.MotionGraphV2Window, emiteat.NexUI.Designer.Editor", "beta experimental animation graph 베타 실험 애니메이션 그래프"),
+            Window("motionStateMachine", "emiteat.NexUI.Designer.Editor.StateMachine.MotionStateMachineWindow, emiteat.NexUI.Designer.Editor", "beta experimental animation state transition 베타 실험 상태 전환"),
+            Window("screenFlow", "emiteat.NexUI.Designer.Editor.ScreenFlow.ScreenFlowWindow, emiteat.NexUI.Designer.Editor", "beta experimental navigation graph screen 베타 실험 내비게이션 화면"),
 
             Header("utilities.category.quality", "utilities.category.quality.description"),
             Window("accessibility", "emiteat.NexUI.Designer.Editor.Accessibility.AccessibilityWindow, emiteat.NexUI.Designer.Editor", "accessibility a11y focus 접근성 포커스"),

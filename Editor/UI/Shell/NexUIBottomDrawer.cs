@@ -15,7 +15,6 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
         private readonly NexUIDesignerHistoryPanel _history;
         private readonly NexUIDesignerScreenGraphPanel _graph;
         private readonly NexUIPreviewLogPanel _previewLog;
-        private readonly VisualElement _timeline;
         private Vector2 _resizeStart;
         private float _heightStart;
 
@@ -35,8 +34,10 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             bar.AddToClassList("nexui-drawer-bar");
             Add(bar);
 
+            if (context.BottomTab == DesignerBottomTab.Timeline)
+                context.SetBottomTab(DesignerBottomTab.Validation, false);
+
             _tabs = new NexUITabBar<DesignerBottomTab>(context.BottomTab, tab => context.SetBottomTab(tab, true),
-                (DesignerBottomTab.Timeline, "Timeline", "Motion timeline."),
                 (DesignerBottomTab.Validation, "Validation", "Validation issues."),
                 (DesignerBottomTab.History, "History", "Recent edit history."),
                 (DesignerBottomTab.Graph, "Graph", "Screen graph and binding summary."),
@@ -64,7 +65,6 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             _history = new NexUIDesignerHistoryPanel(_context);
             _graph = new NexUIDesignerScreenGraphPanel(_context);
             _previewLog = new NexUIPreviewLogPanel(_context);
-            _timeline = MakePlaceholder("Timeline", "Open Motion Clip Editor to edit clips. Timeline docking is prepared here.");
 
             var subscriptions = new ContextBoundSubscriptions(this);
             subscriptions.Add(h => context.UIStateChanged += h, h => context.UIStateChanged -= h, Refresh);
@@ -94,9 +94,6 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
                 case DesignerBottomTab.Graph:
                     _content.Add(_graph);
                     break;
-                case DesignerBottomTab.Timeline:
-                    _content.Add(_timeline);
-                    break;
                 case DesignerBottomTab.Preview:
                     _content.Add(_previewLog);
                     break;
@@ -116,15 +113,6 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
                 _badge.text = "Valid";
             _badge.EnableInClassList("is-warning", _context.ErrorCount > 0 || _context.WarningCount > 0);
             _badge.EnableInClassList("is-ok", _context.ErrorCount == 0 && _context.WarningCount == 0);
-        }
-
-        private static VisualElement MakePlaceholder(string title, string body)
-        {
-            var box = new VisualElement();
-            box.AddToClassList("nexui-drawer-placeholder");
-            box.Add(new Label(title) { name = "PanelTitle" });
-            box.Add(new Label(body) { name = "PanelSubtitle" });
-            return box;
         }
 
         private void OnResizeDown(PointerDownEvent evt)

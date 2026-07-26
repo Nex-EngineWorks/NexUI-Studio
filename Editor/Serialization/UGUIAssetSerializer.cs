@@ -186,6 +186,19 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             if (graphic != null)
                 graphic.color = element.tint;
 
+            // The image selected in Designer is the real backend sprite, not merely a canvas
+            // thumbnail. Preserve its aspect ratio by default so wide/tall source art does not
+            // become stretched when the Designer rect has a different ratio.
+            if (isImage && graphic is Image image)
+            {
+                image.sprite = element.previewImage;
+                image.preserveAspect = element.previewImage != null;
+                image.type = Image.Type.Simple;
+                report.MarkChanged(element.previewImage != null
+                    ? $"Applied sprite to '{element.elementId}'"
+                    : $"Cleared sprite on '{element.elementId}'");
+            }
+
             // Button component when the element is a button and lacks one.
             if (isButton && go.GetComponent<Button>() == null)
             {

@@ -2,6 +2,14 @@
 
 NexUI Designer는 Core 패키지에 의존하므로 반드시 Core를 먼저 설치합니다.
 
+## 권장 설치 순서
+
+NexUI Runtime의 공개 API가 UniTask를 사용하므로 `UniTask 2.5.10 이상 → NexUI Runtime → NexUI Designer` 순서로 설치합니다.
+
+설치 후 `Tools > NexUI > Setup Doctor`를 실행합니다. 오류가 0개가 될 때까지 의존성과 프로젝트 설정을 정리한 다음 화면을 만드세요. Warning은 현재 Scene에 Backend Bootstrap이 없거나 아직 Registry/Screen을 만들지 않은 초기 상태일 수 있습니다.
+
+Setup Doctor는 검사만 자동으로 수행하며, 사용자가 버튼을 누르기 전에는 에셋이나 Scene을 변경하지 않습니다.
+
 ## 요구 사항
 
 - Unity `6000.4` 이상

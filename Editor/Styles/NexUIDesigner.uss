@@ -699,8 +699,6 @@
     padding-right: 8px;
     border-radius: 6px;
     font-size: 10px;
-    transition-property: background-color;
-    transition-duration: 0.1s;
 }
 
 .nexui-toolbar .unity-base-field {
@@ -1045,8 +1043,6 @@
     background-color: #1e2128;
     color: #d7dbe2;
     font-size: 10px;
-    transition-property: background-color, border-color;
-    transition-duration: 0.1s;
 }
 
 .nexui-align-panel-button:hover {
@@ -1082,8 +1078,6 @@
     background-color: #1e2128;
     color: #d7dbe2;
     font-size: 10px;
-    transition-property: background-color, border-color;
-    transition-duration: 0.1s;
 }
 
 .nexui-palette-button:hover,
@@ -1524,8 +1518,6 @@
 .nexui-element-flash {
     border-width: 2px;
     border-color: #facc15;
-    transition-property: border-color;
-    transition-duration: 0.3s;
 }
 
 .nexui-element-name {

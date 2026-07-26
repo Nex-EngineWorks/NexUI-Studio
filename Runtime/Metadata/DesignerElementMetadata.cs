@@ -83,8 +83,13 @@ namespace emiteat.NexUI.Designer
         /// </summary>
         public List<string> previewOptions = new List<string>();
         public DesignerFillMetadata fill = new DesignerFillMetadata();
-        /// <summary>Preview-only image source for Image/IconButton canvas previews. Does not affect the backend UXML/prefab's own sprite/texture reference.</summary>
-        public Texture2D previewImage;
+        /// <summary>
+        /// Sprite used by Image/IconButton elements. The Designer renders it in the canvas and
+        /// the uGUI serializer writes it to the generated <c>UnityEngine.UI.Image</c>. Using a
+        /// Sprite (instead of an arbitrary Texture2D) prevents editor/theme textures from being
+        /// assigned accidentally and preserves the source sprite rect for atlased images.
+        /// </summary>
+        public Sprite previewImage;
         public string text;
         public Color tint = new Color(0.15f, 0.22f, 0.34f, 1f);
         public Color textColor = Color.white;

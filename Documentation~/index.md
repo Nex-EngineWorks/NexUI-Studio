@@ -38,6 +38,7 @@
 - [Asset Ownership](reference/asset-ownership.md) — 수동 파일, Designer 파일과 생성 파일의 책임을 구분합니다.
 - [Validation Catalog](reference/validation-catalog.md) — 실제 Validation Code별 원인과 해결 방법을 찾습니다.
 - [Compatibility](reference/compatibility.md) · [Upgrading](reference/upgrading.md)
+- [출시 준비 체크리스트](reference/release-readiness.md)
 
 ## 고급 기능
 

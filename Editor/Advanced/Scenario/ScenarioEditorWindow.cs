@@ -28,7 +28,7 @@ namespace emiteat.NexUI.Designer.Editor.Scenario
         private bool _timelinePlaying;
         private float _timelineTime;
         private double _lastEditorTime;
-        private struct ElementPreviewSnapshot { public float PreviewValue; public string Text; public bool Hidden; public Texture2D Image; public int ItemCount; }
+        private struct ElementPreviewSnapshot { public float PreviewValue; public string Text; public bool Hidden; public Sprite Image; public int ItemCount; }
         private readonly Dictionary<string, ElementPreviewSnapshot> _timelineSnapshot = new Dictionary<string, ElementPreviewSnapshot>();
         private bool _timelineSnapshotTaken;
 

@@ -2,7 +2,7 @@
 
 반복해서 만들던 Screen Definition, Designer Metadata, uGUI Prefab 또는 UXML을 한 번에 연결합니다.
 
-1. Global Toolbar의 `+ 새 화면` 또는 `Tools > NexUI Designer > 새 화면 만들기`를 엽니다.
+1. Global Toolbar의 `+ 새 화면` 또는 `Tools > NexUI > Designer > New Screen`을 엽니다.
 2. 화면 이름, 고유 Screen ID, Backend, 템플릿과 저장 폴더를 지정합니다.
 3. 생성 요약과 경고를 확인하고 `생성하고 Designer에서 열기`를 누릅니다.
 

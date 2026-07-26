@@ -5,6 +5,7 @@ using emiteat.NexUI.Designer.Editor.Commands;
 using emiteat.NexUI.Designer.Editor.Localization;
 using emiteat.NexUI.Designer.Editor.Utilities;
 using emiteat.NexUI.Designer.Editor.Viewport;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -80,7 +81,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             _entries.Add(new Entry("Toggle Grid Snap", "canvas snap", () => _context.SetSnap(!_context.SnapEnabled), () => true));
             _entries.Add(new Entry("Open Layers", "sidebar", () => _context.SetSidebarTab(DesignerSidebarTab.Layers), () => true));
             _entries.Add(new Entry("Open Components", "sidebar", () => _context.SetSidebarTab(DesignerSidebarTab.Components), () => true));
-            _entries.Add(new Entry("Open Assets", "sidebar", () => _context.SetSidebarTab(DesignerSidebarTab.Assets), () => true));
+            _entries.Add(new Entry("Show Project Assets", "assets sprites fonts project", EditorUtility.FocusProjectWindow, () => true));
             _entries.Add(new Entry("Open Validation Drawer", "drawer", () => _context.SetBottomTab(DesignerBottomTab.Validation), () => true));
             _entries.Add(new Entry("Open History Drawer", "drawer", () => _context.SetBottomTab(DesignerBottomTab.History), () => true));
             _entries.Add(new Entry("Open Graph Drawer", "drawer", () => _context.SetBottomTab(DesignerBottomTab.Graph), () => true));

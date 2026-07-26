@@ -22,7 +22,7 @@ Screen은 Runtime 화면 정의이고 Metadata는 제작 데이터입니다. 두
 
 ## Left Sidebar
 
-왼쪽 열에는 **Layers**, **Components**, **Assets** 탭과 **Metadata** 필드가 있습니다.
+왼쪽 열에는 **Layers**, **Components** 탭과 **Metadata** 필드가 있습니다.
 
 ### Layers
 
@@ -32,9 +32,7 @@ Element의 부모·자식 관계와 형제 순서를 보여 줍니다. 행을 �
 
 Panel, Container, Label, Button, Image, ProgressBar, Grid, Slot 등 등록된 Component를 검색하고 추가합니다. 버튼을 누르면 Metadata와 Canvas에 새 Element가 생깁니다. Backend별 지원 수준은 [Backend 지원 범위](../reference/backend-support-matrix.md)를 확인하세요.
 
-### Assets
-
-현재 UI는 Asset Browser 자리만 제공하는 Placeholder입니다. Sprite, Font, Motion Asset 선택은 Project 창이나 Inspector의 Object Field를 사용하세요. 이 탭에 에셋이 자동으로 나열된다고 가정하면 안 됩니다.
+Sprite, Font, Motion Asset은 Unity Project 창과 Inspector의 Object Field에서 선택합니다. Command Palette의 **Show Project Assets**로 Project 창을 바로 열 수 있습니다.
 
 ## Canvas Toolbar
 
@@ -72,13 +70,14 @@ Canvas 상단의 `Design / Interactive` 전환은 역할이 다릅니다.
 
 ## Bottom Drawer
 
-아래쪽의 **Timeline**, **Validation**, **History**, **Graph**, **Preview** 탭입니다. `Toggle`로 접고 펼치며 위쪽 Handle을 드래그해 높이를 바꿉니다.
+아래쪽의 **Validation**, **History**, **Graph**, **Preview** 탭입니다. `Toggle`로 접고 펼치며 위쪽 Handle을 드래그해 높이를 바꿉니다.
 
-- **Timeline**: 현재 Motion Clip 요약 또는 편집 진입점을 보여 줍니다.
 - **Validation**: Error, Warning, Info와 가능한 Auto Fix를 보여 줍니다.
 - **History**: 최근 Designer 편집 기록입니다.
 - **Graph**: Screen과 Binding 요약입니다.
 - **Preview**: Interactive Preview Log입니다.
+
+Motion Timeline 편집은 Utilities의 **Motion Clip Editor**에서 수행합니다. 비어 있는 중복 Timeline 탭은 제공하지 않습니다.
 
 ## Command Palette
 

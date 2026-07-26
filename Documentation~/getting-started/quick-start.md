@@ -2,6 +2,12 @@
 
 **목표:** Sample 화면을 열거나 새 Button 하나를 추가해 저장합니다.
 
+## 0. 설치 확인
+
+`Tools > NexUI > Setup Doctor`에서 Runtime, UniTask, Project Assets, 현재 Scene Backend와 출력 경로를 확인합니다. 누락된 기본 에셋은 `Project Setup` 버튼으로 생성할 수 있습니다.
+
+Designer 상단 상태는 `Backend | Screen ID | Loaded/Unsaved/Saved | Valid/Warnings/Errors` 순서로 표시됩니다. `Saved`는 지원되는 Backend 범위까지 기록했다는 뜻이며 Runtime Key, 폰트, 입력과 실제 Layout까지 검증했다는 뜻은 아닙니다. 최종 확인은 Play Mode와 Player Build에서 수행합니다.
+
 ## 가장 빠른 경로: Sample 열기
 
 1. Package Manager에서 **Designer Sample**을 Import합니다.

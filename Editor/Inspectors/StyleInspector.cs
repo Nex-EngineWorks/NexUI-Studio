@@ -63,7 +63,7 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
             _maxValue = new FloatField("Max Value") { tooltip = DesignerLocalization.T("tooltip.style.maxValue") };
             _fillDirection = new EnumField("Fill Direction", DesignerFillDirection.LeftToRight) { tooltip = DesignerLocalization.T("tooltip.style.fillDirection") };
             _clockwise = new Toggle("Clockwise") { tooltip = DesignerLocalization.T("tooltip.style.clockwise") };
-            _previewImage = new ObjectField("Image") { objectType = typeof(Texture2D), allowSceneObjects = false, tooltip = DesignerLocalization.T("tooltip.style.previewImage") };
+            _previewImage = new ObjectField("Sprite") { objectType = typeof(Sprite), allowSceneObjects = false, tooltip = DesignerLocalization.T("tooltip.style.previewImage") };
 
             Add(_id);
             Add(_displayName);
@@ -108,7 +108,7 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
             _maxValue.RegisterValueChangedCallback(evt => Change(e => e.fill.maxValue = evt.newValue, "Edit NexUI Element Max Value"));
             _fillDirection.RegisterValueChangedCallback(evt => Change(e => e.fill.direction = (DesignerFillDirection)evt.newValue, "Change NexUI Element Fill Direction"));
             _clockwise.RegisterValueChangedCallback(evt => Change(e => e.fill.clockwise = evt.newValue, "Toggle NexUI Element Fill Clockwise"));
-            _previewImage.RegisterValueChangedCallback(evt => Change(e => e.previewImage = evt.newValue as Texture2D, "Assign NexUI Element Preview Image"));
+            _previewImage.RegisterValueChangedCallback(evt => Change(e => e.previewImage = evt.newValue as Sprite, "Assign NexUI Element Sprite"));
 
             Subscriptions.Add<DesignerElementMetadata>(h => context.MetadataSelectionChanged += h, h => context.MetadataSelectionChanged -= h, _ => Refresh());
             Subscriptions.Add(h => context.CanvasChanged += h, h => context.CanvasChanged -= h, Refresh);

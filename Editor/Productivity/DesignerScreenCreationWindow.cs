@@ -9,7 +9,7 @@ namespace emiteat.NexUI.Designer.Editor.Productivity
     {
         [SerializeField] private DesignerScreenCreationRequest request = new DesignerScreenCreationRequest();
 
-        [MenuItem("Tools/NexUI Designer/새 화면 만들기", priority = 20)]
+        [MenuItem("Tools/NexUI/Designer/New Screen", priority = 20)]
         public static void Open()
         {
             var window = GetWindow<DesignerScreenCreationWindow>(true, "NexUI 새 화면", true);

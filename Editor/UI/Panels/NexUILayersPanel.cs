@@ -311,7 +311,8 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
         private readonly NexUILayersPanel _panel;
         private readonly DesignerElementMetadata _element;
         private readonly Action _refresh;
-        private readonly TextField _rename;
+        private readonly Label _name;
+        private TextField _rename;
         private readonly Button _visibility;
         private readonly Button _lock;
         private readonly VisualElement _foldout;
@@ -355,16 +356,19 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
                 _context.UpdateElement(_element, e => e.locked = !e.locked, "Toggle NexUI Element Lock"));
             Add(_lock);
 
-            _rename = new TextField { value = LabelFor(element), tooltip = element.elementType + "  [" + element.elementId + "]" };
-            _rename.AddToClassList("nexui-layer-name");
-            _rename.RegisterCallback<FocusOutEvent>(_ => CommitRename());
-            _rename.RegisterCallback<KeyDownEvent>(evt =>
+            // Keep the normal row name as a Label so it behaves like Unity's Hierarchy: users
+            // can grab the visible name itself and drag it. A TextField consumes pointer input,
+            // which made the previous implementation effectively draggable only from the tiny
+            // icon/empty areas. Double-click switches the label to an inline rename field.
+            _name = new Label(LabelFor(element)) { tooltip = element.elementType + "  [" + element.elementId + "]" };
+            _name.AddToClassList("nexui-layer-name");
+            _name.RegisterCallback<PointerDownEvent>(evt =>
             {
-                if (evt.keyCode != KeyCode.Return && evt.keyCode != KeyCode.KeypadEnter) return;
-                CommitRename();
-                evt.StopPropagation();
+                if (evt.button != 0 || evt.clickCount < 2) return;
+                BeginRename();
+                evt.StopImmediatePropagation();
             });
-            Add(_rename);
+            Add(_name);
 
             Add(IconButton("↑", "Move up among siblings.", () => { _context.MoveSiblingBy(_element, -1); _refresh?.Invoke(); }));
             Add(IconButton("↓", "Move down among siblings.", () => { _context.MoveSiblingBy(_element, 1); _refresh?.Invoke(); }));
@@ -463,7 +467,8 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
             if (!this.HasPointerCapture(evt.pointerId)) return;
             if (!_dragging)
             {
-                if (Mathf.Abs(evt.position.y - _dragStart.y) < 6f) return;
+                var pointer = new Vector2(evt.position.x, evt.position.y);
+                if ((pointer - _dragStart).sqrMagnitude < 36f) return;
                 _dragging = true;
                 _panel.BeginDrag(_element);
                 EnableInClassList("is-dragging", true);
@@ -504,10 +509,47 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
             style.backgroundColor = StyleKeyword.Null;
         }
 
-        private void CommitRename()
+        private void BeginRename()
         {
-            if (!string.Equals(_rename.value, LabelFor(_element), StringComparison.Ordinal))
-                _context.RenameElement(_element, _rename.value);
+            if (_rename != null) return;
+            _rename = new TextField { value = LabelFor(_element), tooltip = _name.tooltip };
+            _rename.AddToClassList("nexui-layer-name");
+            var index = IndexOf(_name);
+            _name.RemoveFromHierarchy();
+            Insert(index, _rename);
+            _rename.RegisterCallback<FocusOutEvent>(_ => CommitRename());
+            _rename.RegisterCallback<KeyDownEvent>(evt =>
+            {
+                if (evt.keyCode == KeyCode.Escape)
+                {
+                    EndRename(false);
+                    evt.StopPropagation();
+                    return;
+                }
+                if (evt.keyCode != KeyCode.Return && evt.keyCode != KeyCode.KeypadEnter) return;
+                CommitRename();
+                evt.StopPropagation();
+            });
+            _rename.schedule.Execute(() =>
+            {
+                _rename?.Focus();
+                _rename?.SelectAll();
+            });
+        }
+
+        private void CommitRename() => EndRename(true);
+
+        private void EndRename(bool commit)
+        {
+            if (_rename == null) return;
+            var value = _rename.value;
+            var index = IndexOf(_rename);
+            _rename.RemoveFromHierarchy();
+            _rename = null;
+            _name.text = LabelFor(_element);
+            Insert(index, _name);
+            if (commit && !string.Equals(value, LabelFor(_element), StringComparison.Ordinal))
+                _context.RenameElement(_element, value);
         }
 
         private static Button IconButton(string text, string tooltip, Action action)

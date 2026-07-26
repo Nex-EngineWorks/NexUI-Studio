@@ -17,7 +17,7 @@ namespace emiteat.NexUI.Designer.Editor.Scenario
         public bool SetHidden;
         public bool Hidden;
         public bool SetPreviewImage;
-        public UnityEngine.Texture2D PreviewImage;
+        public UnityEngine.Sprite PreviewImage;
         public bool SetPreviewItemCount;
         public int PreviewItemCount;
 
@@ -64,7 +64,7 @@ namespace emiteat.NexUI.Designer.Editor.Scenario
                     if (valueBinding.kind == DesignerScenarioValueKind.Sprite)
                     {
                         change.SetPreviewImage = true;
-                        change.PreviewImage = valueBinding.spriteValue != null ? valueBinding.spriteValue.texture : null;
+                        change.PreviewImage = valueBinding.spriteValue;
                     }
                     else if (valueBinding.kind == DesignerScenarioValueKind.List)
                     {

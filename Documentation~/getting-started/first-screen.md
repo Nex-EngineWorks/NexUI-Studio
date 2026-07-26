@@ -24,7 +24,7 @@ UI Toolkit은 `MainMenu.asset`, `MainMenu.Metadata.asset`, `MainMenu.uxml`, `Mai
 
 ## 1. UIScreenDefinition 생성
 
-Global Toolbar의 **+ 새 화면**을 누르거나 `Tools > NexUI Designer > 새 화면 만들기`를 엽니다. 화면 이름은 `Main Menu`, Screen ID는 `MainMenu`, 템플릿은 `FullScreen`, 저장 폴더는 `Assets/UI/Screens/MainMenu`로 입력합니다.
+Global Toolbar의 **+ 새 화면**을 누르거나 `Tools > NexUI > Designer > New Screen`을 엽니다. 화면 이름은 `Main Menu`, Screen ID는 `MainMenu`, 템플릿은 `FullScreen`, 저장 폴더는 `Assets/UI/Screens/MainMenu`로 입력합니다.
 
 Screen ID는 Runtime이 화면을 찾는 계약입니다. 문자 또는 `_`로 시작하고 문자, 숫자, `_`, `-`만 사용하세요. 중복 ID나 기존 파일이 있으면 생성 버튼이 비활성화됩니다.
 

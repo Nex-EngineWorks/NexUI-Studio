@@ -4,7 +4,11 @@
   "version": "0.1.0",
   "license": "MIT",
   "unity": "6000.4",
+  "unityRelease": "2f1",
   "description": "Visual authoring extension package for NexUI. Provides Unity Editor tools for editing NexUI screens, bindings, motions, themes, policies, and validation.",
+  "documentationUrl": "https://github.com/swallow-smoke/NexUI-Designer/tree/master/Documentation~",
+  "changelogUrl": "https://github.com/swallow-smoke/NexUI-Designer/blob/master/CHANGELOG.md",
+  "licensesUrl": "https://github.com/swallow-smoke/NexUI-Designer/blob/master/LICENSE.md",
   "keywords": [
     "unity",
     "ui",
@@ -16,7 +20,8 @@
     "ugui"
   ],
   "author": {
-    "name": "emiteat"
+    "name": "emiteat",
+    "url": "https://github.com/swallow-smoke"
   },
   "dependencies": {
     "com.emiteat.nexui": "0.1.0",

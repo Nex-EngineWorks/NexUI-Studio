@@ -12,6 +12,7 @@ namespace emiteat.NexUI.Designer.Editor.Panels
     public sealed class NexUIDesignerToolbar : Toolbar
     {
         private readonly Label _status;
+        private string _lastSaveSummary;
 
         public NexUIDesignerToolbar(NexUIDesignerContext context)
         {
@@ -136,13 +137,11 @@ namespace emiteat.NexUI.Designer.Editor.Panels
 
             subscriptions.Add<UIScreenDefinition>(h => context.ScreenChanged += h, h => context.ScreenChanged -= h, _ => RefreshStatus(context));
             subscriptions.Add(h => context.ValidationChanged += h, h => context.ValidationChanged -= h, () => RefreshStatus(context));
+            subscriptions.Add<bool>(h => context.DirtyStateChanged += h, h => context.DirtyStateChanged -= h, _ => RefreshStatus(context));
             subscriptions.Add<DesignerSaveReport>(h => context.SaveCompleted += h, h => context.SaveCompleted -= h, report =>
             {
-                _status.text = report.Summary();
-                _status.RemoveFromClassList("is-muted");
-                _status.RemoveFromClassList("is-ok");
-                _status.RemoveFromClassList("is-warning");
-                _status.AddToClassList(report.HasErrors ? "is-warning" : report.HasWarnings ? "is-warning" : "is-ok");
+                _lastSaveSummary = report.Summary();
+                RefreshStatus(context);
             });
             RefreshStatus(context);
         }
@@ -168,14 +167,30 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             if (context.CurrentScreen == null)
             {
                 _status.text = "No screen";
-                _status.RemoveFromClassList("is-ok");
-                _status.AddToClassList("is-muted");
+                _status.tooltip = "Select a Screen Definition or create a new screen.";
+                SetStatusClass("is-muted");
                 return;
             }
 
-            _status.text = context.Backend + " | " + context.CurrentScreen.ScreenId;
+            var saveState = context.HasUnsavedChanges ? "Unsaved" : _lastSaveSummary == null ? "Loaded" : "Saved";
+            var validationState = context.ErrorCount > 0
+                ? $"{context.ErrorCount} errors"
+                : context.WarningCount > 0
+                    ? $"{context.WarningCount} warnings"
+                    : "Valid";
+            _status.text = $"{context.Backend} | {context.CurrentScreen.ScreenId} | {saveState} | {validationState}";
+            _status.tooltip = context.HasUnsavedChanges
+                ? "Preview/metadata has unsaved changes. Save writes metadata and the supported backend subset."
+                : _lastSaveSummary ?? "Loaded. Run Validate, then Save and verify the result in Play Mode.";
+            SetStatusClass(context.HasUnsavedChanges || context.ErrorCount > 0 || context.WarningCount > 0 ? "is-warning" : "is-ok");
+        }
+
+        private void SetStatusClass(string className)
+        {
             _status.RemoveFromClassList("is-muted");
-            _status.AddToClassList(context.ValidationMessages.Count == 0 ? "is-ok" : "is-warning");
+            _status.RemoveFromClassList("is-ok");
+            _status.RemoveFromClassList("is-warning");
+            _status.AddToClassList(className);
         }
     }
 }

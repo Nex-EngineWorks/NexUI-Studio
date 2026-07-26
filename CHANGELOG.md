@@ -2,6 +2,35 @@
 
 ## [Unreleased]
 
+### Commercial readiness
+- Added Setup Doctor for dependency, project asset, scene backend and writable-path checks.
+- Consolidated screen creation under `Tools/NexUI/Designer` and grouped beta graph tools as experimental utilities.
+- Added explicit Loaded/Unsaved/Saved and validation state to the Designer toolbar.
+- Removed placeholder Assets and Timeline tabs; Unity's Project window and the Motion Clip Editor are now the single entry points.
+- Added package manifest documentation links, install-order guidance and a release readiness checklist.
+
+### Productivity
+- Added a Korean Screen Creation Wizard that creates connected Screen, Metadata, uGUI Prefab or UXML/USS assets with overwrite protection and rollback.
+- Added Motion Clip-based Open/Close transition presets, direct preview, reverse generation and stagger ordering.
+- Extended Preview Scenario values with Sprite/List data, scenario navigation/duplicate/reset/delete, and quick Text/Value/Collection edge-case presets.
+- Added layout inference, Auto Layout conversion, anchor recommendations, nested-layout warnings and grouped Undo.
+- Added actionable Validation fixes for metadata geometry/hierarchy and common uGUI raycast, CanvasGroup and Button issues.
+- Completed AnimationClip import/export for supported RectTransform, Transform and CanvasGroup curves, including Editor and Assets menu actions.
+- Added Grid Auto Layout serialization for uGUI and UI Toolkit, including column/cell metadata and generated USS wrapping.
+- Completed Sprite/List Scenario Timeline editing and preview context capture for resolution, input device and theme.
+- Added live Preview Snapshot capture/diff and a configurable Designer shortcut settings window.
+- Added first-frame Figma import for hierarchy, coordinates, text, solid fills and Auto Layout with Undo.
+- Added `DesignerMotionTriggerRuntime` for backend-neutral Click/Pointer/Focus subscription, lifecycle dispatch, Reduced Motion selection and deterministic disposal.
+
+### Documentation
+- Expanded Korean onboarding, workflow, Scenario, Motion and troubleshooting guides.
+- Added Backend support, asset ownership, validation catalog, compatibility and metadata schema references.
+- Fixed outdated documentation links, menu paths and installation guidance.
+- Reorganized Korean documentation into Getting Started, User Guide, Motion, Advanced, Tutorials, Reference, and Developer sections.
+- Separated current implementation status from the long-term feature specification.
+- Added verified Backend, Figma, Migration, Runtime Debug, shortcut, limitation, troubleshooting, extension, and serialization guidance.
+- Kept short redirect documents at externally referenced legacy paths.
+
 ### Stabilized
 - Added a focus-aware `DesignerSessionRegistry` and removed satellite-window context discovery through `Resources.FindObjectsOfTypeAll`.
 - Added panel-lifetime event subscriptions so rebuilt/closed VisualElements do not accumulate Context callbacks.
@@ -19,12 +48,12 @@
   authoring multi-element, multi-property, keyframe-based `UIMotionClip` assets, with a Designer
   selection-linked entry point ("Open Motion Clip Editor") from the Motion inspector. Includes a
   minimal timeline view (draggable keyframes), live preview against the Designer's preview
-  surface, and Play/Stop. See `Documentation~/motion-clip-editor.md`.
-- `UnityAnimationClipAdapter` (preview an existing `AnimationClip` via `SampleAnimation`);
-  `UIMotionClipImporter`/`UIMotionClipExporter` interfaces (stubbed, not yet implemented).
+  surface, and Play/Stop. See `Documentation~/motion/motion-clip-editor.md`.
+- `UnityAnimationClipAdapter` (preview an existing `AnimationClip` via `SampleAnimation`) and
+  implemented `UIMotionClipImporter`/`UIMotionClipExporter` conversion services.
 - Motion Graph Editor: `Tools/NexUI/Designer/Motion Graph` menu entry so it can be opened
   standalone (with its own Preset picker) instead of only from the Motion inspector; new
-  documentation (`Documentation~/motion-graph-editor.md`, previously undocumented); "Auto
+  documentation (`Documentation~/motion/motion-graph-editor.md`, previously undocumented); "Auto
   Layout" and "Duplicate Node" context menu actions; brand-new (empty) graphs are now seeded
   with a connected `start`/`end` node pair.
 - Shared IMGUI chrome for all `NexUIToolWindow`-based satellite tool windows (header band,
@@ -40,8 +69,9 @@
 
 ### Known limitations
 - Motion Clip `AnchoredPosition`/`LocalPosition` currently resolve to the same underlying value.
-- Motion trigger data is persisted for both Backends, but automatic runtime wiring for every trigger remains Partial.
-- AnimationClip Import/Export remains a disabled Stub.
+- Capability-backed Motion triggers subscribe automatically; screen/state/command/enable lifecycle owners call the explicit Binder API.
+- AnimationClip conversion skips unsupported curves and exports GameObject paths for direct uGUI playback.
+- Figma import does not provide asset image download, component variants or bidirectional sync.
 
 ## 0.1.0
 
