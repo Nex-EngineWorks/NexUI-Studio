@@ -73,7 +73,7 @@ Components에서 `Container`를 추가하고 ID를 `menuButtons`로 바꿉니다
 
 ## 10. Auto Layout 설정
 
-`menuButtons`를 선택하고 **Design > Auto Layout**에서 Enabled를 켭니다. Direction은 `Column`, Spacing은 `16`, Padding Left/Right/Top/Bottom은 필요에 따라 `16`으로 설정합니다.
+`menuButtons`를 선택하고 Inspector의 **Build > Auto Layout**에서 Enabled를 켭니다. Direction은 `Column`, Spacing은 `16`, Padding Left/Right/Top/Bottom은 필요에 따라 `16`으로 설정합니다.
 
 정상 결과는 자식이 생긴 뒤 위에서 아래로 흐르는 것입니다. uGUI Save는 `VerticalLayoutGroup`, UI Toolkit Save/Generation은 Column Flex와 Padding/Spacing으로 변환합니다.
 
@@ -95,7 +95,7 @@ Layers에서 세 Button을 `menuButtons` 아래로 옮깁니다. 형제 순서�
 
 ## 13. Command Key 연결
 
-Button을 하나씩 선택하고 **Prototype > Binding**의 Command Key에 위 표의 값을 입력하거나 Command Picker에서 선택합니다. Designer는 Key 문자열을 저장합니다. 게임 동작은 Runtime의 `UIActionResolver` 등록이 담당합니다.
+Button을 하나씩 선택하고 Inspector의 **Connect > Binding**에서 Command Key에 위 표의 값을 입력하거나 Command Picker에서 선택합니다. Designer는 Key 문자열을 저장합니다. 게임 동작은 Runtime의 `UIActionResolver` 등록이 담당합니다.
 
 컴파일 가능한 Runtime 예제는 [Binding](../user-guide/binding.md)에 있습니다. 등록하지 않은 Key는 Play Mode에서 동작하지 않습니다.
 

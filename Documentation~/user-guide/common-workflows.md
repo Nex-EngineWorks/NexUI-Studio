@@ -74,7 +74,7 @@ Label처럼 자식을 허용하지 않는 Component 아래로 옮기면 Validati
 
 ### 작업 순서
 
-Container를 선택하고 **Design > Auto Layout**에서 Enabled, `Column`, Spacing과 Padding을 설정합니다. 자식을 해당 Container 아래로 Reparent하고 형제 순서를 정합니다.
+Container를 선택하고 Inspector의 **Build > Auto Layout**에서 Enabled, `Column`, Spacing과 Padding을 설정합니다. 자식을 해당 Container 아래로 Reparent하고 형제 순서를 정합니다.
 
 ### 정상 결과
 
@@ -118,7 +118,7 @@ Button 클릭을 Runtime Action에 연결할 때 사용합니다.
 
 ### 작업 순서
 
-Button을 선택하고 **Prototype > Binding > Command Key**에 문자열을 입력하거나 Picker를 사용합니다. Runtime에서 같은 Key를 `UIActionResolver.Register`로 등록합니다.
+Button을 선택하고 Inspector의 **Connect > Binding > Command Key**에 문자열을 입력하거나 Picker를 사용합니다. Runtime에서 같은 Key를 `UIActionResolver.Register`로 등록합니다.
 
 ### 정상 결과
 
@@ -140,7 +140,7 @@ Interactive Preview는 Command를 실행하지 않고 Preview Log에만 남깁�
 
 ### 작업 순서
 
-Label을 선택하고 **Prototype > Binding > Text Key**를 설정합니다. Runtime Surface의 같은 Element Handle에 `UITextBinder`를 Bind하고 `UIStateStore.Set`으로 값을 공급합니다.
+Label을 선택하고 Inspector의 **Connect > Binding > Text Key**를 설정합니다. Runtime Surface의 같은 Element Handle에 `UITextBinder`를 Bind하고 `UIStateStore.Set`으로 값을 공급합니다.
 
 ### 정상 결과
 
@@ -184,7 +184,7 @@ Element Track이나 Screen Entry/Exit 효과를 만들 때 사용합니다.
 
 ### 작업 순서
 
-Element를 선택하고 **Motion** 탭에서 Motion Clip Editor를 열거나 `Tools > NexUI > Designer > Advanced > Motion Clip Editor`를 사용합니다. Popup은 Entry/Exit Clip 또는 Transition Preset을 지정합니다.
+Element를 선택하고 Inspector의 **Animate > Motion**에서 Motion Clip Editor를 열거나 `Tools > NexUI > Designer > Advanced > Motion Clip Editor`를 사용합니다. Popup은 Entry/Exit Clip 또는 Transition Preset을 지정합니다.
 
 ### 정상 결과
 

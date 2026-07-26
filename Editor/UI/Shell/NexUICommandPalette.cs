@@ -5,6 +5,7 @@ using emiteat.NexUI.Designer.Editor.Commands;
 using emiteat.NexUI.Designer.Editor.Localization;
 using emiteat.NexUI.Designer.Editor.Utilities;
 using emiteat.NexUI.Designer.Editor.Viewport;
+using emiteat.NexUI.Designer.Editor.AI;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -85,6 +86,8 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             _entries.Add(new Entry("Open Validation Drawer", "drawer", () => _context.SetBottomTab(DesignerBottomTab.Validation), () => true));
             _entries.Add(new Entry("Open History Drawer", "drawer", () => _context.SetBottomTab(DesignerBottomTab.History), () => true));
             _entries.Add(new Entry("Open Graph Drawer", "drawer", () => _context.SetBottomTab(DesignerBottomTab.Graph), () => true));
+            _entries.Add(new Entry(DesignerLocalization.T("ai.command.open"),
+                DesignerLocalization.T("ai.command.keywords"), NexUIAIWindow.Open, () => true));
             _entries.Add(new Entry(DesignerLocalization.T("utilities.command.open"),
                 DesignerLocalization.T("utilities.command.keywords"), NexUIUtilitiesWindow.Open, () => true));
 

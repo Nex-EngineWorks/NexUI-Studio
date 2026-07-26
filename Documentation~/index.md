@@ -17,6 +17,7 @@
 - [Canvas 편집](user-guide/canvas-editing.md) · [Hierarchy와 Layout](user-guide/hierarchy-and-layout.md)
 - [Inspector와 Style](user-guide/inspector-and-style.md) · [Binding](user-guide/binding.md)
 - [자주 사용하는 작업](user-guide/common-workflows.md) — 선택, 정렬, 부모 변경, Binding, Save/Publish를 목적별로 찾습니다.
+- [AI 어시스턴트](user-guide/ai-assistant.md) — Unity 안에서 대화로 변경 계획을 만들고 검토한 뒤 Undo 가능하게 적용합니다.
 - [Preview와 Scenario](user-guide/preview-and-scenarios.md) · [Validation과 Save](user-guide/validation-and-save.md)
 - [uGUI Backend](user-guide/ugui-backend.md) · [UI Toolkit Backend](user-guide/ui-toolkit-backend.md)
 - [Motion 선택 가이드](motion/overview.md) · [Motion Clip](motion/motion-clip-editor.md) · [Motion Graph](motion/motion-graph-editor.md) · [Motion 레시피](motion/recipes.md)
@@ -50,7 +51,7 @@
 ## NexUI Designer를 개발하는 사용자
 
 - [아키텍처](developer/architecture.md) · [프로젝트 구조](developer/project-structure.md) · [확장 API](developer/api-reference.md)
-- [Panel 추가](developer/adding-panels.md) · [Backend 추가](developer/adding-backends.md) · [Validation 추가](developer/adding-validation.md)
+- [Panel 추가](developer/adding-panels.md) · [Inspector 확장](developer/extending-the-inspector.md) · [Backend 추가](developer/adding-backends.md) · [Validation 추가](developer/adding-validation.md)
 - [직렬화](developer/serialization.md) · [코딩 규칙](developer/coding-conventions.md) · [테스트](developer/testing.md)
 - [Metadata Schema](developer/metadata-schema.md) — Screen, Metadata, Motion, Scenario, Flow와 Publish 참조 관계를 설명합니다.
 - [성능 측정](developer/performance.md) · [Git 협업](developer/git-workflow.md)

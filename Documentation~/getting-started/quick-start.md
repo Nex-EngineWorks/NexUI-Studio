@@ -26,7 +26,7 @@ Designer 상단 상태는 `Backend | Screen ID | Loaded/Unsaved/Saved | Valid/Wa
 3. **Designer Metadata 생성**, **Root 요소 생성**을 켜고 **생성하고 Designer에서 열기**를 누릅니다.
 4. UI Toolkit은 `.asset`, `.Metadata.asset`, `.uxml`, `.uss`가 생성됩니다. uGUI는 `.asset`, `.Metadata.asset`, `.prefab`이 생성됩니다.
 5. Left Sidebar의 **Components**에서 Button을 누릅니다. 새 Element가 Layers와 Canvas에 함께 나타나야 합니다.
-6. Right Inspector의 **Prototype > Binding**에서 Command Key를 입력합니다. 이 단계는 문자열 Key를 저장할 뿐 실제 Command를 만들지 않습니다.
+6. Right Inspector의 Workflow를 **Connect**로 바꾸고 **Binding** Section에서 Command Key를 입력합니다. 이 단계는 문자열 Key를 저장할 뿐 실제 Command를 만들지 않습니다.
 7. **Validate**, **Save** 순서로 실행합니다.
 
 Save Report에서 `Changed`는 기록된 에셋, `Skipped`는 의도적으로 쓰지 않은 항목, `Warning/Error`는 확인이 필요한 항목입니다. UI Toolkit의 Generated Marker가 없는 사용자 UXML은 보호를 위해 구조를 다시 쓰지 않습니다.

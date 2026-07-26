@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Commercial readiness
+- Added an in-editor AI Assistant with session/environment API key handling, current-screen context, bounded action-plan validation, explicit approval, destructive-action confirmation, and single-step Undo.
+- Replaced the split Design/Prototype/Motion Inspector with one searchable, foldout-based Inspector using workflow filters and Beginner/Pro progressive disclosure.
+- Added a public Inspector section registry and compatibility wrapper so Inspector extensions share one rendering path.
 - Added Setup Doctor for dependency, project asset, scene backend and writable-path checks.
 - Consolidated screen creation under `Tools/NexUI/Designer` and grouped beta graph tools as experimental utilities.
 - Added explicit Loaded/Unsaved/Saved and validation state to the Designer toolbar.
@@ -23,6 +26,7 @@
 - Added `DesignerMotionTriggerRuntime` for backend-neutral Click/Pointer/Focus subscription, lifecycle dispatch, Reduced Motion selection and deterministic disposal.
 
 ### Documentation
+- Added a Korean AI Assistant guide covering setup, privacy, supported actions, review/apply workflow, costs, limitations, and troubleshooting.
 - Expanded Korean onboarding, workflow, Scenario, Motion and troubleshooting guides.
 - Added Backend support, asset ownership, validation catalog, compatibility and metadata schema references.
 - Fixed outdated documentation links, menu paths and installation guidance.

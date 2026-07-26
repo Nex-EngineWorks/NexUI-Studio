@@ -25,7 +25,7 @@ Image Object Binding과 Collection Binding은 현재 Inspector에서 독립적�
 
 ## Designer에서 설정
 
-Element를 선택하고 Right Inspector의 **Prototype > Binding**을 엽니다. Binding Picker는 프로젝트에서 발견한 `IBindableProperty<T>` 후보를 보여 주고 Command Picker는 기본 Key와 다른 Metadata에서 사용 중인 Key를 보여 줍니다. Picker 결과는 Runtime 등록을 자동 생성하지 않습니다.
+Element를 선택하고 Right Inspector의 Workflow를 **Connect**로 바꾼 뒤 **Binding** Section을 엽니다. Binding Picker는 프로젝트에서 발견한 `IBindableProperty<T>` 후보를 보여 주고 Command Picker는 기본 Key와 다른 Metadata에서 사용 중인 Key를 보여 줍니다. Picker 결과는 Runtime 등록을 자동 생성하지 않습니다.
 
 Scenario 또는 Metadata의 Preview Text/Value/Visibility를 사용하면 게임 실행 없이 화면 상태를 점검할 수 있습니다. 이 값은 Runtime `UIStateStore`의 데이터가 아닙니다.
 

@@ -61,8 +61,11 @@ namespace emiteat.NexUI.Designer.Editor
                 "Packages/com.emiteat.nexui.designer/Editor/Styles/NexUIDesigner.uss");
             if (styleSheet != null && !rootVisualElement.styleSheets.Contains(styleSheet))
                 rootVisualElement.styleSheets.Add(styleSheet);
-            if (EditorStyles.label.font != null)
-                rootVisualElement.style.unityFont = EditorStyles.label.font;
+            // EditorStyles can be temporarily unavailable while an open Designer window is
+            // reconstructed during domain reload. USS still supplies a valid fallback font.
+            var labelStyle = EditorStyles.label;
+            if (labelStyle != null && labelStyle.font != null)
+                rootVisualElement.style.unityFont = labelStyle.font;
 
             rootVisualElement.Add(new NexUIDesignerShell(Context));
         }

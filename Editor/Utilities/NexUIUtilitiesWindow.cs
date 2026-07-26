@@ -18,6 +18,7 @@ namespace emiteat.NexUI.Designer.Editor.Utilities
         private readonly List<ToolEntry> _tools = new()
         {
             Header("utilities.category.workspace", "utilities.category.workspace.description"),
+            Window("aiAssistant", "emiteat.NexUI.Designer.Editor.AI.NexUIAIWindow, emiteat.NexUI.Designer.Editor", "ai assistant copilot chat prompt openai design generate edit 인공지능 채팅 생성 편집"),
             Window("setupDoctor", "emiteat.NexUI.Designer.Editor.Productivity.NexUISetupDoctorWindow, emiteat.NexUI.Designer.Editor", "doctor readiness dependency install setup 진단 준비 의존성 설치"),
             Window("projectSetup", "emiteat.NexUI.Editor.ProjectSetup.NexUIProjectSetupWindow, emiteat.NexUI.Editor.ProjectSetup", "setup defaults install 설정 기본 설치"),
             Action("projectSettings", () => SettingsService.OpenProjectSettings("Project/NexUI"), "settings preferences 설정 환경설정"),

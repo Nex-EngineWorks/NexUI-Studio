@@ -3,6 +3,7 @@ using emiteat.NexUI.Designer.Editor.Localization;
 using emiteat.NexUI.Designer.Editor.Utilities;
 using emiteat.NexUI.Designer.Editor.Productivity;
 using emiteat.NexUI.Designer.Editor.Scenario;
+using emiteat.NexUI.Designer.Editor.AI;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
@@ -65,6 +66,8 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             _status.AddToClassList("nexui-toolbar-status");
             Add(_status);
 
+            Add(MakeButton(NexUIAIWindow.Open, DesignerLocalization.T("ai.toolbar"),
+                DesignerLocalization.T("ai.toolbar.tooltip"), "nexui-button-secondary"));
             Add(MakeButton(NexUIUtilitiesWindow.Open, DesignerLocalization.T("utilities.title"),
                 DesignerLocalization.T("utilities.open.tooltip"), "nexui-button-secondary"));
             Add(MakeButton(context.ApplyMetadataToPreview, "Preview", DesignerLocalization.T("tooltip.toolbar.rebuild"), "nexui-button-secondary"));
@@ -73,7 +76,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
 
             void RefreshMode()
             {
-                mode.text = DesignerEditMode.IsAdvanced ? "Advanced" : "Simple";
+                mode.text = DesignerEditMode.IsAdvanced ? "Pro" : "Beginner";
             }
 
             void RefreshStatus()

@@ -32,7 +32,7 @@
 1. UI Toolkit Screen과 Metadata를 연결하고 **Validate**를 실행합니다.
 2. **Save** 후 Save Report의 Changed, Skipped, Warning, Error를 확인합니다.
 3. Screen만 `*.UGUI.asset`로 바꿔 같은 Metadata가 Prefab에 어떻게 반영되는지 비교합니다.
-4. Inventory Slot을 선택해 Prototype의 Binding/Command와 Motion 탭을 확인합니다.
+4. Inventory Slot을 선택해 Inspector의 **Connect** 필터에서 Binding/Command를, **Animate** 필터에서 Motion을 확인합니다.
 5. Import 복사본에서 Text나 Tint를 바꾸고 Undo/Redo, Save, Reload를 시험합니다.
 
 ## 수정해 볼 과제

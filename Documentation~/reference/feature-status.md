@@ -13,6 +13,8 @@
 | Scenario Apply/Timeline | 지원 | 공통 | 공통 | Bool/Number/Text/Sprite/List, Preview 환경 복원 |
 | Validation/Save Report | 지원 | 지원 | 지원 | 일부 프로젝트 계약은 Warning |
 | Setup Doctor | 지원 | 공통 | 공통 | 의존성·Registry·Scene Backend·출력 경로 검사 |
+| 통합 Inspector | 지원 | 공통 | 공통 | 검색, Workflow 필터, Beginner/Pro, Section 상태 보존 |
+| AI 어시스턴트 | Beta | 공통 | 공통 | Responses API, 계획 검증, 명시적 Apply, 단일 Undo; 실제 API 계정별 검증 필요 |
 | uGUI Prefab 저장 | 부분 지원 | 부분 지원 | 해당 없음 | 기본 Rect/Image/Text/Button/Fill |
 | UI Toolkit 일반 Save | 지원 | 해당 없음 | 지원 | Generated UXML/USS 안전 재생성, 사용자 파일 보존 |
 | `.g.uxml/.g.uss` 생성 | 지원 | 해당 없음 | 지원 | 별도 Generation 도구 |

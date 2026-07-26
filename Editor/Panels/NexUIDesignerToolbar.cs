@@ -72,10 +72,8 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             void RefreshEditModeLabel()
             {
                 var advanced = DesignerEditMode.IsAdvanced;
-                editModeToggle.text = advanced ? "Mode: Advanced" : "Mode: Simple";
-                // C3: "advanced option available" hint - subtle, so users discover Advanced
-                // mode organically instead of it being pushed on them.
-                editModeHint.text = advanced ? "" : "Theme/Motion/Policy hidden";
+                editModeToggle.text = advanced ? "Mode: Pro" : "Mode: Beginner";
+                editModeHint.text = advanced ? "" : DesignerLocalization.T("toolbar.modeHint");
                 editModeHint.style.display = advanced ? DisplayStyle.None : DisplayStyle.Flex;
             }
             RefreshEditModeLabel();

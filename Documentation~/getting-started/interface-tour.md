@@ -11,12 +11,13 @@ NexUI Designer는 `Tools > NexUI > Designer`에서 엽니다. 화면이 열리�
 
 ## Global Toolbar
 
-창의 가장 위에 있습니다. **+ 새 화면**, **Screen**, Backend 배지, **Scenario**, **Simple/Advanced**, 상태, **유틸리티**, **Preview**, **Validate**, **Save**가 있습니다.
+창의 가장 위에 있습니다. **+ 새 화면**, **Screen**, Backend 배지, **Scenario**, **Beginner/Pro**, 상태, **AI**, **유틸리티**, **Preview**, **Validate**, **Save**가 있습니다.
 
 - 새 작업은 **+ 새 화면**에서 시작합니다.
 - 기존 화면은 **Screen**에 `UIScreenDefinition`을 지정합니다.
 - **Scenario**는 선택한 Mock Data를 현재 Metadata Preview에 즉시 적용합니다.
 - 상태가 `Ready`가 아니면 **Validate** 후 Bottom Drawer의 Validation을 확인합니다.
+- **AI**는 현재 화면을 컨텍스트로 사용해 검토 가능한 편집 계획을 만듭니다. API 키 연결과 안전 범위는 [AI 어시스턴트](../user-guide/ai-assistant.md)를 참고하세요.
 
 Screen은 Runtime 화면 정의이고 Metadata는 제작 데이터입니다. 두 필드를 같은 에셋으로 착각하지 마세요. 자세한 책임은 [Screen과 Metadata](../user-guide/screen-and-metadata.md)를 참고하세요.
 
@@ -60,13 +61,14 @@ Canvas 상단의 `Design / Interactive` 전환은 역할이 다릅니다.
 
 ## Right Inspector
 
-오른쪽 열은 **Design**, **Prototype**, **Motion** 탭으로 구성됩니다.
+오른쪽 열은 선택한 Screen 또는 Element의 모든 편집 항목을 한 번에 보여 주는 통합 Inspector입니다. 탭을 오가며 속성을 찾는 대신 접이식 Section을 위에서 아래로 탐색합니다.
 
-- **Design**: Component, Layout, Auto Layout, Constraints, Style, Accessibility를 편집합니다.
-- **Prototype**: Binding, Command, State, Focus Navigation과 Validation을 확인합니다.
-- **Motion**: Element Motion, Screen Entry/Exit Clip과 Theme 정보를 편집합니다.
+- **검색**: `position`, `command`, `backend`처럼 속성 이름이나 역할을 입력해 관련 Section만 남깁니다.
+- **Workflow 필터**: `Build`, `Connect`, `Animate`, `Verify`, `Advanced`로 현재 작업에 필요한 Section만 집중해서 봅니다. `All`은 전체를 표시합니다.
+- **접기/펼치기**: Section별 상태가 Editor에 보존되어 자주 쓰는 구성을 유지합니다.
+- **Beginner/Pro**: Beginner는 필수·일반 Section을, Pro는 고급·진단 Section까지 표시합니다.
 
-선택이 없으면 Screen Inspector가 나타납니다. 여러 Element를 선택하면 공통 편집 UI가 나타납니다. Advanced Mode에서는 Capability, Policy 같은 추가 Inspector가 표시됩니다.
+선택이 없으면 Screen Inspector가 나타납니다. 하나를 선택하면 Component, Layout, Visual, Binding, Motion과 Validation이 같은 열에 나타납니다. 여러 Element를 선택하면 공통 편집 Section이 나타납니다. 모드나 필터를 바꿔도 데이터는 삭제되지 않습니다.
 
 ## Bottom Drawer
 
@@ -83,9 +85,9 @@ Motion Timeline 편집은 Utilities의 **Motion Clip Editor**에서 수행합니
 
 Designer에 초점을 둔 뒤 `Ctrl+K` 또는 `Ctrl+Shift+P`를 누릅니다. Save, Validate, Drawer 열기 같은 명령을 검색할 수 있습니다. 키 설정은 `Tools > NexUI > Designer > Preferences > 단축키 설정`에서 바꿉니다.
 
-## Simple Mode와 Advanced Mode
+## Beginner Mode와 Pro Mode
 
-Global Toolbar의 **Simple/Advanced** 버튼으로 전환합니다. Simple은 일반 화면 제작에 필요한 항목을 보여 줍니다. Advanced는 Capability와 Policy처럼 계약·확장 작업에 필요한 Inspector를 추가합니다. 데이터가 사라지는 모드가 아니라 표시 범위를 바꾸는 모드입니다.
+Global Toolbar 또는 Right Inspector의 **Beginner/Pro** 버튼으로 전환합니다. Beginner는 처음 화면을 만드는 데 필요한 항목을 우선 보여 줍니다. Pro는 Constraints, Theme, Policy와 Backend Capability 같은 계약·확장 Section을 추가합니다. 데이터가 사라지는 모드가 아니라 표시 범위를 바꾸는 모드입니다.
 
 ## Satellite Window
 
@@ -93,6 +95,6 @@ Motion Clip Editor, Motion Graph, Motion State Machine, Screen Flow, Scenario Ed
 
 ## 상태 저장
 
-Sidebar/Inspector/Bottom 탭, Bottom Drawer 높이와 열림 상태, 최근 Screen, 유효한 선택, Canvas Zoom/Scroll 일부는 Editor 상태로 복원됩니다. Domain Reload 후 존재하지 않는 Element ID는 선택으로 복원하지 않습니다.
+Sidebar/Bottom 탭, Inspector Section의 접힘 상태, Bottom Drawer 높이와 열림 상태, 최근 Screen, 유효한 선택, Canvas Zoom/Scroll 일부는 Editor 상태로 복원됩니다. Domain Reload 후 존재하지 않는 Element ID는 선택으로 복원하지 않습니다.
 
 다음 단계는 [빠른 시작](quick-start.md), [첫 번째 Screen 만들기](first-screen.md), [자주 사용하는 작업](../user-guide/common-workflows.md)을 따라가세요.
