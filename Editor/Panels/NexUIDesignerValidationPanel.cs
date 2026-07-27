@@ -2,6 +2,7 @@ using emiteat.NexUI.Designer.Editor.Localization;
 using emiteat.NexUI.Designer.Editor.Validation;
 using emiteat.NexUI.Designer.Editor;
 using UnityEditor;
+using UnityEngine;
 using UnityEngine.UIElements;
 using emiteat.NexUI.Designer.Editor.Productivity;
 using System.Linq;
@@ -83,6 +84,13 @@ namespace emiteat.NexUI.Designer.Editor.Panels
                     var asset = issue.Asset;
                     text.RegisterCallback<ClickEvent>(_ => EditorGUIUtility.PingObject(asset));
                 }
+                var captured = issue;
+                row.RegisterCallback<ContextClickEvent>(evt =>
+                {
+                    ShowIssueMenu(captured);
+                    evt.StopPropagation();
+                });
+
                 var fix = DesignerAutoFixService.GetFix(_context, issue);
                 if (fix != null)
                 {
@@ -97,6 +105,41 @@ namespace emiteat.NexUI.Designer.Editor.Panels
                 }
                 _list.Add(row);
             }
+        }
+
+        /// <summary>
+        /// Right-click menu for a Console entry, mirroring what Unity's Console offers on a log
+        /// line: copy the message, jump to what it is about, run the check again.
+        /// </summary>
+        private void ShowIssueMenu(DesignerValidationIssue issue)
+        {
+            var menu = new GenericMenu();
+
+            menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.console.copy")), false,
+                () => EditorGUIUtility.systemCopyBuffer = issue.ToString());
+            menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.console.copyAll")), false,
+                () => EditorGUIUtility.systemCopyBuffer =
+                    string.Join(System.Environment.NewLine, _context.ValidationIssues.Select(x => x.ToString())));
+            menu.AddSeparator("");
+
+            var elementId = issue.ElementId;
+            if (!string.IsNullOrEmpty(elementId))
+                menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.console.selectElement")), false,
+                    () => _context.SelectMetadata(elementId));
+            else
+                menu.AddDisabledItem(new GUIContent(DesignerLocalization.T("ctx.console.selectElement")));
+
+            var asset = issue.Asset;
+            if (asset != null)
+                menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.console.pingAsset")), false,
+                    () => EditorGUIUtility.PingObject(asset));
+            else
+                menu.AddDisabledItem(new GUIContent(DesignerLocalization.T("ctx.console.pingAsset")));
+
+            menu.AddSeparator("");
+            menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.console.revalidate")), false, _context.Validate);
+
+            menu.ShowAsContext();
         }
     }
 }

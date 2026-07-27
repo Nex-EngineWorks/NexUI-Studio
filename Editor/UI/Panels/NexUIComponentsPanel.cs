@@ -4,6 +4,7 @@ using emiteat.NexUI.Designer.Editor.Backend;
 using emiteat.NexUI.Designer.Editor.Localization;
 using UnityEditor;
 using UnityEditor.UIElements;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace emiteat.NexUI.Designer.Editor.UI.Panels
@@ -96,8 +97,42 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
             };
             button.AddToClassList("nexui-component-card");
             button.userData = label;
+            button.RegisterCallback<ContextClickEvent>(evt =>
+            {
+                ShowCardMenu(type);
+                evt.StopPropagation();
+            });
             _cards.Add(button);
             return button;
+        }
+
+        /// <summary>
+        /// Right-clicking a Library entry offers where to put it, mirroring how Unity's own
+        /// create menus distinguish "at the root" from "under the current selection".
+        /// </summary>
+        private void ShowCardMenu(DesignerElementType type)
+        {
+            var menu = new GenericMenu();
+            var canAdd = _context.Metadata != null;
+            var parent = _context.SelectedMetadata;
+
+            if (canAdd)
+                menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.library.add")), false,
+                    () => _context.CreateMetadataElement(type));
+            else
+                menu.AddDisabledItem(new GUIContent(DesignerLocalization.T("ctx.library.add")));
+
+            if (canAdd && parent != null)
+                menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.library.addAsChild")), false, () =>
+                    NexUIDesignerUndo.Group("Add NexUI Element As Child", () =>
+                    {
+                        var created = _context.CreateMetadataElement(type);
+                        if (created != null) _context.ReparentElement(created, parent);
+                    }));
+            else
+                menu.AddDisabledItem(new GUIContent(DesignerLocalization.T("ctx.library.addAsChild")));
+
+            menu.ShowAsContext();
         }
 
         private void RefreshFilter()

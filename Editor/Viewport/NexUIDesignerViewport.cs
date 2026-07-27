@@ -31,7 +31,6 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         private readonly VisualElement _elementLayer;
         private readonly VisualElement _guideLayer;
         private readonly VisualElement _selectionRectOverlay;
-        private readonly VisualElement _inlineMenuLayer;
         private readonly VisualElement _floatingToolbar;
         private readonly PopupField<string> _statePopup;
         private readonly Button _interactiveToggle;
@@ -154,9 +153,6 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _selectionRectOverlay.style.position = Position.Absolute;
             _selectionRectOverlay.style.display = DisplayStyle.None;
             _selectionRectOverlay.pickingMode = PickingMode.Ignore;
-            _inlineMenuLayer = new VisualElement();
-            _inlineMenuLayer.AddToClassList("nexui-inline-menu-layer");
-            _inlineMenuLayer.style.display = DisplayStyle.None;
             _floatingToolbar = new VisualElement();
             _floatingToolbar.AddToClassList("nexui-floating-toolbar");
             _floatingToolbar.style.display = DisplayStyle.None;
@@ -181,7 +177,6 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _previewCanvas.Add(_selectionRectOverlay);
             _previewCanvas.Add(_floatingToolbar);
             _previewCanvas.Add(_distanceLabel);
-            _previewCanvas.Add(_inlineMenuLayer);
             _previewCanvas.Add(_emptyState);
             _previewCanvas.Add(_dropHint);
             _previewFrame.Add(_previewCanvas);
@@ -192,7 +187,6 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _previewCanvas.RegisterCallback<PointerMoveEvent>(OnCanvasPointerMove);
             _previewCanvas.RegisterCallback<PointerUpEvent>(OnCanvasPointerUp);
             _previewCanvas.RegisterCallback<ContextClickEvent>(OnCanvasContextClick);
-            _previewCanvas.RegisterCallback<PointerDownEvent>(OnDismissInlineMenuPointerDown, TrickleDown.TrickleDown);
             _previewCanvas.RegisterCallback<DragUpdatedEvent>(OnCanvasDragUpdated);
             _previewCanvas.RegisterCallback<DragPerformEvent>(OnCanvasDragPerform);
             _previewCanvas.RegisterCallback<DragLeaveEvent>(_ => HideDropHint());
@@ -262,7 +256,6 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         {
             _elementLayer.Clear();
             _views.Clear();
-            HideInlineMenu();
 
             if (_context.Metadata == null || _context.Metadata.elements.Count == 0)
             {
@@ -791,7 +784,6 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         {
             Focus();
             if (evt.button != 0) return;
-            HideInlineMenu();
             if (evt.target != _previewCanvas && evt.target != _gridLayer && evt.target != _elementLayer) return;
 
             _boxSelectStart = _previewCanvas.WorldToLocal(evt.position);
@@ -877,65 +869,8 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         {
             var local = _previewCanvas.WorldToLocal(evt.mousePosition);
             var canvasPoint = local / Mathf.Max(0.01f, _context.Zoom);
-            ShowInlineMenu(local, canvasPoint);
+            NexUIDesignerContextMenu.ShowForCanvas(_context, canvasPoint, BeginRename, FitToView);
             evt.StopPropagation();
-        }
-
-        private void OnDismissInlineMenuPointerDown(PointerDownEvent evt)
-        {
-            if (_inlineMenuLayer.resolvedStyle.display == DisplayStyle.None) return;
-            if (IsInsideInlineMenu(evt.target as VisualElement)) return;
-            if (evt.button == 1) return;
-            HideInlineMenu();
-        }
-
-        private bool IsInsideInlineMenu(VisualElement target)
-        {
-            if (target == null || target == _inlineMenuLayer) return false;
-            while (target != null)
-            {
-                if (target.parent == _inlineMenuLayer) return true;
-                target = target.parent;
-            }
-            return false;
-        }
-
-        private void ShowInlineMenu(Vector2 localPoint, Vector2 canvasPoint)
-        {
-            _inlineMenuLayer.Clear();
-            _inlineMenuLayer.style.display = DisplayStyle.Flex;
-            _inlineMenuLayer.pickingMode = PickingMode.Position;
-
-            var hits = HitTestPoint(canvasPoint);
-            var panel = new VisualElement();
-            panel.AddToClassList("nexui-context-popover");
-            _inlineMenuLayer.Add(panel);
-
-            if (hits.Count == 0)
-                BuildCanvasInlineMenu(panel, canvasPoint);
-            else
-                BuildElementInlineMenu(panel, hits);
-
-            panel.RegisterCallback<GeometryChangedEvent>(_ => ClampInlineMenu(panel, localPoint));
-            ClampInlineMenu(panel, localPoint);
-        }
-
-        private void ClampInlineMenu(VisualElement panel, Vector2 localPoint)
-        {
-            var width = Mathf.Max(236f, panel.resolvedStyle.width);
-            var height = Mathf.Max(120f, panel.resolvedStyle.height);
-            var left = Mathf.Clamp(localPoint.x + 8f, 8f, Mathf.Max(8f, _previewCanvas.resolvedStyle.width - width - 8f));
-            var top = Mathf.Clamp(localPoint.y + 8f, 8f, Mathf.Max(8f, _previewCanvas.resolvedStyle.height - height - 8f));
-            panel.style.left = left;
-            panel.style.top = top;
-        }
-
-        private void HideInlineMenu()
-        {
-            if (_inlineMenuLayer == null) return;
-            _inlineMenuLayer.Clear();
-            _inlineMenuLayer.style.display = DisplayStyle.None;
-            _inlineMenuLayer.pickingMode = PickingMode.Ignore;
         }
 
         private List<DesignerElementMetadata> HitTestPoint(Vector2 point)
@@ -950,106 +885,6 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
                     result.Add(element);
             }
             return result;
-        }
-
-        private void BuildCanvasInlineMenu(VisualElement panel, Vector2 canvasPoint)
-        {
-            AddMenuHeader(panel, "Canvas", "Create or paste at " + Mathf.RoundToInt(canvasPoint.x) + ", " + Mathf.RoundToInt(canvasPoint.y));
-            var createGrid = AddMenuGrid(panel, "Create");
-            AddMenuButton(createGrid, "Panel", () => CreateAt(DesignerElementType.Panel, canvasPoint), true);
-            AddMenuButton(createGrid, "Button", () => CreateAt(DesignerElementType.Button, canvasPoint), true);
-            AddMenuButton(createGrid, "Text", () => CreateAt(DesignerElementType.Label, canvasPoint), true);
-            AddMenuButton(createGrid, "Image", () => CreateAt(DesignerElementType.Image, canvasPoint), true);
-
-            var editGrid = AddMenuGrid(panel, "Edit");
-            AddMenuButton(editGrid, "Paste", () => _context.PasteSelection(), _context.HasClipboard);
-            AddMenuButton(editGrid, "Select All", _context.SelectAll, _context.Metadata != null && _context.Metadata.elements.Count > 0);
-            AddMenuButton(editGrid, "Clear", _context.ClearSelection, _context.SelectedElements.Count > 0);
-        }
-
-        private void BuildElementInlineMenu(VisualElement panel, List<DesignerElementMetadata> hits)
-        {
-            if (hits.Count > 1)
-            {
-                AddMenuHeader(panel, "Pick Layer", hits.Count + " overlapping elements");
-                var hitList = new VisualElement();
-                hitList.AddToClassList("nexui-context-hit-list");
-                panel.Add(hitList);
-                foreach (var hit in hits)
-                {
-                    var captured = hit;
-                    AddMenuButton(hitList, Label(captured), () => _context.SelectMetadata(captured), true);
-                }
-            }
-
-            var primary = hits[0];
-            if (!_context.IsSelected(primary))
-                _context.SelectMetadata(primary);
-
-            AddMenuHeader(panel, Label(primary), primary.elementType + " / " + Mathf.RoundToInt(primary.rect.width) + "x" + Mathf.RoundToInt(primary.rect.height));
-
-            var quickGrid = AddMenuGrid(panel, "Quick");
-            AddMenuButton(quickGrid, "Rename", () => BeginRenameAndHide(primary), true);
-            AddMenuButton(quickGrid, "Copy", () => _context.CopySelection(), _context.SelectedElements.Count > 0);
-            AddMenuButton(quickGrid, "Duplicate", () => _context.DuplicateSelection(), _context.SelectedElements.Count > 0);
-            AddMenuButton(quickGrid, "Delete", () => _context.DeleteSelection(), _context.SelectedElements.Count > 0, "is-danger");
-
-            var layerGrid = AddMenuGrid(panel, "Layer");
-            AddMenuButton(layerGrid, "Forward", _context.BringSelectionForward, _context.SelectedElements.Count > 0);
-            AddMenuButton(layerGrid, "Backward", _context.SendSelectionBackward, _context.SelectedElements.Count > 0);
-            AddMenuButton(layerGrid, "To Front", _context.BringSelectionToFront, _context.SelectedElements.Count > 0);
-            AddMenuButton(layerGrid, "To Back", _context.SendSelectionToBack, _context.SelectedElements.Count > 0);
-
-            var alignGrid = AddMenuGrid(panel, "Align");
-            AddMenuButton(alignGrid, "Left", () => _context.AlignSelection("left"), true);
-            AddMenuButton(alignGrid, "Center X", () => _context.AlignSelection("centerX"), true);
-            AddMenuButton(alignGrid, "Right", () => _context.AlignSelection("right"), true);
-            AddMenuButton(alignGrid, "Top", () => _context.AlignSelection("top"), true);
-            AddMenuButton(alignGrid, "Center Y", () => _context.AlignSelection("centerY"), true);
-            AddMenuButton(alignGrid, "Bottom", () => _context.AlignSelection("bottom"), true);
-
-            var arrangeGrid = AddMenuGrid(panel, "Group & Motion");
-            AddMenuButton(arrangeGrid, "Group", () => _context.GroupSelection(), _context.SelectedElements.Count >= 2);
-            AddMenuButton(arrangeGrid, "Ungroup", () => _context.UngroupSelection(), _context.GetChildren(primary).Count > 0);
-            AddMenuButton(arrangeGrid, "Motion Clip", () => MotionClipEditorWindow.Open(_context.PreviewSurface, primary.elementId), true);
-        }
-
-        private static void AddMenuHeader(VisualElement panel, string title, string subtitle)
-        {
-            var header = new VisualElement();
-            header.AddToClassList("nexui-context-header");
-            header.Add(new Label(title) { name = "ContextTitle" });
-            header.Add(new Label(subtitle) { name = "ContextSubtitle" });
-            panel.Add(header);
-        }
-
-        private static VisualElement AddMenuGrid(VisualElement panel, string label)
-        {
-            var group = new VisualElement();
-            group.AddToClassList("nexui-context-group");
-            group.Add(new Label(label) { name = "ContextGroupLabel" });
-            var grid = new VisualElement();
-            grid.AddToClassList("nexui-context-grid");
-            group.Add(grid);
-            panel.Add(group);
-            return grid;
-        }
-
-        private void AddMenuButton(VisualElement parent, string label, System.Action action, bool enabled, string extraClass = null)
-        {
-            var button = new Button(() =>
-            {
-                action?.Invoke();
-                HideInlineMenu();
-            })
-            {
-                text = label
-            };
-            button.SetEnabled(enabled);
-            button.AddToClassList("nexui-context-button");
-            if (!string.IsNullOrEmpty(extraClass))
-                button.AddToClassList(extraClass);
-            parent.Add(button);
         }
 
         private static string Label(DesignerElementMetadata element)
@@ -1195,22 +1030,6 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         }
 
         private void HideDropHint() => _dropHint.style.display = DisplayStyle.None;
-
-        private void CreateAt(DesignerElementType type, Vector2 canvasPoint)
-        {
-            var element = _context.CreateMetadataElement(type);
-            if (element == null) return;
-            var r = element.rect;
-            r.position = canvasPoint;
-            _context.UpdateSelectedRect(r);
-        }
-
-        private void BeginRenameAndHide(DesignerElementMetadata element)
-        {
-            HideInlineMenu();
-            BeginRename(element);
-        }
-
         private void BeginRename(DesignerElementMetadata element)
         {
             if (element == null || !_views.TryGetValue(element, out var view)) return;

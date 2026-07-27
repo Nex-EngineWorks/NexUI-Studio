@@ -192,6 +192,11 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
                 {
                     if (evt.clickCount >= 1) Navigate(entry.Path);
                 });
+                row.RegisterCallback<ContextClickEvent>(evt =>
+                {
+                    ShowEntryMenu(entry, null);
+                    evt.StopPropagation();
+                });
                 row.tooltip = entry.Path;
                 _rows.Add(row);
                 return row;
@@ -234,8 +239,55 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
             });
             row.RegisterCallback<PointerUpEvent>(_ => _pointerDownAsset = null);
 
+            row.RegisterCallback<ContextClickEvent>(evt =>
+            {
+                ShowEntryMenu(entry, asset);
+                evt.StopPropagation();
+            });
+
             _rows.Add(row);
             return row;
+        }
+
+        /// <summary>
+        /// Right-click menu for an asset row. Deliberately limited to Unity's own read-only
+        /// Project-window verbs - the panel is a picker, and rename/move/delete belong to the real
+        /// Project window along with their safety rules (see the class summary).
+        /// </summary>
+        private void ShowEntryMenu(DesignerAssetEntry entry, Object asset)
+        {
+            var menu = new GenericMenu();
+
+            if (entry.IsFolder)
+            {
+                menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.asset.open")), false, () => Navigate(entry.Path));
+            }
+            else if (asset != null)
+            {
+                menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.asset.open")), false, () => AssetDatabase.OpenAsset(asset));
+                menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.asset.showInProject")), false, () =>
+                {
+                    Selection.activeObject = asset;
+                    EditorGUIUtility.PingObject(asset);
+                });
+            }
+            else
+            {
+                menu.AddDisabledItem(new GUIContent(DesignerLocalization.T("ctx.asset.open")));
+            }
+
+            menu.AddSeparator("");
+            menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.asset.copyPath")), false,
+                () => EditorGUIUtility.systemCopyBuffer = entry.Path);
+            menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.asset.copyGuid")), false,
+                () => EditorGUIUtility.systemCopyBuffer = AssetDatabase.AssetPathToGUID(entry.Path));
+            menu.AddSeparator("");
+            menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.asset.showInExplorer")), false,
+                () => EditorUtility.RevealInFinder(entry.Path));
+            menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.asset.revealFolder")), false,
+                () => Navigate(DesignerAssetBrowser.ParentFolder(entry.Path)));
+
+            menu.ShowAsContext();
         }
 
         private void SetSelectedRow(VisualElement selected)

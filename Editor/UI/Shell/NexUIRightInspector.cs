@@ -4,6 +4,7 @@ using emiteat.NexUI.Designer.Editor.Inspectors;
 using emiteat.NexUI.Designer.Editor.Localization;
 using UnityEditor;
 using UnityEditor.UIElements;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace emiteat.NexUI.Designer.Editor.UI.Shell
@@ -167,6 +168,11 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             foldout.AddToClassList("workflow-" + descriptor.Workflow.ToString().ToLowerInvariant());
             foldout.tooltip = descriptor.Keywords;
             foldout.RegisterValueChangedCallback(evt => EditorPrefs.SetBool(FoldoutPrefPrefix + descriptor.Id, evt.newValue));
+            foldout.RegisterCallback<ContextClickEvent>(evt =>
+            {
+                ShowSectionMenu();
+                evt.StopPropagation();
+            });
 
             var content = descriptor.Create(_context);
             var duplicateTitle = content.Q<Label>("SectionTitle");
@@ -184,6 +190,46 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
 
         private static bool DefaultExpanded(DesignerInspectorSectionDescriptor descriptor)
             => descriptor.Exposure == DesignerInspectorExposure.Essential;
+
+        /// <summary>
+        /// Right-click menu on a section header. Unity's component headers offer the same kind of
+        /// bulk foldout control; here it also clears the search/workflow filter, which is the
+        /// usual reason a section the user expected is not on screen.
+        /// </summary>
+        private void ShowSectionMenu()
+        {
+            var menu = new GenericMenu();
+            menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.inspector.expandAll")), false, () => SetAllSections(true));
+            menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.inspector.collapseAll")), false, () => SetAllSections(false));
+            menu.AddSeparator("");
+
+            var hasFilter = !string.IsNullOrEmpty(_search.value) || _workflow.value != DesignerInspectorWorkflow.All;
+            if (hasFilter)
+                menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.inspector.resetFilters")), false, () =>
+                {
+                    _search.SetValueWithoutNotify(string.Empty);
+                    _workflow.SetValueWithoutNotify(DesignerInspectorWorkflow.All);
+                    RebuildSections();
+                });
+            else
+                menu.AddDisabledItem(new GUIContent(DesignerLocalization.T("ctx.inspector.resetFilters")));
+
+            menu.AddSeparator("");
+            var advanced = DesignerEditMode.IsAdvanced;
+            menu.AddItem(new GUIContent(DesignerLocalization.T("shell.mode.normal")), !advanced,
+                () => DesignerEditMode.Current = DesignerMode.Simple);
+            menu.AddItem(new GUIContent(DesignerLocalization.T("shell.mode.advanced")), advanced,
+                () => DesignerEditMode.Current = DesignerMode.Advanced);
+
+            menu.ShowAsContext();
+        }
+
+        private void SetAllSections(bool expanded)
+        {
+            foreach (var descriptor in DesignerInspectorRegistry.All)
+                EditorPrefs.SetBool(FoldoutPrefPrefix + descriptor.Id, expanded);
+            RebuildSections();
+        }
 
         private void RefreshHeader()
         {

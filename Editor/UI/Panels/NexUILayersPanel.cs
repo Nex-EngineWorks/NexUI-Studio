@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using emiteat.NexUI.Designer.Editor.Localization;
+using emiteat.NexUI.Designer.Editor.Viewport;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -50,7 +51,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
             });
             Add(_search);
 
-            _empty = new Label("Select a Metadata asset to show layers.");
+            _empty = new Label(DesignerLocalization.T("shell.hierarchy.empty.noMetadata"));
             _empty.AddToClassList("nexui-empty-note");
             Add(_empty);
 
@@ -62,6 +63,14 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
             // Drop on empty space below the rows ⇒ move to root.
             _list.RegisterCallback<PointerMoveEvent>(OnListDragMove);
             _list.RegisterCallback<PointerUpEvent>(OnListDragEnd);
+
+            // Right-clicking empty space offers the create/paste menu, like Unity's Hierarchy.
+            // Rows stop the event themselves, so this only ever fires on the background.
+            _list.RegisterCallback<ContextClickEvent>(evt =>
+            {
+                NexUIDesignerContextMenu.ShowForHierarchyBackground(_context, ExpandAll, CollapseAll);
+                evt.StopPropagation();
+            });
 
             var subscriptions = new ContextBoundSubscriptions(this);
             subscriptions.Add<DesignerMetadataAsset>(h => context.MetadataChanged += h, h => context.MetadataChanged -= h, _ => { LoadCollapsedState(); Refresh(); });
@@ -96,6 +105,24 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
         internal void ToggleCollapsed(string elementId)
         {
             if (!_collapsed.Remove(elementId)) _collapsed.Add(elementId);
+            SaveCollapsedState();
+            Refresh();
+        }
+
+        internal void ExpandAll()
+        {
+            if (_collapsed.Count == 0) return;
+            _collapsed.Clear();
+            SaveCollapsedState();
+            Refresh();
+        }
+
+        internal void CollapseAll()
+        {
+            if (_context.Metadata == null) return;
+            foreach (var element in _context.Metadata.elements)
+                if (element != null && DesignerHierarchyUtility.CountChildren(_context.Metadata, element) > 0)
+                    _collapsed.Add(element.elementId);
             SaveCollapsedState();
             Refresh();
         }
@@ -422,33 +449,11 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
 
         private void OnContext(ContextClickEvent evt)
         {
-            var menu = new GenericMenu();
-            menu.AddItem(new GUIContent("Select"), false, () => _context.SelectMetadata(_element));
-            menu.AddItem(new GUIContent("Select Parent"), false, () => _context.SelectParent(_element));
-            menu.AddItem(new GUIContent("Select Children"), false, () => _context.SelectChildren(_element));
-            menu.AddItem(new GUIContent("Set Key Object"), _context.KeyObject == _element, () => _context.SetKeyObject(_element));
-            menu.AddSeparator("");
-            menu.AddItem(new GUIContent("Move to Root"), false, () => _context.MoveToRoot(_element));
-            menu.AddItem(new GUIContent("Wrap in Container"), false, () => _context.WrapSelectionInContainer());
-            if (_context.SelectedElements.Count > 1)
-                menu.AddItem(new GUIContent("Group"), false, () => _context.GroupSelection());
-            else
-                menu.AddDisabledItem(new GUIContent("Group"));
-            if (DesignerHierarchyUtility.CountChildren(_context.Metadata, _element) > 0)
-                menu.AddItem(new GUIContent("Ungroup"), false, () => { _context.SelectMetadata(_element); _context.UngroupSelection(); });
-            else
-                menu.AddDisabledItem(new GUIContent("Ungroup"));
-            menu.AddSeparator("");
-            menu.AddItem(new GUIContent("Duplicate"), false, () => _context.DuplicateSelection());
-            menu.AddItem(new GUIContent("Delete (with children)"), false, () => { EnsureSelected(); _context.DeleteSelectedMetadata(true); });
-            menu.AddItem(new GUIContent("Delete (keep children)"), false, () => { EnsureSelected(); _context.DeleteSelectedMetadata(false); });
-            menu.ShowAsContext();
+            // The same menu the canvas shows for this element, so an action is never available in
+            // one panel and missing in the other, plus the tree-only expand/collapse commands.
+            NexUIDesignerContextMenu.ShowForElement(_context, _element, _ => BeginRename(),
+                expandAll: _panel.ExpandAll, collapseAll: _panel.CollapseAll);
             evt.StopPropagation();
-        }
-
-        private void EnsureSelected()
-        {
-            if (!_context.IsSelected(_element)) _context.SelectMetadata(_element);
         }
 
         // ---- drag ----

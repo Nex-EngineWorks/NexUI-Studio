@@ -1441,17 +1441,12 @@
 
 .nexui-grid-layer,
 .nexui-element-layer,
-.nexui-guide-layer,
-.nexui-inline-menu-layer {
+.nexui-guide-layer {
     position: absolute;
     left: 0;
     top: 0;
     right: 0;
     bottom: 0;
-}
-
-.nexui-inline-menu-layer {
-    background-color: rgba(4, 5, 7, 0.16);
 }
 
 .nexui-grid-layer {
@@ -1948,110 +1943,6 @@
     border-color: #43e6c2;
     border-radius: 6px;
     padding: 2px 4px;
-}
-
-/* ---------------------------------------------------------------------------- inline context popover */
-
-.nexui-context-popover {
-    position: absolute;
-    width: 268px;
-    max-width: 268px;
-    padding: 8px;
-    border-radius: 8px;
-    border-width: 1px;
-    border-color: #3a3f49;
-    background-color: #15171c;
-}
-
-.nexui-context-header {
-    padding-left: 4px;
-    padding-right: 4px;
-    padding-bottom: 6px;
-    margin-bottom: 6px;
-    border-bottom-width: 1px;
-    border-bottom-color: #282d35;
-}
-
-#ContextTitle {
-    color: #f5f6f8;
-    font-size: 12px;
-    -unity-font-style: bold;
-    white-space: nowrap;
-}
-
-#ContextSubtitle {
-    color: #8a909b;
-    font-size: 10px;
-    margin-top: 1px;
-    white-space: nowrap;
-}
-
-.nexui-context-group {
-    margin-bottom: 7px;
-}
-
-#ContextGroupLabel {
-    color: #7b8492;
-    font-size: 9px;
-    -unity-font-style: bold;
-    margin-left: 3px;
-    margin-bottom: 3px;
-}
-
-.nexui-context-grid {
-    flex-direction: row;
-    flex-wrap: wrap;
-}
-
-.nexui-context-hit-list {
-    margin-bottom: 8px;
-    max-height: 92px;
-}
-
-.nexui-context-hit-list .nexui-context-button {
-    width: 100%;
-}
-
-.nexui-context-button {
-    width: 122px;
-    height: 24px;
-    margin-right: 4px;
-    margin-bottom: 4px;
-    padding-left: 7px;
-    padding-right: 7px;
-    border-radius: 6px;
-    border-width: 1px;
-    border-color: #303640;
-    background-color: #20242b;
-    color: #d7dbe2;
-    font-size: 10px;
-    -unity-text-align: middle-center;
-}
-
-.nexui-context-button:hover {
-    border-color: #43e6c2;
-    background-color: #28313a;
-}
-
-.nexui-context-button:active {
-    background-color: #1f3b39;
-}
-
-.nexui-context-button:disabled {
-    color: #616a76;
-    border-color: #242932;
-    background-color: #181b20;
-}
-
-.nexui-context-button.is-danger {
-    color: #fecaca;
-    border-color: #553035;
-    background-color: #31191d;
-}
-
-.nexui-context-button.is-danger:hover {
-    border-color: #f87171;
-    background-color: #442025;
 }
 
 .nexui-multiselect-summary {
