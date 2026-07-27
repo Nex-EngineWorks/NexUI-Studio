@@ -20,14 +20,19 @@
 | Variant / Responsive | 부분 지원 | 지원 | 부분 지원 | Metadata만 | 부분 지원 | 실제 해상도 확인 |
 | Scenario | 지원 | 별도 Asset | 해당 없음 | 해당 없음 | 해당 없음 | Preview 전용 |
 | Preview State | 지원 | Preview만 | 해당 없음 | 해당 없음 | 해당 없음 | Runtime 상태와 별개 |
+| 재사용 Component | 지원 | 참조 + Override | 전개 후 저장 | 전개 후 Metadata | 전개 후 지원 | 전개된 Element 기준 |
 
 ## uGUI Save
 
-Backend Asset은 Prefab이어야 합니다. Serializer는 Element 이름으로 대상을 찾고 Rect, 계층, 일부 Graphic/Text/Button/Auto Layout을 반영합니다. 지원하지 않는 컴포넌트나 Preview 전용 값은 Save Report의 **Skipped** 또는 Warning으로 남습니다. Prefab에 같은 이름이 중복되면 이름 기반 매칭이 불안정합니다.
+Backend Asset은 Prefab이어야 합니다. Serializer는 **Stable ID를 우선**으로 대상 Object를 찾습니다. Designer가 만든 Object에는 Stable Identity Tag가 붙어 있고, Tag가 없는 기존 Prefab은 Element 이름으로 fallback 매칭한 뒤 찾은 Object에 Tag를 붙입니다. 그래서 Object 이름을 바꿔도 연결이 유지됩니다.
+
+연결된 대상에 Rect, 계층, 일부 Graphic/Text/Button/Auto Layout을 반영합니다. 지원하지 않는 컴포넌트나 Preview 전용 값은 Save Report의 **Skipped** 또는 Warning으로 남습니다. Prefab 안에서 Stable ID가 중복되면(`duplicate-prefab-stable-id`) 해당 Element는 적용하지 않고 오류로 보고합니다 — 잘못된 Object에 쓰는 것보다 안전하기 때문입니다.
 
 ## UI Toolkit 일반 Save
 
 일반 Save는 Metadata와 Screen Definition을 저장하지만, 사용자가 UI Builder에서 만든 UXML을 임의로 다시 쓰지 않습니다. UXML의 named `VisualElement`와 Metadata Element ID 불일치를 검사합니다. 즉, 일반 Save만 누르고 수동 UXML 구조가 바뀔 것으로 기대하면 안 됩니다.
+
+예외가 하나 있습니다. 대상 UXML이 **Generated Marker를 가진 파일**이면 일반 Save가 `.uxml`/`.uss`를 다시 생성합니다. Designer가 만든 생성물이므로 안전하며, Marker가 없는 사용자 파일에는 해당하지 않습니다.
 
 ## Generated UXML/USS
 

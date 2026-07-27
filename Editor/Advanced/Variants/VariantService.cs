@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using emiteat.NexUI.Core;
+using emiteat.NexUI.Designer.Editor.Properties;
 
 namespace emiteat.NexUI.Designer.Editor.Variants
 {
@@ -33,6 +34,8 @@ namespace emiteat.NexUI.Designer.Editor.Variants
                 copy.overrides.Add(new DesignerVariantOverrideMetadata
                 {
                     targetElementId = o.targetElementId,
+                    propertyId = o.propertyId,
+                    typedValue = o.typedValue?.Clone(),
                     propertyPath = o.propertyPath,
                     value = o.value
                 });
@@ -51,8 +54,8 @@ namespace emiteat.NexUI.Designer.Editor.Variants
                     overrides.Add(new UIScreenVariantOverride
                     {
                         targetElementId = o.targetElementId,
-                        propertyPath = o.propertyPath,
-                        value = o.value
+                        propertyPath = DesignerPropertyRegistry.EffectivePath(o.propertyId, o.propertyPath),
+                        value = DesignerPropertyRegistry.EffectiveValue(o.propertyId, o.typedValue, o.value)
                     });
                 result.Add(new UIScreenVariant
                 {
@@ -91,8 +94,10 @@ namespace emiteat.NexUI.Designer.Editor.Variants
                 {
                     if (string.IsNullOrEmpty(o.targetElementId) || asset.Find(o.targetElementId) == null)
                         messages.Add($"• {v.variantId}: unknown elementId '{o.targetElementId}'");
-                    if (string.IsNullOrEmpty(o.propertyPath))
+                    if (o.propertyId == DesignerPropertyId.None && string.IsNullOrEmpty(o.propertyPath))
                         messages.Add($"• {v.variantId}: empty propertyPath");
+                    else if (o.propertyId == DesignerPropertyId.None && DesignerPropertyRegistry.ResolveLegacyPath(o.propertyPath) == DesignerPropertyId.None)
+                        messages.Add($"• {v.variantId}: legacy/unknown propertyPath '{o.propertyPath}'");
                 }
             }
 
@@ -128,7 +133,8 @@ namespace emiteat.NexUI.Designer.Editor.Variants
             var map = new Dictionary<string, string>();
             if (v?.overrides == null) return map;
             foreach (var o in v.overrides)
-                map[$"{o.targetElementId}.{o.propertyPath}"] = o.value;
+                map[$"{o.targetElementId}.{DesignerPropertyRegistry.EffectivePath(o.propertyId, o.propertyPath)}"] =
+                    DesignerPropertyRegistry.EffectiveValue(o.propertyId, o.typedValue, o.value);
             return map;
         }
     }

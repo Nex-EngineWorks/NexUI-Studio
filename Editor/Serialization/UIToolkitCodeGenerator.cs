@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text;
 using UnityEngine;
 using Unity.Profiling;
+using emiteat.NexUI.Designer.Editor.Properties;
 
 namespace emiteat.NexUI.Designer.Editor.Serialization
 {
@@ -104,13 +105,15 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
 
             if (HasText(element.elementType))
             {
-                sb.Append("    color: ").Append(Rgba(element.textColor)).AppendLine(";");
-                sb.Append("    font-size: ").Append(element.fontSize).AppendLine("px;");
+                AppendTypography(sb, element);
             }
             else
             {
-                sb.Append("    background-color: ").Append(Rgba(element.tint)).AppendLine(";");
+                sb.Append("    background-color: ").Append(Rgba(DesignerPropertyAdapter.BackgroundColor(element))).AppendLine(";");
             }
+
+            AppendTypedLayout(sb, element);
+            AppendVisualStyle(sb, element);
 
             // This element is itself an Auto Layout container: arrange its children with flex.
             if (element.autoLayout != null && element.autoLayout.enabled)
@@ -123,15 +126,137 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 sb.Append("    padding: ")
                   .Append(Px(al.paddingTop)).Append(' ').Append(Px(al.paddingRight)).Append(' ')
                   .Append(Px(al.paddingBottom)).Append(' ').Append(Px(al.paddingLeft)).AppendLine(";");
+                var layoutStyle = DesignerPropertyAdapter.Layout(element);
+                sb.Append("    flex-wrap: ").Append(layoutStyle.wrap == DesignerLayoutWrap.Wrap ? "wrap" : "nowrap").AppendLine(";");
+                sb.Append("    align-items: ").Append(Align(layoutStyle.align)).AppendLine(";");
+                sb.Append("    justify-content: ").Append(Justify(layoutStyle.justify)).AppendLine(";");
             }
 
-            if (element.hiddenInDesigner)
+            if (!element.runtimeVisible)
                 sb.AppendLine("    display: none;");
-            if (element.clipChildren)
+            if (DesignerPropertyAdapter.Clip(element))
                 sb.AppendLine("    overflow: hidden;");
 
             sb.AppendLine("}");
         }
+
+        private static void AppendTypedLayout(StringBuilder sb, DesignerElementMetadata element)
+        {
+            var layout = DesignerPropertyAdapter.Layout(element);
+            if (!layout.hasOverrides) return;
+            if (layout.minSize.x > 0f) sb.Append("    min-width: ").Append(Px(layout.minSize.x)).AppendLine(";");
+            if (layout.minSize.y > 0f) sb.Append("    min-height: ").Append(Px(layout.minSize.y)).AppendLine(";");
+            if (layout.maxSize.x > 0f) sb.Append("    max-width: ").Append(Px(layout.maxSize.x)).AppendLine(";");
+            if (layout.maxSize.y > 0f) sb.Append("    max-height: ").Append(Px(layout.maxSize.y)).AppendLine(";");
+            if (layout.marginLeft != 0f) sb.Append("    margin-left: ").Append(Px(layout.marginLeft)).AppendLine(";");
+            if (layout.marginTop != 0f) sb.Append("    margin-top: ").Append(Px(layout.marginTop)).AppendLine(";");
+            if (layout.marginRight != 0f) sb.Append("    margin-right: ").Append(Px(layout.marginRight)).AppendLine(";");
+            if (layout.marginBottom != 0f) sb.Append("    margin-bottom: ").Append(Px(layout.marginBottom)).AppendLine(";");
+            sb.Append("    transform-origin: ")
+              .Append((layout.pivot.x * 100f).ToString("0.###", CultureInfo.InvariantCulture)).Append("% ")
+              .Append(((1f - layout.pivot.y) * 100f).ToString("0.###", CultureInfo.InvariantCulture)).AppendLine("%;");
+            if (!Mathf.Approximately(layout.rotation, 0f))
+                sb.Append("    rotate: ").Append(layout.rotation.ToString("0.###", CultureInfo.InvariantCulture)).AppendLine("deg;");
+            if (layout.scale != Vector2.one)
+                sb.Append("    scale: ").Append(layout.scale.x.ToString("0.###", CultureInfo.InvariantCulture)).Append(' ')
+                  .Append(layout.scale.y.ToString("0.###", CultureInfo.InvariantCulture)).AppendLine(";");
+        }
+
+        private static void AppendVisualStyle(StringBuilder sb, DesignerElementMetadata element)
+        {
+            var visual = DesignerPropertyAdapter.Visual(element);
+            if (!visual.hasOverrides) return;
+            if (visual.borderWidth > 0f)
+            {
+                foreach (var side in new[] { "left", "top", "right", "bottom" })
+                {
+                    sb.Append("    border-").Append(side).Append("-width: ").Append(Px(visual.borderWidth)).AppendLine(";");
+                    sb.Append("    border-").Append(side).Append("-color: ").Append(Rgba(visual.borderColor)).AppendLine(";");
+                }
+            }
+            var radius = DesignerPropertyAdapter.CornerRadius(element);
+            if (radius > 0f)
+            {
+                sb.Append("    border-top-left-radius: ").Append(Px(radius)).AppendLine(";");
+                sb.Append("    border-top-right-radius: ").Append(Px(radius)).AppendLine(";");
+                sb.Append("    border-bottom-left-radius: ").Append(Px(radius)).AppendLine(";");
+                sb.Append("    border-bottom-right-radius: ").Append(Px(radius)).AppendLine(";");
+            }
+            if (visual.opacity < 1f)
+                sb.Append("    opacity: ").Append(Mathf.Clamp01(visual.opacity).ToString("0.###", CultureInfo.InvariantCulture)).AppendLine(";");
+            if (visual.outlineWidth > 0f)
+            {
+                sb.Append("    -unity-text-outline-width: ").Append(Px(visual.outlineWidth)).AppendLine(";");
+                sb.Append("    -unity-text-outline-color: ").Append(Rgba(visual.outlineColor)).AppendLine(";");
+            }
+            if (element.previewImage != null)
+            {
+                sb.Append("    -unity-background-scale-mode: ").Append(ImageScaleMode(visual.imageFit)).AppendLine(";");
+                if (visual.imageSlice)
+                {
+                    var border = element.previewImage.border;
+                    sb.Append("    -unity-slice-left: ").Append(Px(border.x)).AppendLine(";");
+                    sb.Append("    -unity-slice-bottom: ").Append(Px(border.y)).AppendLine(";");
+                    sb.Append("    -unity-slice-right: ").Append(Px(border.z)).AppendLine(";");
+                    sb.Append("    -unity-slice-top: ").Append(Px(border.w)).AppendLine(";");
+                }
+            }
+        }
+
+        private static void AppendTypography(StringBuilder sb, DesignerElementMetadata element)
+        {
+            var typography = DesignerPropertyAdapter.Typography(element);
+            sb.Append("    color: ").Append(Rgba(DesignerPropertyAdapter.TextColor(element))).AppendLine(";");
+            sb.Append("    font-size: ").Append(Px(DesignerPropertyAdapter.FontSize(element))).AppendLine(";");
+            if (!typography.hasOverrides) return;
+            sb.Append("    -unity-font-style: ").Append(FontStyle(typography)).AppendLine(";");
+            sb.Append("    -unity-text-align: ").Append(TextAlign(typography.alignment)).AppendLine(";");
+            sb.Append("    white-space: ").Append(typography.wrapping ? "normal" : "nowrap").AppendLine(";");
+            sb.Append("    overflow: ").Append(typography.overflow == DesignerTextOverflow.Overflow ? "visible" : "hidden").AppendLine(";");
+            if (typography.ellipsis || typography.overflow == DesignerTextOverflow.Ellipsis)
+                sb.AppendLine("    text-overflow: ellipsis;");
+            if (typography.lineHeight > 0f) sb.Append("    line-height: ").Append(typography.lineHeight.ToString("0.###", CultureInfo.InvariantCulture)).AppendLine("em;");
+            if (typography.letterSpacing != 0f) sb.Append("    letter-spacing: ").Append(Px(typography.letterSpacing)).AppendLine(";");
+            if (typography.textShadow)
+                sb.Append("    text-shadow: ").Append(Px(typography.shadowOffset.x)).Append(' ').Append(Px(typography.shadowOffset.y))
+                  .Append(" 0 ").Append(Rgba(typography.shadowColor)).AppendLine(";");
+            if (typography.outlineWidth > 0f)
+            {
+                sb.Append("    -unity-text-outline-width: ").Append(Px(typography.outlineWidth)).AppendLine(";");
+                sb.Append("    -unity-text-outline-color: ").Append(Rgba(typography.outlineColor)).AppendLine(";");
+            }
+        }
+
+        private static string Align(DesignerLayoutAlignment value)
+            => value == DesignerLayoutAlignment.Center ? "center" : value == DesignerLayoutAlignment.End ? "flex-end" : value == DesignerLayoutAlignment.Stretch ? "stretch" : "flex-start";
+
+        private static string Justify(DesignerJustifyContent value)
+        {
+            switch (value)
+            {
+                case DesignerJustifyContent.Center: return "center";
+                case DesignerJustifyContent.End: return "flex-end";
+                case DesignerJustifyContent.SpaceBetween: return "space-between";
+                case DesignerJustifyContent.SpaceAround: return "space-around";
+                default: return "flex-start";
+            }
+        }
+
+        private static string ImageScaleMode(DesignerImageFit value)
+            => value == DesignerImageFit.Cover ? "scale-and-crop" : value == DesignerImageFit.Stretch ? "stretch-to-fill" : "scale-to-fit";
+
+        private static string FontStyle(DesignerTypographyMetadata typography)
+        {
+            var bold = typography.fontWeight >= DesignerFontWeight.SemiBold || (typography.fontStyle & DesignerFontStyle.Bold) != 0;
+            var italic = (typography.fontStyle & DesignerFontStyle.Italic) != 0;
+            if (bold && italic) return "bold-and-italic";
+            if (bold) return "bold";
+            if (italic) return "italic";
+            return "normal";
+        }
+
+        private static string TextAlign(DesignerTextAlignment value)
+            => value.ToString().Replace("Upper", "upper-").Replace("Middle", "middle-").Replace("Lower", "lower-").ToLowerInvariant();
 
         /// <summary>Absolute positioning from the element's parent-relative local position (used when
         /// the parent is not an Auto Layout container).</summary>

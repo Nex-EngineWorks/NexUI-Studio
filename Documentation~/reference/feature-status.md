@@ -8,6 +8,12 @@
 | 이동·크기·정렬·Group | 지원 | 지원 | 지원 | Undo, Key Object 정렬 지원 |
 | Auto Layout/Constraints | 부분 지원 | 지원 | 지원 | Row/Column/Grid 저장 지원, Constraints 일부 Preview 중심 |
 | Component Registry | 지원 | 부분 지원 | 부분 지원 | Component별 Backend support 확인 |
+| 재사용 Component (Definition/Instance) | Beta | 지원 | 지원 | 참조 기반 전개. Definition 수정이 모든 Instance에 즉시 반영 |
+| Component Slot / Exposed Property Override | Beta | 지원 | 지원 | Typed Override. 적용 불가 Property는 Validation 보고 |
+| Component Variant | Beta | 지원 | 지원 | Bool/Enum/String, Rule 기반 Override와 표시 전환 |
+| Component Detach / Swap | Beta | 지원 | 지원 | 파괴적 작업은 확인 후 실행 |
+| Assets 패널 (탐색/검색/필터) | Beta | 공통 | 공통 | 읽기 전용. Rename/Move/Delete는 Project 창 담당 |
+| Asset → Canvas Drag & Drop | Beta | 공통 | 공통 | Sprite/Font/Material/Component Definition. 그 외는 거부 |
 | Text/Value/Visibility/Class/Command Binding | 지원 | 지원 | 지원 | 프로젝트가 Runtime Key를 등록 |
 | Designer Preview/Interactive Log | 지원 | 지원 | 지원 | 안전을 위해 Command 실행 대신 Simulation Log |
 | Scenario Apply/Timeline | 지원 | 공통 | 공통 | Bool/Number/Text/Sprite/List, Preview 환경 복원 |

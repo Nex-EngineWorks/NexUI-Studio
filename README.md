@@ -11,8 +11,6 @@ NexUI Designer는 NexUI 화면을 Unity Editor에서 구성하고 검증하는 �
 
 Global Toolbar의 `+ 새 화면`에서 Screen Definition, Designer Metadata와 Backend 에셋을 한 번에 만들 수 있습니다. Canvas Toolbar의 `Layout`과 `Transition`은 선택 요소를 정리하고 기존 Motion Clip 에셋으로 전환을 생성합니다. Scenario 필드는 Mock Data를 현재 화면에 즉시 적용합니다.
 
-처음 설치했다면 `Tools > NexUI > Setup Doctor`를 먼저 실행하세요. 의존성, Runtime 설정과 Registry, 현재 Scene의 Backend Bootstrap, 생성 경로를 한 화면에서 확인할 수 있습니다.
-
 ## 요구 환경
 
 - Unity 6000.4 이상
@@ -34,9 +32,10 @@ Global Toolbar의 `+ 새 화면`에서 Screen Definition, Designer Metadata와 B
 - [Backend 지원 범위](Documentation~/reference/backend-support-matrix.md)
 - [현재 기능 상태](Documentation~/reference/feature-status.md)
 - [구현 상태 표](Documentation~/ImplementationStatus.md)
+- [Phase별 구현 계획](Documentation~/PhasedImplementationPlan.md)
+- [Phase 0 완료 보고](Documentation~/Phase0CompletionReport.md)
 - [목표 기능 목록](FunctionList.md)
 - [알려진 제한사항](Documentation~/reference/known-limitations.md)
-- [출시 준비 체크리스트](Documentation~/reference/release-readiness.md)
 
 > 이 패키지는 개발 중입니다. 지원 범위와 제한사항은 기능 상태 문서를 먼저 확인하세요.
 

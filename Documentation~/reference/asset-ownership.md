@@ -12,6 +12,9 @@
 | `UIMotionClip` | Motion Clip Editor | Metadata에는 Asset Reference만 저장 | Runtime 연결 시 예 |
 | `DesignerScenarioAsset` | Scenario Editor | Preview Mock 저장 | 아니요 |
 | `DesignerPublishManifest` | Publish | 마지막 Publish Hash 저장 | 아니요 |
+| `DesignerComponentDefinitionAsset` | Component Library/사용자 | 생성과 참조만. Instance 편집은 이 Asset을 바꾸지 않음 | 아니요 (저장 전에 평탄화됨) |
+
+> Component Instance의 Override는 **Instance가 있는 화면의 Metadata**에 저장됩니다. Definition Asset은 Instance 편집으로 변경되지 않으므로, 여러 화면이 같은 Definition을 공유해도 서로의 Override가 섞이지 않습니다.
 
 ## 일반 Save
 

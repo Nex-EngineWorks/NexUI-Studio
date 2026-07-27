@@ -48,8 +48,9 @@ namespace emiteat.NexUI.Designer.Editor
 
         public override void DiscardChanges()
         {
-            hasUnsavedChanges = false;
-            base.DiscardChanges();
+            if (Context != null && !Context.DiscardUnsavedChanges()) return;
+            hasUnsavedChanges = Context?.HasUnsavedChanges ?? false;
+            if (!hasUnsavedChanges) base.DiscardChanges();
         }
 
         private void Rebuild()
@@ -61,11 +62,9 @@ namespace emiteat.NexUI.Designer.Editor
                 "Packages/com.emiteat.nexui.designer/Editor/Styles/NexUIDesigner.uss");
             if (styleSheet != null && !rootVisualElement.styleSheets.Contains(styleSheet))
                 rootVisualElement.styleSheets.Add(styleSheet);
-            // EditorStyles can be temporarily unavailable while an open Designer window is
-            // reconstructed during domain reload. USS still supplies a valid fallback font.
-            var labelStyle = EditorStyles.label;
-            if (labelStyle != null && labelStyle.font != null)
-                rootVisualElement.style.unityFont = labelStyle.font;
+            // Do not read EditorStyles here. Unity can invoke CreateGUI while EditorStyles is
+            // still uninitialized during a domain reload; the USS/default editor font is valid
+            // and avoids an initialization-order NullReferenceException.
 
             rootVisualElement.Add(new NexUIDesignerShell(Context));
         }

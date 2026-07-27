@@ -23,4 +23,10 @@ DesignerInspectorRegistry.Register(new DesignerInspectorSectionDescriptor(
 - `target`은 Screen, 하나 이상의 Element, 단일 Element, 다중 Element 중 Section이 적용될 선택 범위를 정합니다.
 - 생성한 UI는 `NexUIDesignerContext`의 Undo·변경 알림 경로를 사용해야 합니다. Section 내부에 별도 전역 선택 상태를 만들지 마세요.
 
-기존 `NexUIDesignerInspector` 타입은 호환성을 위해 남아 있지만 새 통합 Inspector와 같은 Host를 사용합니다. 새 코드는 `NexUIRightInspector` 또는 Registry 확장을 사용하세요.
+## 조건부로 숨기기
+
+`target`만으로 표현되지 않는 조건(예: "선택이 Component Instance일 때만")은 Section이 스스로 `style.display`를 조절합니다. 내장 `ComponentInstanceInspector`가 이 방식을 씁니다 — 해당하지 않는 Element를 선택하면 Section 전체가 사라지므로 일반 작업에 잡음이 생기지 않습니다.
+
+Registry에서 조건을 표현하려 하지 마세요. Descriptor는 선택 범위만 다루고, 데이터 조건은 Section이 판단합니다.
+
+기존 `NexUIDesignerInspector` 타입은 `[Obsolete]`이며 호환성을 위해서만 남아 있습니다. 새 통합 Inspector와 같은 Host(`NexUIRightInspector`)를 그대로 상속하므로, 새 코드는 `NexUIRightInspector` 또는 Registry 확장을 사용하세요.

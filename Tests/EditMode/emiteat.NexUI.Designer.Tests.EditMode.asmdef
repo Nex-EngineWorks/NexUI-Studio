@@ -9,6 +9,7 @@
         "emiteat.NexUI.Designer.Runtime",
         "emiteat.NexUI.Designer.Editor",
         "emiteat.NexUI.Integrations.Figma",
+        "emiteat.NexUI.Integrations.UGUI",
         "UniTask",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"

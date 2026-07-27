@@ -20,6 +20,8 @@ namespace emiteat.NexUI.Designer
     public sealed class DesignerVariantOverrideMetadata
     {
         public string targetElementId;
+        public DesignerPropertyId propertyId;
+        public DesignerPropertyValue typedValue = new DesignerPropertyValue();
         public string propertyPath;
         public string value;
     }

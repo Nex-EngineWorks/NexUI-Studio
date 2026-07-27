@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEditor;
+using emiteat.NexUI.Designer.Editor.Properties;
 using UnityEngine;
 using emiteat.NexUI.Abstractions;
 using emiteat.NexUI.Designer.Editor.Common;
@@ -94,8 +95,14 @@ namespace emiteat.NexUI.Designer.Editor.Responsive
                     var o = r.overrides[j];
                     EditorGUILayout.BeginHorizontal();
                     o.elementId = EditorGUILayout.TextField(o.elementId);
-                    o.propertyPath = EditorGUILayout.TextField(o.propertyPath);
-                    o.value = EditorGUILayout.TextField(o.value);
+                    o.propertyId = (DesignerPropertyId)EditorGUILayout.EnumPopup(o.propertyId, GUILayout.Width(140));
+                    if (o.propertyId == DesignerPropertyId.None)
+                        o.propertyPath = EditorGUILayout.TextField(o.propertyPath);
+                    else
+                        o.propertyPath = DesignerPropertyRegistry.PathFor(o.propertyId);
+                    o.value = EditorGUILayout.TextField(DesignerPropertyRegistry.EffectiveValue(o.propertyId, o.typedValue, o.value));
+                    if (o.propertyId != DesignerPropertyId.None)
+                        o.typedValue = DesignerPropertyRegistry.Parse(o.propertyId, o.value);
                     if (GUILayout.Button("×", GUILayout.Width(22))) { r.overrides.RemoveAt(j); MarkDirty(_asset); EditorGUILayout.EndHorizontal(); break; }
                     EditorGUILayout.EndHorizontal();
                 }

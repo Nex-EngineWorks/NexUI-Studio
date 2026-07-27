@@ -5,12 +5,32 @@
 Windows 예시:
 
 ```powershell
-& "<Unity>/Editor/Unity.exe" -batchmode -nographics -quit `
+& "<Unity>/Editor/Unity.exe" -batchmode -nographics `
   -projectPath "<repo>" -runTests -testPlatform EditMode `
-  -testResults "<repo>/TestResults/editmode.xml"
+  -testResults "<repo>/TestResults/editmode.xml" `
+  -logFile "<repo>/TestResults/editmode.log"
 ```
 
-PlayMode는 `-testPlatform PlayMode`로 실행합니다. 같은 프로젝트를 Unity Editor에서 열어 둔 상태에서는 별도 Batchmode 실행이 실패할 수 있으므로 Editor를 닫거나 CI checkout에서 실행하십시오.
+`-runTests`는 실행이 끝나면 스스로 종료하므로 **`-quit`를 함께 쓰지 마세요.** 테스트가 끝나기 전에 Editor가 내려가 결과 파일이 생기지 않을 수 있습니다.
+
+특정 클래스만 돌리려면 `-testFilter "emiteat.NexUI.Designer.Tests.EditMode.*"`를 추가합니다. PlayMode는 `-testPlatform PlayMode`입니다.
+
+결과 XML이 생기지 않았다면 통과로 간주하지 마세요. `-logFile`을 열어 컴파일 오류나 라이선스 오류를 먼저 확인합니다.
+
+### Editor를 열어 둔 채로 실행하기
+
+같은 프로젝트가 Unity Editor에서 열려 있으면 Batchmode가 프로젝트 lock을 얻지 못해 즉시 종료합니다. Editor를 닫는 것이 가장 간단하지만, 닫을 수 없다면 `Assets`/`Packages`를 junction으로 건 별도 project path에서 실행할 수 있습니다.
+
+```powershell
+$shadow = "$env:TEMP\nexui-tests"
+New-Item -ItemType Directory -Force $shadow | Out-Null
+cmd /c mklink /J "$shadow\Assets"   "<repo>\Assets"
+cmd /c mklink /J "$shadow\Packages" "<repo>\Packages"
+Copy-Item "<repo>\ProjectSettings" "$shadow\ProjectSettings" -Recurse -Force
+# 위 -runTests 명령을 -projectPath "$shadow" 로 실행
+```
+
+`Library`가 새로 생성되므로 첫 실행은 10분 이상 걸릴 수 있고, 두 번째부터는 빨라집니다. 정리할 때는 **junction을 먼저 `cmd /c rmdir`로 제거**하세요. 그러지 않으면 `Remove-Item -Recurse`가 링크를 따라가 원본을 지울 수 있습니다.
 
 ## 빠른 컴파일 확인
 
@@ -39,6 +59,11 @@ Personal License는 `UNITY_LICENSE`, `UNITY_EMAIL`, `UNITY_PASSWORD` secret이 �
 - 기존 Metadata/Hierarchy/Preview/Generator/Scenario 테스트
 - AnimationClip Import/Export, Grid USS와 Sprite/List Scenario Timeline
 - Figma Frame Import 변환과 Motion Trigger Runtime 구독/해제
+- 재사용 Component 전개: Identity·결정적 stableId·Override·Variant·Slot·Cycle·중첩·Detach (`DesignerComponentSystemTests`)
+- Typed Property Apply/Read와 schema v3 → v4 Migration 멱등성
+- Assets 패널의 분류/필터/경로 규칙과 Canvas Drop 결정 (`DesignerAssetBrowserTests`)
+
+새 기능은 **순수 로직을 UI에서 분리해** 테스트하는 것을 우선합니다. 예를 들어 `DesignerComponentExpander`는 `IDesignerComponentDefinitionResolver`를 주입받아 AssetDatabase 없이 검증하고, Canvas Drop 규칙은 `DesignerAssetDropResolver`로 분리해 창을 열지 않고 검증합니다.
 
 ## 수동 검증 체크리스트
 
@@ -47,6 +72,9 @@ Personal License는 `UNITY_LICENSE`, `UNITY_EMAIL`, `UNITY_PASSWORD` secret이 �
 - [ ] Screen/Metadata 연결, Preview Rebuild
 - [ ] Component 추가, 선택·다중 선택·이동·크기 변경
 - [ ] Reparent, Layer 순서, Group/Ungroup
+- [ ] Assets 탭 탐색·검색·필터, Sprite를 Canvas로 드래그 후 Undo
+- [ ] Component Definition 생성 → Instance 배치 → Definition 수정이 모든 Instance에 반영
+- [ ] Definition 삭제 시 Instance와 Slot 내용이 남고 Error가 보고되는지
 - [ ] Undo/Redo 후 Preview와 Inspector 갱신
 - [ ] Validation Issue 클릭 선택과 Asset Ping
 - [ ] Save Report의 Changed/Skipped/Warning/Error 확인

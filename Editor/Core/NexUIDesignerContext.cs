@@ -4,8 +4,12 @@ using emiteat.NexUI.Abstractions;
 using emiteat.NexUI.Core;
 using emiteat.NexUI.Designer.Editor.Backend;
 using emiteat.NexUI.Designer.Editor.Components;
+using emiteat.NexUI.Designer.Editor.Components.Definitions;
+using emiteat.NexUI.Designer.Editor.Responsive;
+using emiteat.NexUI.Designer.Editor.Properties;
 using emiteat.NexUI.Designer.Editor.Serialization;
 using emiteat.NexUI.Designer.Editor.Validation;
+using emiteat.NexUI.Designer.Editor.Variants;
 using emiteat.NexUI.Motion;
 using emiteat.NexUI.State;
 using emiteat.NexUI.Theme;
@@ -33,9 +37,17 @@ namespace emiteat.NexUI.Designer.Editor
         private static readonly ProfilerMarker PublishMarker = new ProfilerMarker("NexUI.Designer.Publish");
         private bool _disposed;
         private bool _hasUnsavedChanges;
+        private string _screenBaselineJson;
+        private string _metadataBaselineJson;
+        private UIScreenDefinition _screenBaselineTarget;
+        private DesignerMetadataAsset _metadataBaselineTarget;
+        private int _screenExpectedDirtyCount;
+        private int _metadataExpectedDirtyCount;
+        private bool _screenWasDirtyAtBaseline;
+        private bool _metadataWasDirtyAtBaseline;
 
         public bool IsDisposed => _disposed;
-        public bool HasUnsavedChanges => _hasUnsavedChanges || (Metadata != null && EditorUtility.IsDirty(Metadata)) || (CurrentScreen != null && EditorUtility.IsDirty(CurrentScreen));
+        public bool HasUnsavedChanges => _hasUnsavedChanges || HasExternalAssetChanges();
         public event Action<bool> DirtyStateChanged;
 
         /// <summary>
@@ -89,6 +101,7 @@ namespace emiteat.NexUI.Designer.Editor
         public IReadOnlyList<string> ValidationMessages => _validationMessages;
         public IReadOnlyList<DesignerValidationIssue> ValidationIssues => _validationIssues;
         public DesignerSaveReport LastSaveReport { get; private set; }
+        public DesignerSaveReport LastSavePreviewReport { get; private set; }
         public int ErrorCount { get; private set; }
         public int WarningCount { get; private set; }
         public DesignerTool CurrentTool { get; private set; }
@@ -100,6 +113,7 @@ namespace emiteat.NexUI.Designer.Editor
 
         public event Action<UIScreenDefinition> ScreenChanged;
         public event Action<DesignerSaveReport> SaveCompleted;
+        public event Action<DesignerSaveReport> SavePreviewCompleted;
         public event Action<DesignerMetadataAsset> MetadataChanged;
         public event Action<IUIElementHandle> SelectionChanged;
         public event Action<DesignerElementMetadata> MetadataSelectionChanged;
@@ -149,30 +163,59 @@ namespace emiteat.NexUI.Designer.Editor
                     "There are unsaved Designer changes. Save before switching screens?", "Save", "Cancel", "Discard");
                 if (choice == 1) return false;
                 if (choice == 0 && Save().HasErrors) return false;
-                if (choice == 2) SetDirtyState(false);
+                if (choice == 2 && !DiscardUnsavedChanges()) return false;
             }
+            if (definition == CurrentScreen) return true;
+
             CurrentScreen = definition;
             StoreAssetGuid(LastScreenGuidKey, definition);
             Backend = definition != null ? definition.backendAsset.backend : UIRenderBackend.UIToolkit;
+            CaptureScreenBaseline();
+            SetMetadataInternal(ResolveMetadataForScreen(definition));
             ScreenChanged?.Invoke(definition);
             RebuildPreview();
             return true;
         }
 
-        public void SetMetadata(DesignerMetadataAsset metadata)
+        public void SetMetadata(DesignerMetadataAsset metadata) => TrySetMetadata(metadata);
+
+        public bool TrySetMetadata(DesignerMetadataAsset metadata)
+        {
+            if (metadata == Metadata) return true;
+            if (HasUnsavedChanges && !Application.isBatchMode)
+            {
+                var choice = EditorUtility.DisplayDialogComplex("NexUI Designer",
+                    "There are unsaved Designer changes. Save before switching metadata?", "Save", "Cancel", "Discard");
+                if (choice == 1) return false;
+                if (choice == 0 && Save().HasErrors) return false;
+                if (choice == 2 && !DiscardUnsavedChanges()) return false;
+            }
+
+            SetMetadataInternal(metadata);
+            return true;
+        }
+
+        private void SetMetadataInternal(DesignerMetadataAsset metadata)
         {
             Metadata = metadata;
+            _expansionValid = false;
             StoreAssetGuid(LastMetadataGuidKey, metadata);
+            CaptureMetadataBaseline();
+            var metadataChangedOnOpen = false;
             if (Metadata != null && CurrentScreen != null && string.IsNullOrEmpty(Metadata.screenId))
+            {
                 Metadata.screenId = CurrentScreen.ScreenId;
+                metadataChangedOnOpen = true;
+            }
             // Bring pre-hierarchy assets up to the current schema (assigns sibling indices from the
             // existing draw order - visually invisible) and repair any dangling/cyclic parentIds.
             if (Metadata != null)
             {
                 if (Metadata.screenMotion == null)
                     Metadata.screenMotion = new DesignerScreenMotionMetadata();
-                DesignerHierarchyMigration.Migrate(Metadata);
+                metadataChangedOnOpen |= DesignerHierarchyMigration.Migrate(Metadata);
             }
+            if (metadataChangedOnOpen) SetDirtyState(true);
             ClearSelection();
             MetadataChanged?.Invoke(metadata);
             CanvasChanged?.Invoke();
@@ -186,7 +229,8 @@ namespace emiteat.NexUI.Designer.Editor
             var screen = LoadAssetGuid<UIScreenDefinition>(LastScreenGuidKey);
             var metadata = LoadAssetGuid<DesignerMetadataAsset>(LastMetadataGuidKey);
             if (screen != null) Open(screen);
-            if (metadata != null) SetMetadata(metadata);
+            if (metadata != null && (screen == null || metadata.screenId == screen.ScreenId))
+                SetMetadataInternal(metadata);
         }
 
         public DesignerMetadataAsset CreateMetadataAsset()
@@ -379,9 +423,50 @@ namespace emiteat.NexUI.Designer.Editor
                 return report;
             }
 
+            if (Metadata != null && !string.IsNullOrEmpty(Metadata.screenId) &&
+                !string.Equals(Metadata.screenId, CurrentScreen.ScreenId, StringComparison.Ordinal))
+            {
+                report.Error($"Metadata '{Metadata.name}' belongs to screen '{Metadata.screenId}', not '{CurrentScreen.ScreenId}'.");
+                LastSaveReport = report;
+                SaveCompleted?.Invoke(report);
+                Debug.LogError("[NexUI Designer] " + report.Details());
+                return report;
+            }
+
             SynchronizeScreenMotionReferences();
+            if (Metadata != null)
+            {
+                CurrentScreen.variants = VariantService.Compile(Metadata);
+                CurrentScreen.responsiveRules = ResponsiveService.Compile(Metadata);
+                EditorUtility.SetDirty(CurrentScreen);
+            }
             var serializer = DesignerSerializerRegistry.Get(CurrentScreen.backendAsset.backend);
-            report.Merge(serializer.Save(CurrentScreen, Metadata));
+
+            // Component instances are references, not copies: the backend must receive the flattened
+            // tree. The expansion is a throw-away in-memory asset, so the authored metadata is never
+            // reshaped by a save - which also means we must save the authored asset ourselves, since
+            // the serializer only knows about the copy it was handed.
+            var expansion = DesignerComponentExpander.Expand(Metadata, DesignerComponentLibrary.Resolver);
+            try
+            {
+                foreach (var issue in expansion.Issues)
+                {
+                    var text = $"Component '{issue.InstanceElementId}': {issue.Message}";
+                    if (issue.Kind == DesignerComponentExpansionIssueKind.MissingDefinition ||
+                        issue.Kind == DesignerComponentExpansionIssueKind.CircularReference ||
+                        issue.Kind == DesignerComponentExpansionIssueKind.BudgetExceeded)
+                        report.Error(text + "  →  " + issue.Fix);
+                    else
+                        report.Warn(text);
+                }
+                report.Merge(serializer.Save(CurrentScreen, expansion.Expanded));
+            }
+            finally
+            {
+                if (expansion.ContainsInstances && Metadata != null)
+                    AssetDatabase.SaveAssetIfDirty(Metadata);
+                expansion.Dispose();
+            }
 
             // B8: keep the git-friendly companion JSON in sync with every save so it's always
             // the reviewable diff for a PR, never stale relative to the .asset.
@@ -401,8 +486,21 @@ namespace emiteat.NexUI.Designer.Editor
 
             LastSaveReport = report;
             SaveCompleted?.Invoke(report);
-            if (!report.HasErrors) SetDirtyState(false);
+            if (!report.HasErrors)
+            {
+                CaptureBaselines();
+                SetDirtyState(false);
+            }
             Validate();
+            return report;
+        }
+
+        /// <summary>Inspects the next backend save without dirtying or writing any asset.</summary>
+        public DesignerSaveReport PreviewSave()
+        {
+            var report = DesignerSavePreviewService.Preview(CurrentScreen, Metadata);
+            LastSavePreviewReport = report;
+            SavePreviewCompleted?.Invoke(report);
             return report;
         }
 
@@ -552,7 +650,11 @@ namespace emiteat.NexUI.Designer.Editor
                     Metadata.elements.Add(new DesignerElementMetadata { elementId = t.name, displayName = t.name, elementType = "Custom" });
                     added++;
                 }
-                if (added > 0) EditorUtility.SetDirty(Metadata);
+                if (added > 0)
+                {
+                    EditorUtility.SetDirty(Metadata);
+                    SetDirtyState(true);
+                }
             }
 
             if (added > 0)
@@ -628,6 +730,9 @@ namespace emiteat.NexUI.Designer.Editor
                 fontSize = type == DesignerElementType.Label ? 18 : 14,
                 accessibilityRole = DesignerComponentRegistry.Get(type).DefaultAccessibilityRole
             };
+            DesignerPropertyAdapter.SetBackgroundColor(element, element.tint);
+            DesignerPropertyAdapter.SetTextColor(element, element.textColor);
+            DesignerPropertyAdapter.SetFontSize(element, element.fontSize);
             Metadata.elements.Add(element);
             MarkMetadataDirty();
             SelectMetadata(element);
@@ -671,31 +776,117 @@ namespace emiteat.NexUI.Designer.Editor
 
         public void DeleteSelection() => DeleteSelectedMetadata();
 
-        private static DesignerElementMetadata CloneElement(DesignerElementMetadata src, string elementId, Vector2 offset)
+        private List<DesignerElementMetadata> CollectCloneClosure(IEnumerable<DesignerElementMetadata> selection)
         {
-            var copy = new DesignerElementMetadata
+            var selected = new HashSet<DesignerElementMetadata>();
+            if (selection != null)
+                foreach (var element in selection)
+                    if (element != null && Metadata.elements.Contains(element)) selected.Add(element);
+
+            var roots = new List<DesignerElementMetadata>();
+            foreach (var element in selected)
             {
-                elementId = elementId,
-                parentId = src.parentId,
-                displayName = string.IsNullOrEmpty(src.displayName) ? src.elementId + " Copy" : src.displayName + " Copy",
-                elementType = src.elementType,
-                rect = new Rect(src.rect.x + offset.x, src.rect.y + offset.y, src.rect.width, src.rect.height),
-                anchorPreset = src.anchorPreset,
-                text = src.text,
-                tint = src.tint,
-                textColor = src.textColor,
-                fontSize = src.fontSize,
-                locked = src.locked,
-                hiddenInDesigner = src.hiddenInDesigner
-            };
-            copy.classes.AddRange(src.classes);
-            copy.binding.valueKey = src.binding.valueKey;
-            copy.binding.commandKey = src.binding.commandKey;
-            copy.binding.textKey = src.binding.textKey;
-            copy.binding.visibilityKey = src.binding.visibilityKey;
-            copy.binding.classKey = src.binding.classKey;
-            copy.binding.interactableKey = src.binding.interactableKey;
-            return copy;
+                var coveredBySelectedAncestor = false;
+                foreach (var possibleAncestor in selected)
+                    if (possibleAncestor != element && DesignerHierarchyUtility.IsSelfOrDescendant(Metadata, element, possibleAncestor))
+                    {
+                        coveredBySelectedAncestor = true;
+                        break;
+                    }
+                if (!coveredBySelectedAncestor) roots.Add(element);
+            }
+            roots.Sort((a, b) => Metadata.elements.IndexOf(a).CompareTo(Metadata.elements.IndexOf(b)));
+
+            var result = new List<DesignerElementMetadata>();
+            var seen = new HashSet<DesignerElementMetadata>();
+            foreach (var root in roots)
+            {
+                if (seen.Add(root)) result.Add(root);
+                foreach (var child in DesignerHierarchyUtility.GetDescendants(Metadata, root))
+                    if (seen.Add(child)) result.Add(child);
+            }
+            return result;
+        }
+
+        private List<DesignerElementMetadata> CloneElementsIntoMetadata(
+            IEnumerable<DesignerElementMetadata> sources, Vector2 offset)
+        {
+            var sourceList = new List<DesignerElementMetadata>();
+            if (sources != null)
+                foreach (var source in sources)
+                    if (source != null) sourceList.Add(source);
+            var result = new List<DesignerElementMetadata>();
+            if (sourceList.Count == 0) return result;
+
+            var occupied = new HashSet<string>();
+            foreach (var element in Metadata.elements)
+                if (element != null && !string.IsNullOrEmpty(element.elementId)) occupied.Add(element.elementId);
+            var idMap = new Dictionary<string, string>();
+            var pairs = new List<(DesignerElementMetadata source, DesignerElementMetadata clone)>();
+
+            foreach (var source in sourceList)
+            {
+                var baseId = (string.IsNullOrEmpty(source.elementId) ? "element" : source.elementId) + "Copy";
+                var newId = baseId;
+                for (var suffix = 1; occupied.Contains(newId); suffix++) newId = baseId + suffix;
+                occupied.Add(newId);
+                if (!string.IsNullOrEmpty(source.elementId) && !idMap.ContainsKey(source.elementId))
+                    idMap.Add(source.elementId, newId);
+
+                var clone = DesignerMetadataUtility.Clone(source);
+                clone.stableId = Guid.NewGuid().ToString("N");
+                clone.elementId = newId;
+                clone.displayName = string.IsNullOrEmpty(source.displayName)
+                    ? (source.elementId ?? "Element") + " Copy"
+                    : source.displayName + " Copy";
+                clone.rect = new Rect(source.rect.position + offset, source.rect.size);
+                pairs.Add((source, clone));
+                result.Add(clone);
+            }
+
+            foreach (var pair in pairs)
+            {
+                var clone = pair.clone;
+                if (!string.IsNullOrEmpty(pair.source.parentId) && idMap.TryGetValue(pair.source.parentId, out var parentId))
+                    clone.parentId = parentId;
+                RemapFocus(clone.focus, idMap);
+                Metadata.elements.Add(clone);
+            }
+
+            DuplicateMotionBindings(idMap);
+            DesignerHierarchyUtility.NormalizeSiblingIndices(Metadata);
+            return result;
+        }
+
+        private static void RemapFocus(DesignerFocusMetadata focus, IReadOnlyDictionary<string, string> idMap)
+        {
+            if (focus == null) return;
+            if (!string.IsNullOrEmpty(focus.upElementId) && idMap.TryGetValue(focus.upElementId, out var up)) focus.upElementId = up;
+            if (!string.IsNullOrEmpty(focus.downElementId) && idMap.TryGetValue(focus.downElementId, out var down)) focus.downElementId = down;
+            if (!string.IsNullOrEmpty(focus.leftElementId) && idMap.TryGetValue(focus.leftElementId, out var left)) focus.leftElementId = left;
+            if (!string.IsNullOrEmpty(focus.rightElementId) && idMap.TryGetValue(focus.rightElementId, out var right)) focus.rightElementId = right;
+        }
+
+        private void DuplicateMotionBindings(IReadOnlyDictionary<string, string> idMap)
+        {
+            if (Metadata?.screenMotion?.bindings == null || idMap.Count == 0) return;
+            var originals = new List<DesignerMotionBinding>(Metadata.screenMotion.bindings);
+            var occupied = new HashSet<string>();
+            foreach (var binding in originals)
+                if (binding != null && !string.IsNullOrEmpty(binding.bindingId)) occupied.Add(binding.bindingId);
+            foreach (var binding in originals)
+            {
+                if (binding == null || string.IsNullOrEmpty(binding.targetElementId) ||
+                    !idMap.TryGetValue(binding.targetElementId, out var newTarget)) continue;
+                var clone = JsonUtility.FromJson<DesignerMotionBinding>(JsonUtility.ToJson(binding));
+                var baseId = (string.IsNullOrEmpty(binding.bindingId) ? "motion" : binding.bindingId) + "Copy";
+                var newId = baseId;
+                for (var suffix = 1; occupied.Contains(newId); suffix++) newId = baseId + suffix;
+                occupied.Add(newId);
+                clone.bindingId = newId;
+                clone.targetElementId = newTarget;
+                Metadata.screenMotion.bindings.Add(clone);
+            }
         }
 
         public DesignerElementMetadata DuplicateSelectedMetadata()
@@ -711,12 +902,7 @@ namespace emiteat.NexUI.Designer.Editor
             if (Metadata == null || _selection.Count == 0) return copies;
             RecordMetadata("Duplicate NexUI Element");
             var offset = new Vector2(GridSize * 2f, GridSize * 2f);
-            foreach (var src in _selection)
-            {
-                var copy = CloneElement(src, UniqueElementId(src.elementId + "Copy"), offset);
-                Metadata.elements.Add(copy);
-                copies.Add(copy);
-            }
+            copies.AddRange(CloneElementsIntoMetadata(CollectCloneClosure(_selection), offset));
             MarkMetadataDirty();
             SelectMany(copies);
             return copies;
@@ -734,8 +920,8 @@ namespace emiteat.NexUI.Designer.Editor
         public void CopySelection()
         {
             _clipboard.Clear();
-            foreach (var e in _selection)
-                _clipboard.Add(e);
+            foreach (var e in CollectCloneClosure(_selection))
+                _clipboard.Add(DesignerMetadataUtility.Clone(e));
         }
 
         /// <summary>Pastes the clipboard as new elements offset from their originals, and selects the pasted copies.</summary>
@@ -745,12 +931,7 @@ namespace emiteat.NexUI.Designer.Editor
             if (Metadata == null || _clipboard.Count == 0) return copies;
             RecordMetadata("Paste NexUI Element");
             var offset = new Vector2(GridSize * 2f, GridSize * 2f);
-            foreach (var src in _clipboard)
-            {
-                var copy = CloneElement(src, UniqueElementId(src.elementId + "Copy"), offset);
-                Metadata.elements.Add(copy);
-                copies.Add(copy);
-            }
+            copies.AddRange(CloneElementsIntoMetadata(_clipboard, offset));
             MarkMetadataDirty();
             SelectMany(copies);
             return copies;
@@ -967,6 +1148,7 @@ namespace emiteat.NexUI.Designer.Editor
                 rect = bounds,
                 tint = new Color(0f, 0f, 0f, 0f)
             };
+            DesignerPropertyAdapter.SetBackgroundColor(group, group.tint);
 
             var members = new List<DesignerElementMetadata>(_selection);
             var insertIndex = int.MaxValue;
@@ -1100,6 +1282,7 @@ namespace emiteat.NexUI.Designer.Editor
         {
             if (Metadata != null)
                 EditorUtility.SetDirty(Metadata);
+            _expansionValid = false;   // authored data changed; the flattened tree must be recomputed
             SetDirtyState(true);
             CanvasChanged?.Invoke();
             Validate();
@@ -1107,6 +1290,11 @@ namespace emiteat.NexUI.Designer.Editor
 
         private void SetDirtyState(bool dirty)
         {
+            if (dirty)
+            {
+                _screenExpectedDirtyCount = DirtyCount(_screenBaselineTarget);
+                _metadataExpectedDirtyCount = DirtyCount(_metadataBaselineTarget);
+            }
             if (_hasUnsavedChanges == dirty) return;
             _hasUnsavedChanges = dirty;
             DirtyStateChanged?.Invoke(dirty);
@@ -1114,9 +1302,90 @@ namespace emiteat.NexUI.Designer.Editor
 
         private static void StoreAssetGuid(string key, UnityEngine.Object asset)
         {
-            if (asset == null) return;
+            if (asset == null)
+            {
+                EditorPrefs.DeleteKey(key);
+                return;
+            }
             var path = AssetDatabase.GetAssetPath(asset);
             if (!string.IsNullOrEmpty(path)) EditorPrefs.SetString(key, AssetDatabase.AssetPathToGUID(path));
+        }
+
+        public bool DiscardUnsavedChanges()
+        {
+            if (HasExternalAssetChanges() && !Application.isBatchMode &&
+                !EditorUtility.DisplayDialog("NexUI Designer - External Changes",
+                    "The open screen or metadata was modified outside this Designer session. Discarding will also revert those external changes to the last Designer baseline.",
+                    "Discard All Changes", "Cancel"))
+                return false;
+
+            RestoreBaseline(_screenBaselineTarget, _screenBaselineJson, _screenWasDirtyAtBaseline);
+            RestoreBaseline(_metadataBaselineTarget, _metadataBaselineJson, _metadataWasDirtyAtBaseline);
+            CaptureBaselines();
+            SetDirtyState(false);
+            ClearSelection();
+            RebuildPreview();
+            MetadataChanged?.Invoke(Metadata);
+            CanvasChanged?.Invoke();
+            Validate();
+            return true;
+        }
+
+        private bool HasExternalAssetChanges()
+            => DirtyCount(_screenBaselineTarget) != _screenExpectedDirtyCount ||
+               DirtyCount(_metadataBaselineTarget) != _metadataExpectedDirtyCount;
+
+        private static int DirtyCount(UnityEngine.Object target)
+            => target != null ? EditorUtility.GetDirtyCount(target) : 0;
+
+        private void CaptureBaselines()
+        {
+            CaptureScreenBaseline();
+            CaptureMetadataBaseline();
+        }
+
+        private void CaptureScreenBaseline()
+        {
+            _screenBaselineTarget = CurrentScreen;
+            _screenBaselineJson = CurrentScreen != null ? EditorJsonUtility.ToJson(CurrentScreen) : null;
+            _screenExpectedDirtyCount = DirtyCount(CurrentScreen);
+            _screenWasDirtyAtBaseline = CurrentScreen != null && EditorUtility.IsDirty(CurrentScreen);
+        }
+
+        private void CaptureMetadataBaseline()
+        {
+            _metadataBaselineTarget = Metadata;
+            _metadataBaselineJson = Metadata != null ? EditorJsonUtility.ToJson(Metadata) : null;
+            _metadataExpectedDirtyCount = DirtyCount(Metadata);
+            _metadataWasDirtyAtBaseline = Metadata != null && EditorUtility.IsDirty(Metadata);
+        }
+
+        private static void RestoreBaseline(UnityEngine.Object target, string json, bool keepDirty)
+        {
+            if (target == null || string.IsNullOrEmpty(json)) return;
+            EditorJsonUtility.FromJsonOverwrite(json, target);
+            if (keepDirty) EditorUtility.SetDirty(target);
+            else EditorUtility.ClearDirty(target);
+        }
+
+        private DesignerMetadataAsset ResolveMetadataForScreen(UIScreenDefinition screen)
+        {
+            if (screen == null || string.IsNullOrEmpty(screen.ScreenId)) return null;
+            if (Metadata != null && Metadata.screenId == screen.ScreenId) return Metadata;
+            DesignerMetadataAsset match = null;
+            foreach (var guid in AssetDatabase.FindAssets("t:DesignerMetadataAsset"))
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                var candidate = AssetDatabase.LoadAssetAtPath<DesignerMetadataAsset>(path);
+                if (candidate == null || candidate.screenId != screen.ScreenId) continue;
+                if (match != null)
+                {
+                    Debug.LogWarning($"[NexUI Designer] Multiple metadata assets target screen '{screen.ScreenId}'. Select one explicitly.");
+                    return null;
+                }
+                match = candidate;
+            }
+            return match;
         }
 
         private static T LoadAssetGuid<T>(string key) where T : UnityEngine.Object
@@ -1178,6 +1447,7 @@ namespace emiteat.NexUI.Designer.Editor
             if (_disposed) return;
             _disposed = true;
             Undo.undoRedoPerformed -= OnUndoRedoPerformed;
+            DisposeComponentExpansion();
             if (PreviewSurface != null && CurrentBackend != null)
                 CurrentBackend.DestroyPreviewSurface(PreviewSurface);
         }
@@ -1185,6 +1455,10 @@ namespace emiteat.NexUI.Designer.Editor
         private void OnUndoRedoPerformed()
         {
             if (_disposed) return;
+            _screenExpectedDirtyCount = DirtyCount(_screenBaselineTarget);
+            _metadataExpectedDirtyCount = DirtyCount(_metadataBaselineTarget);
+            _expansionValid = false;   // Undo can add/remove/retarget component instances
+            SetDirtyState(true);
             EnsureScreenMotion();
             ApplyMetadataToPreview();
             RaiseSelectionChanged();

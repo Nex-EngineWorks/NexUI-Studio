@@ -24,6 +24,8 @@ namespace emiteat.NexUI.Designer
     public sealed class DesignerResponsiveOverrideMetadata
     {
         public string elementId;
+        public DesignerPropertyId propertyId;
+        public DesignerPropertyValue typedValue = new DesignerPropertyValue();
         public string propertyPath;
         public string value;
     }

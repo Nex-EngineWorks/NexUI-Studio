@@ -34,6 +34,7 @@ UIScreenDefinition
 
 DesignerMetadataAsset
 ├─ Elements / Parent / Binding
+│  └─ componentInstance (Definition 참조 + Override + Variant 선택)
 ├─ Screen Motion
 │  ├─ Entry / Exit Clip
 │  ├─ Element Trigger Bindings
@@ -41,9 +42,14 @@ DesignerMetadataAsset
 │  ├─ Motion State Machine
 │  └─ Motion Graph
 └─ Companion JSON
+
+DesignerComponentDefinitionAsset   (별도 에셋)
+├─ Elements (sub-tree)
+├─ Exposed Properties / Slots
+└─ Variant Properties / Rules
 ```
 
-Motion Clip 자체는 `UIMotionClip` 에셋이며 Metadata에는 참조만 저장합니다.
+Motion Clip 자체는 `UIMotionClip` 에셋이며 Metadata에는 참조만 저장합니다. 마찬가지로 Component Instance도 Definition의 element를 복제하지 않고 참조만 저장합니다.
 
 ## 생성과 Publish
 
@@ -84,12 +90,33 @@ flowchart LR
 flowchart TD
     Save["Context.Save"] --> Validate["선택적 Validation"]
     Validate --> Sync["Screen Motion 동기화"]
-    Sync --> Registry["DesignerSerializerRegistry"]
+    Sync --> Expand["DesignerComponentExpander (Instance가 있을 때만)"]
+    Expand --> Registry["DesignerSerializerRegistry"]
     Registry --> UGUI["UGUIAssetSerializer → Prefab"]
-    Registry --> UITK["UIToolkitAssetSerializer → Metadata + UXML 이름 검증"]
+    Registry --> UITK["UIToolkitAssetSerializer → Metadata (+ Marker가 있으면 UXML/USS 재생성)"]
     Generate["UI Toolkit Generation"] --> Pure["UIToolkitCodeGenerator"]
     Pure --> Writer["GeneratedAssetWriter → .g.uxml/.g.uss"]
 ```
+
+## Authored와 Expanded의 분리
+
+재사용 Component가 도입되면서 **사용자가 편집하는 트리**와 **Backend가 받는 트리**가 갈라졌습니다.
+
+```text
+Authored Metadata   ← 선택·드래그·Inspector·Undo·Companion JSON의 대상
+      │
+      │ DesignerComponentExpander.Expand(asset, resolver)
+      ▼
+Expanded Metadata   ← Canvas 렌더, Serializer, Save Preview, Validation의 대상
+                      HideFlags.HideAndDontSave인 메모리 전용 사본
+```
+
+지켜야 할 규칙:
+
+* Expanded 사본은 **절대 디스크에 쓰지 않습니다.** Serializer가 `SaveAssetIfDirty`를 호출해도 사본에는 효과가 없으므로, `Context.Save`가 원본 Metadata를 따로 저장합니다.
+* Instance가 없는 화면은 **복사조차 하지 않고** authored asset을 그대로 돌려줍니다(무비용 경로). 기존 동작과 완전히 동일합니다.
+* Canvas는 Expanded를 그리지만 Hit Test와 선택은 authored만 대상으로 합니다. `Context.ResolveAuthoredElement`가 둘을 잇습니다.
+* Expansion은 `Context`에서 캐시되며 Metadata Dirty·Undo·Metadata 교체·Definition 변경 시 무효화됩니다.
 
 Undo는 변경 대상 Asset에 `Undo.RecordObject`를 호출한 뒤 Dirty를 표시합니다. Drag는 종료 시 한 번 Context에 Commit합니다. Context의 Undo callback이 Preview, Selection과 Validation을 다시 갱신합니다.
 

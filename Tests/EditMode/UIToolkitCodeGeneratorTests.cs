@@ -134,6 +134,21 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
         }
 
         [Test]
+        public void Uss_RuntimeVisibilityIsIndependentFromEditorHidden()
+        {
+            var editorHidden = El("editorHidden", "Panel", new Rect(0, 0, 10, 10));
+            editorHidden.hiddenInDesigner = true;
+            editorHidden.runtimeVisible = true;
+            var runtimeHidden = El("runtimeHidden", "Panel", new Rect(0, 0, 10, 10));
+            runtimeHidden.runtimeVisible = false;
+
+            var uss = UIToolkitCodeGenerator.GenerateUss(Metadata(editorHidden, runtimeHidden));
+
+            StringAssert.DoesNotContain("display: none;", RuleFor(uss, "editorHidden"));
+            StringAssert.Contains("display: none;", RuleFor(uss, "runtimeHidden"));
+        }
+
+        [Test]
         public void Uss_AutoLayoutContainer_EmitsFlexDirectionAndPadding()
         {
             var panel = El("panel", "Panel", new Rect(0, 0, 200, 300));
@@ -208,6 +223,43 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
         {
             var uxml = UIToolkitCodeGenerator.GenerateUxml(Metadata(), "Inventory.uss");
             StringAssert.Contains("<Style src=\"Inventory.uss\" />", uxml);
+        }
+
+        [Test]
+        public void Uss_TypedLayoutVisualAndTypography_AreEmitted()
+        {
+            var label = El("typed", "Label", new Rect(0, 0, 120, 40));
+            label.layoutStyle = new DesignerLayoutStyleMetadata
+            {
+                hasOverrides = true, minSize = new Vector2(40, 20), maxSize = new Vector2(240, 80),
+                marginLeft = 3, marginTop = 4, rotation = 12, scale = new Vector2(1.1f, .9f),
+                overflow = DesignerOverflowMode.Hidden
+            };
+            label.visualStyle = new DesignerVisualStyleMetadata
+            {
+                hasOverrides = true, backgroundColor = Color.blue, opacity = .65f,
+                borderWidth = 2f, borderColor = Color.yellow, cornerRadius = 7f,
+                outlineWidth = 1f, outlineColor = Color.black
+            };
+            label.typography = new DesignerTypographyMetadata
+            {
+                hasOverrides = true, fontSize = 22f, color = Color.cyan,
+                fontStyle = DesignerFontStyle.Bold | DesignerFontStyle.Italic,
+                alignment = DesignerTextAlignment.UpperRight, wrapping = false,
+                ellipsis = true, lineHeight = 1.4f, letterSpacing = 2f,
+                textShadow = true, outlineWidth = 1f
+            };
+
+            var rule = RuleFor(UIToolkitCodeGenerator.GenerateUss(Metadata(label)), "typed");
+            StringAssert.Contains("min-width: 40px;", rule);
+            StringAssert.Contains("max-height: 80px;", rule);
+            StringAssert.Contains("rotate: 12deg;", rule);
+            StringAssert.Contains("opacity: 0.65;", rule);
+            StringAssert.Contains("border-left-width: 2px;", rule);
+            StringAssert.Contains("border-top-left-radius: 7px;", rule);
+            StringAssert.Contains("font-size: 22px;", rule);
+            StringAssert.Contains("-unity-font-style: bold-and-italic;", rule);
+            StringAssert.Contains("text-overflow: ellipsis;", rule);
         }
 
         private static string RuleFor(string uss, string id)

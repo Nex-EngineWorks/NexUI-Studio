@@ -59,7 +59,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             }
             else
             {
-                report.MarkSkipped("Hand-authored UXML is preserved. Use UI Builder or generated .uxml/.uss output.");
+                report.MarkPreviewOnly("Hand-authored UXML", "Hand-authored UXML is preserved. Use UI Builder or generated .uxml/.uss output.");
             }
 
             if (metadata != null)
@@ -69,8 +69,8 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 {
                     if (element == null || string.IsNullOrEmpty(element.elementId)) continue;
                     if (!names.Contains(element.elementId))
-                        report.Warn($"Metadata element '{element.elementId}' has no matching named VisualElement in UXML. " +
-                                    "Add name=\"" + element.elementId + "\" in UI Builder, or use 'Sync Metadata From UXML'.");
+                        report.MarkPreviewOnly("Unmatched element", $"Metadata element '{element.elementId}' has no matching named VisualElement in UXML. " +
+                                    "Add name=\"" + element.elementId + "\" in UI Builder, or use 'Sync Metadata From UXML'.", element.elementId);
                 }
             }
 

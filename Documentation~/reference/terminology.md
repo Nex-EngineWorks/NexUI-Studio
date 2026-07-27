@@ -16,7 +16,14 @@
 | 모션 클립 | Motion Clip | Track/Keyframe 기반 시간 애니메이션 |
 | 모션 그래프 | Motion Graph | Node/Dependency 또는 Event Flow 기반 Motion |
 | 시나리오 | Scenario | Preview 상태 데이터 묶음 |
-| 변형 | Variant | 상황별 Screen/Motion 대안 |
+| 변형 | Variant | 상황별 대안. **Screen Variant**(화면 단위 Override)와 **Component Variant**(Definition의 축)는 서로 다른 기능입니다 |
 | 제약 조건 | Constraints | 부모 크기 변화에 대한 위치·크기 규칙 |
 | 자동 레이아웃 | Auto Layout | 자식 방향, 간격과 Padding 배치 규칙 |
+| Component 정의 | Component Definition | 재사용 가능한 Element sub-tree와 그 계약을 담은 에셋 |
+| Component 인스턴스 | Component Instance | Definition을 **참조**하는 Element. 복사본이 아닙니다 |
+| 슬롯 | Slot | Instance의 authored 자식이 들어가는 Definition의 지정 자리 |
+| 노출 속성 | Exposed Property | Definition 작성자가 이름으로 공개한 Property. Instance는 이 이름으로 Override합니다 |
+| 재정의 | Override | Instance가 Definition 값 위에 덮어쓰는 값 |
+| 분리 | Detach | Instance를 일반 Element로 물질화해 Definition 추종을 끊는 것 |
+| 전개 | Expansion | Instance를 평탄화한 트리로 펼치는 것. 메모리에만 존재합니다 |
 

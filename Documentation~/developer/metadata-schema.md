@@ -10,10 +10,14 @@ flowchart LR
   ScreenMotion --> Clip["UIMotionClip"]
   ScreenMotion --> Graph["UIMotionGraphAsset"]
   ScreenMotion --> Machine["UIMotionStateMachine"]
+  Elements --> Instance["componentInstance (참조)"]
+  Instance -. "GUID / componentId" .-> Definition["DesignerComponentDefinitionAsset"]
   Scenario["DesignerScenarioAsset"] -. "Preview Key" .-> Metadata
   Manifest["DesignerPublishManifest"] -. "screenId/hash" .-> Generated[".g.uxml / .g.uss"]
   Flow["DesignerScreenFlowAsset"] -. "screenId" .-> Screen
 ```
+
+Component Instance는 Definition의 element를 화면에 **복사하지 않고 참조만** 저장합니다. Preview·Serializer·Validation은 `DesignerComponentExpander`가 만든 평탄화 트리를 소비하며, 이 결과는 메모리에만 존재하고 사용자 Asset에 기록되지 않습니다. 자세한 내용은 [재사용 Component](../advanced/reusable-components.md)를 참고하세요.
 
 ## 주요 타입
 
@@ -27,6 +31,8 @@ flowchart LR
 | `DesignerTokenSetAsset` | `Runtime/Metadata/DesignerTokenSetAsset.cs` | Token literal/alias | Token 도구 | Element Style 직접 연결 없음 |
 | `DesignerScreenFlowAsset` | `Runtime/Metadata/DesignerScreenFlowAsset.cs` | Node, Transition, 시작 Node, Guard Key | Flow Editor | UIManager 자동 연결 없음 |
 | `DesignerPublishManifest` | `Runtime/Metadata/DesignerPublishManifest.cs` | Screen별 UXML/USS 마지막 Publish Hash | Publish Service | Editor 동기화 기준 |
+| `DesignerComponentDefinitionAsset` | `Runtime/Metadata/DesignerComponentDefinitionAsset.cs` | 재사용 Component의 element sub-tree와 계약(Exposed Property, Slot, Variant) | Component Library / 사용자 | Instance 전개의 원본 |
+| `DesignerComponentInstanceMetadata` | `Runtime/Metadata/DesignerComponentInstanceMetadata.cs` | Definition 참조, Override, Variant 선택, Detach 상태 | Designer | Element마다 존재하되 `definitionGuid`가 있을 때만 유효 |
 
 ## Motion 참조
 
@@ -38,7 +44,16 @@ flowchart LR
 
 ## Version과 Migration
 
-`DesignerMetadataAsset.CurrentSchemaVersion`은 현재 1입니다. 0은 명시적 sibling index 이전 Asset이며 `DesignerHierarchyMigration`이 한 번 마이그레이션한 뒤 Version을 기록합니다. 기존 필드 기본값은 이전 Asset을 안전하게 읽도록 설계되어 있습니다.
+`DesignerMetadataAsset.CurrentSchemaVersion`은 현재 **4**입니다. `DesignerHierarchyMigration.Migrate`가 전진 방향으로만 마이그레이션하고, 끝나면 Version을 기록해 같은 Asset에서 두 번 실행되지 않도록 합니다.
+
+| 단계 | 내용 | 사용자에게 보이는 변화 |
+|---|---|---|
+| v0 → v1 | 현재 list 순서에서 `siblingIndex` 부여 | 없음 (그리던 순서 그대로) |
+| v1 → v2 | `stableId` 생성, `runtimeVisible = !hiddenInDesigner` | 없음 (v2 이전의 backend 결과 보존) |
+| v2 → v3 | flat field(`tint`/`textColor`/`fontSize`/`shape`/`clipChildren`)를 typed style block으로 복사, legacy string override path를 `DesignerPropertyId`로 매핑 | 없음 (legacy 값은 지우지 않음) |
+| v3 → v4 | `componentInstance` 정규화, 적용 불가능한 빈 override 제거 | 없음 (추가 전용 필드) |
+
+모든 단계는 반복 실행에 안전하고, 대화형 경로에서는 `Undo.RecordObject`로 기록됩니다. 기존 필드 기본값은 이전 Asset을 안전하게 읽도록 설계되어 있습니다.
 
 새 직렬화 필드를 추가할 때는 기존 Asset의 기본값, Undo/Dirty 처리, JSON Serializer, Validator, 두 Backend Serializer와 Migration을 함께 검토합니다. Runtime 타입에 `UnityEditor` 참조를 추가하지 않습니다.
 

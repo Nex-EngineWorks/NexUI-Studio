@@ -348,7 +348,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
             }
             Add(_foldout);
 
-            _visibility = IconButton(element.hiddenInDesigner ? "○" : "●", "Toggle visibility.", () =>
+            _visibility = IconButton(element.hiddenInDesigner ? "○" : "●", "Toggle Designer canvas visibility only (runtime visibility is in Style Inspector).", () =>
                 _context.UpdateElement(_element, e => e.hiddenInDesigner = !e.hiddenInDesigner, "Toggle NexUI Element Hidden"));
             Add(_visibility);
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using emiteat.NexUI.Accessibility;
+using emiteat.NexUI.Abstractions;
 using emiteat.NexUI.Motion;
 using emiteat.NexUI.MotionClip;
 using emiteat.NexUI.MotionGraph;
@@ -95,9 +96,18 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         [Serializable]
         private sealed class MetadataFileDto
         {
+            public int formatVersion;
+            public int schemaVersion;
             public string screenId;
             public List<ElementDto> elements = new();
             public ScreenMotionDto screenMotion = new();
+            public List<VariantDto> variants = new();
+            public List<ResponsiveDto> responsiveRules = new();
+            public DesignerContractMetadata contract = new();
+            public DesignerSnapshotMetadata snapshots = new();
+            public DesignerLocalizationMetadata localization = new();
+            public DesignerPromptMetadata prompts = new();
+            public List<DesignerRecipeMetadata> recipes = new();
         }
 
         [Serializable]
@@ -125,12 +135,22 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         [Serializable]
         private sealed class ElementDto
         {
+            public string stableId;
             public string elementId;
             public string parentId;
+            public int siblingIndex;
+            public string parentSlotId;
             public string displayName;
             public string elementType;
             public RectDto rect = new();
             public string anchorPreset;
+            public string shape;
+            public float previewValue;
+            public int previewItemCount;
+            public List<string> previewOptions = new();
+            public DesignerFillMetadata fill = new();
+            public string previewImageGuid = "";
+            public long previewImageLocalId;
             public string text;
             public ColorDto tint = new();
             public ColorDto textColor = new();
@@ -139,10 +159,63 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             public BindingDto binding = new();
             public MotionDto motion = new();
             public ThemeDto theme = new();
+            public DesignerAutoLayoutMetadata autoLayout = new();
+            public DesignerConstraintMetadata constraint = new();
+            public DesignerFocusMetadata focus = new();
             public bool locked;
             public bool hiddenInDesigner;
+            public bool runtimeVisible;
+            public bool clipChildren;
+            public RectOffsetDto contentPadding = new();
             public string accessibilityLabel;
             public string accessibilityRole;
+            public DesignerLayoutStyleMetadata layoutStyle = new();
+            public DesignerVisualStyleMetadata visualStyle = new();
+            public string visualMaterialGuid = "";
+            public DesignerTypographyMetadata typography = new();
+            public string fontAssetGuid = "";
+            public long fontAssetLocalId;
+            public string fontFallbackGuid = "";
+            public long fontFallbackLocalId;
+        }
+
+        [Serializable]
+        private sealed class PropertyValueDto
+        {
+            public DesignerPropertyValue value = new();
+            public string assetGuid = "";
+            public long assetLocalId;
+        }
+
+        [Serializable]
+        private sealed class OverrideDto
+        {
+            public string elementId;
+            public string targetElementId;
+            public string propertyId;
+            public PropertyValueDto typedValue = new();
+            public string propertyPath;
+            public string value;
+        }
+
+        [Serializable]
+        private sealed class VariantDto
+        {
+            public string variantId;
+            public string displayName;
+            public bool isDefault;
+            public List<OverrideDto> overrides = new();
+        }
+
+        [Serializable]
+        private sealed class ResponsiveDto
+        {
+            public string ruleId;
+            public Vector2Int minResolution;
+            public Vector2Int maxResolution;
+            public UIInputMode inputMode;
+            public bool constrainInputMode;
+            public List<OverrideDto> overrides = new();
         }
 
         [Serializable]
@@ -155,6 +228,13 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         private sealed class ColorDto
         {
             public float r, g, b, a;
+        }
+
+        [Serializable]
+        private sealed class RectOffsetDto
+        {
+            public int left, right, top, bottom;
+            public bool hasValue;
         }
 
         [Serializable]
@@ -200,7 +280,16 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             var screenMotion = asset.screenMotion ?? new DesignerScreenMotionMetadata();
             var dto = new MetadataFileDto
             {
+                formatVersion = 3,
+                schemaVersion = asset.schemaVersion,
                 screenId = asset.screenId,
+                variants = ToVariantDtos(asset.variants),
+                responsiveRules = ToResponsiveDtos(asset.responsiveRules),
+                contract = asset.contract ?? new DesignerContractMetadata(),
+                snapshots = asset.snapshots ?? new DesignerSnapshotMetadata(),
+                localization = asset.localization ?? new DesignerLocalizationMetadata(),
+                prompts = asset.prompts ?? new DesignerPromptMetadata(),
+                recipes = asset.recipes ?? new List<DesignerRecipeMetadata>(),
                 screenMotion = new ScreenMotionDto
                 {
                     entryClipGuid = AssetGuid(screenMotion.entryClip),
@@ -228,12 +317,22 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 if (e == null) continue;
                 dto.elements.Add(new ElementDto
                 {
+                    stableId = e.stableId,
                     elementId = e.elementId,
                     parentId = e.parentId,
+                    siblingIndex = e.siblingIndex,
+                    parentSlotId = e.parentSlotId,
                     displayName = e.displayName,
                     elementType = e.elementType,
                     rect = new RectDto { x = e.rect.x, y = e.rect.y, width = e.rect.width, height = e.rect.height },
                     anchorPreset = e.anchorPreset.ToString(),
+                    shape = e.shape.ToString(),
+                    previewValue = e.previewValue,
+                    previewItemCount = e.previewItemCount,
+                    previewOptions = e.previewOptions != null ? new List<string>(e.previewOptions) : new List<string>(),
+                    fill = e.fill ?? new DesignerFillMetadata(),
+                    previewImageGuid = AssetGuid(e.previewImage),
+                    previewImageLocalId = AssetLocalId(e.previewImage),
                     text = e.text,
                     tint = new ColorDto { r = e.tint.r, g = e.tint.g, b = e.tint.b, a = e.tint.a },
                     textColor = new ColorDto { r = e.textColor.r, g = e.textColor.g, b = e.textColor.b, a = e.textColor.a },
@@ -260,10 +359,24 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                         classes = e.theme != null ? new List<string>(e.theme.classes) : new List<string>(),
                         tokenOverrides = ToTokenDtos(e.theme?.tokenOverrides),
                     },
+                    autoLayout = e.autoLayout ?? new DesignerAutoLayoutMetadata(),
+                    constraint = e.constraint ?? new DesignerConstraintMetadata(),
+                    focus = e.focus ?? new DesignerFocusMetadata(),
                     locked = e.locked,
                     hiddenInDesigner = e.hiddenInDesigner,
+                    runtimeVisible = e.runtimeVisible,
+                    clipChildren = e.clipChildren,
+                    contentPadding = ToRectOffsetDto(e.contentPadding),
                     accessibilityLabel = e.accessibilityLabel,
                     accessibilityRole = e.accessibilityRole.ToString(),
+                    layoutStyle = Clone(e.layoutStyle) ?? new DesignerLayoutStyleMetadata(),
+                    visualStyle = VisualWithoutObject(e.visualStyle),
+                    visualMaterialGuid = AssetGuid(e.visualStyle?.material),
+                    typography = TypographyWithoutObjects(e.typography),
+                    fontAssetGuid = AssetGuid(e.typography?.fontAsset),
+                    fontAssetLocalId = AssetLocalId(e.typography?.fontAsset),
+                    fontFallbackGuid = AssetGuid(e.typography?.fontFallback),
+                    fontFallbackLocalId = AssetLocalId(e.typography?.fontFallback),
                 });
             }
             return dto;
@@ -271,7 +384,21 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
 
         private static void ApplyDto(MetadataFileDto dto, DesignerMetadataAsset asset)
         {
+            var hasFullSchema = dto.formatVersion >= 2;
+            var hasTypedSchema = dto.formatVersion >= 3;
+            if (hasFullSchema)
+                asset.schemaVersion = dto.schemaVersion;
             asset.screenId = dto.screenId;
+            if (hasFullSchema)
+            {
+                asset.variants = FromVariantDtos(dto.variants);
+                asset.responsiveRules = FromResponsiveDtos(dto.responsiveRules);
+                asset.contract = dto.contract ?? new DesignerContractMetadata();
+                asset.snapshots = dto.snapshots ?? new DesignerSnapshotMetadata();
+                asset.localization = dto.localization ?? new DesignerLocalizationMetadata();
+                asset.prompts = dto.prompts ?? new DesignerPromptMetadata();
+                asset.recipes = dto.recipes ?? new List<DesignerRecipeMetadata>();
+            }
             asset.screenMotion = new DesignerScreenMotionMetadata();
             if (dto.screenMotion != null)
             {
@@ -293,30 +420,66 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                     });
                 }
             }
-            asset.elements.Clear();
+            var previousElements = new Dictionary<string, DesignerElementMetadata>();
+            if (!hasFullSchema)
+                foreach (var existing in asset.elements)
+                    if (existing != null && !string.IsNullOrEmpty(existing.elementId) && !previousElements.ContainsKey(existing.elementId))
+                        previousElements.Add(existing.elementId, existing);
+
+            var importedElements = new List<DesignerElementMetadata>();
             foreach (var d in dto.elements ?? new List<ElementDto>())
             {
-                var e = new DesignerElementMetadata
+                var e = !hasFullSchema && !string.IsNullOrEmpty(d.elementId) && previousElements.TryGetValue(d.elementId, out var existing)
+                    ? existing
+                    : new DesignerElementMetadata();
+                if (hasFullSchema) e.stableId = d.stableId;
+                e.elementId = d.elementId;
+                e.parentId = d.parentId;
+                e.displayName = d.displayName;
+                e.elementType = d.elementType;
+                e.rect = new Rect(d.rect.x, d.rect.y, d.rect.width, d.rect.height);
+                e.anchorPreset = ParseEnum(d.anchorPreset, DesignerAnchorPreset.TopLeft);
+                e.text = d.text;
+                e.tint = new Color(d.tint.r, d.tint.g, d.tint.b, d.tint.a);
+                e.textColor = new Color(d.textColor.r, d.textColor.g, d.textColor.b, d.textColor.a);
+                e.fontSize = d.fontSize;
+                e.locked = d.locked;
+                e.hiddenInDesigner = d.hiddenInDesigner;
+                if (hasFullSchema) e.runtimeVisible = d.runtimeVisible;
+                e.accessibilityLabel = d.accessibilityLabel;
+                e.accessibilityRole = ParseEnum(d.accessibilityRole, AccessibilityRole.None);
+                if (hasFullSchema)
                 {
-                    elementId = d.elementId,
-                    parentId = d.parentId,
-                    displayName = d.displayName,
-                    elementType = d.elementType,
-                    rect = new Rect(d.rect.x, d.rect.y, d.rect.width, d.rect.height),
-                    anchorPreset = ParseEnum(d.anchorPreset, DesignerAnchorPreset.TopLeft),
-                    text = d.text,
-                    tint = new Color(d.tint.r, d.tint.g, d.tint.b, d.tint.a),
-                    textColor = new Color(d.textColor.r, d.textColor.g, d.textColor.b, d.textColor.a),
-                    fontSize = d.fontSize,
-                    locked = d.locked,
-                    hiddenInDesigner = d.hiddenInDesigner,
-                    accessibilityLabel = d.accessibilityLabel,
-                    accessibilityRole = ParseEnum(d.accessibilityRole, AccessibilityRole.None),
-                };
+                    e.siblingIndex = d.siblingIndex;
+                    e.parentSlotId = d.parentSlotId;
+                    e.shape = ParseEnum(d.shape, DesignerElementShape.Rounded);
+                    e.previewValue = d.previewValue;
+                    e.previewItemCount = d.previewItemCount;
+                    e.previewOptions.AddRange(d.previewOptions ?? new List<string>());
+                    e.fill = d.fill ?? new DesignerFillMetadata();
+                    e.previewImage = ResolveAsset<Sprite>(d.previewImageGuid, d.previewImageLocalId);
+                    e.autoLayout = d.autoLayout ?? new DesignerAutoLayoutMetadata();
+                    e.constraint = d.constraint ?? new DesignerConstraintMetadata();
+                    e.focus = d.focus ?? new DesignerFocusMetadata();
+                    e.clipChildren = d.clipChildren;
+                    e.contentPadding = FromRectOffsetDto(d.contentPadding);
+                }
+                if (hasTypedSchema)
+                {
+                    e.layoutStyle = d.layoutStyle ?? new DesignerLayoutStyleMetadata();
+                    e.visualStyle = d.visualStyle ?? new DesignerVisualStyleMetadata();
+                    e.visualStyle.material = ResolveAsset<Material>(d.visualMaterialGuid);
+                    e.typography = d.typography ?? new DesignerTypographyMetadata();
+                    e.typography.fontAsset = ResolveAsset<UnityEngine.Object>(d.fontAssetGuid, d.fontAssetLocalId);
+                    e.typography.fontFallback = ResolveAsset<UnityEngine.Object>(d.fontFallbackGuid, d.fontFallbackLocalId);
+                }
+                e.classes ??= new List<string>();
+                e.classes.Clear();
                 e.classes.AddRange(d.classes ?? new List<string>());
 
                 if (d.binding != null)
                 {
+                    e.binding ??= new DesignerBindingMetadata();
                     e.binding.textKey = d.binding.textKey;
                     e.binding.valueKey = d.binding.valueKey;
                     e.binding.visibilityKey = d.binding.visibilityKey;
@@ -326,6 +489,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 }
                 if (d.motion != null)
                 {
+                    e.motion ??= new DesignerMotionMetadata();
                     e.motion.motionPreset = ResolveAsset<UIMotionPreset>(d.motion.motionPresetGuid);
                     e.motion.motionId = d.motion.motionId;
                     e.motion.initialVariant = d.motion.initialVariant;
@@ -337,15 +501,22 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 }
                 if (d.theme != null)
                 {
+                    e.theme ??= new DesignerThemeMetadata();
                     e.theme.themeRef = ResolveAsset<UITheme>(d.theme.themeRefGuid);
                     e.theme.themeId = d.theme.themeId;
+                    e.theme.classes ??= new List<string>();
+                    e.theme.classes.Clear();
                     e.theme.classes.AddRange(d.theme.classes ?? new List<string>());
+                    e.theme.tokenOverrides ??= new List<DesignerTokenOverride>();
+                    e.theme.tokenOverrides.Clear();
                     foreach (var t in d.theme.tokenOverrides ?? new List<TokenOverrideDto>())
                         e.theme.tokenOverrides.Add(new DesignerTokenOverride { key = t.key, value = t.value });
                 }
 
-                asset.elements.Add(e);
+                importedElements.Add(e);
             }
+            asset.elements = importedElements;
+            DesignerHierarchyMigration.Migrate(asset, recordUndo: false);
         }
 
         private static List<TokenOverrideDto> ToTokenDtos(List<DesignerTokenOverride> overrides)
@@ -357,6 +528,155 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             return list;
         }
 
+        private static T Clone<T>(T value) where T : class
+            => value == null ? null : JsonUtility.FromJson<T>(JsonUtility.ToJson(value));
+
+        private static DesignerVisualStyleMetadata VisualWithoutObject(DesignerVisualStyleMetadata source)
+        {
+            var copy = Clone(source) ?? new DesignerVisualStyleMetadata();
+            copy.material = null;
+            return copy;
+        }
+
+        private static DesignerTypographyMetadata TypographyWithoutObjects(DesignerTypographyMetadata source)
+        {
+            var copy = Clone(source) ?? new DesignerTypographyMetadata();
+            copy.fontAsset = null;
+            copy.fontFallback = null;
+            return copy;
+        }
+
+        private static PropertyValueDto ToPropertyValueDto(DesignerPropertyValue source)
+        {
+            var copy = source?.Clone() ?? new DesignerPropertyValue();
+            copy.assetValue = null;
+            return new PropertyValueDto
+            {
+                value = copy,
+                assetGuid = AssetGuid(source?.assetValue),
+                assetLocalId = AssetLocalId(source?.assetValue)
+            };
+        }
+
+        private static DesignerPropertyValue FromPropertyValueDto(PropertyValueDto source)
+        {
+            var value = Clone(source?.value) ?? new DesignerPropertyValue();
+            if (source != null)
+                value.assetValue = ResolveAsset<UnityEngine.Object>(source.assetGuid, source.assetLocalId);
+            return value;
+        }
+
+        private static List<VariantDto> ToVariantDtos(List<DesignerVariantMetadata> variants)
+        {
+            var result = new List<VariantDto>();
+            if (variants == null) return result;
+            foreach (var source in variants)
+            {
+                if (source == null) continue;
+                var dto = new VariantDto { variantId = source.variantId, displayName = source.displayName, isDefault = source.isDefault };
+                foreach (var item in source.overrides ?? new List<DesignerVariantOverrideMetadata>())
+                    if (item != null) dto.overrides.Add(new OverrideDto
+                    {
+                        targetElementId = item.targetElementId,
+                        propertyId = item.propertyId.ToString(),
+                        typedValue = ToPropertyValueDto(item.typedValue),
+                        propertyPath = item.propertyPath,
+                        value = item.value
+                    });
+                result.Add(dto);
+            }
+            return result;
+        }
+
+        private static List<DesignerVariantMetadata> FromVariantDtos(List<VariantDto> variants)
+        {
+            var result = new List<DesignerVariantMetadata>();
+            foreach (var source in variants ?? new List<VariantDto>())
+            {
+                if (source == null) continue;
+                var item = new DesignerVariantMetadata { variantId = source.variantId, displayName = source.displayName, isDefault = source.isDefault };
+                foreach (var value in source.overrides ?? new List<OverrideDto>())
+                    if (value != null) item.overrides.Add(new DesignerVariantOverrideMetadata
+                    {
+                        targetElementId = value.targetElementId,
+                        propertyId = ParseEnum(value.propertyId, DesignerPropertyId.None),
+                        typedValue = FromPropertyValueDto(value.typedValue),
+                        propertyPath = value.propertyPath,
+                        value = value.value
+                    });
+                result.Add(item);
+            }
+            return result;
+        }
+
+        private static List<ResponsiveDto> ToResponsiveDtos(List<DesignerResponsiveMetadata> rules)
+        {
+            var result = new List<ResponsiveDto>();
+            if (rules == null) return result;
+            foreach (var source in rules)
+            {
+                if (source == null) continue;
+                var dto = new ResponsiveDto
+                {
+                    ruleId = source.ruleId, minResolution = source.minResolution, maxResolution = source.maxResolution,
+                    inputMode = source.inputMode, constrainInputMode = source.constrainInputMode
+                };
+                foreach (var item in source.overrides ?? new List<DesignerResponsiveOverrideMetadata>())
+                    if (item != null) dto.overrides.Add(new OverrideDto
+                    {
+                        elementId = item.elementId,
+                        propertyId = item.propertyId.ToString(),
+                        typedValue = ToPropertyValueDto(item.typedValue),
+                        propertyPath = item.propertyPath,
+                        value = item.value
+                    });
+                result.Add(dto);
+            }
+            return result;
+        }
+
+        private static List<DesignerResponsiveMetadata> FromResponsiveDtos(List<ResponsiveDto> rules)
+        {
+            var result = new List<DesignerResponsiveMetadata>();
+            foreach (var source in rules ?? new List<ResponsiveDto>())
+            {
+                if (source == null) continue;
+                var item = new DesignerResponsiveMetadata
+                {
+                    ruleId = source.ruleId, minResolution = source.minResolution, maxResolution = source.maxResolution,
+                    inputMode = source.inputMode, constrainInputMode = source.constrainInputMode
+                };
+                foreach (var value in source.overrides ?? new List<OverrideDto>())
+                    if (value != null) item.overrides.Add(new DesignerResponsiveOverrideMetadata
+                    {
+                        elementId = value.elementId,
+                        propertyId = ParseEnum(value.propertyId, DesignerPropertyId.None),
+                        typedValue = FromPropertyValueDto(value.typedValue),
+                        propertyPath = value.propertyPath,
+                        value = value.value
+                    });
+                result.Add(item);
+            }
+            return result;
+        }
+
+        private static RectOffsetDto ToRectOffsetDto(RectOffset value)
+            => value == null
+                ? new RectOffsetDto()
+                : new RectOffsetDto
+                {
+                    hasValue = true,
+                    left = value.left,
+                    right = value.right,
+                    top = value.top,
+                    bottom = value.bottom
+                };
+
+        private static RectOffset FromRectOffsetDto(RectOffsetDto value)
+            => value == null || !value.hasValue
+                ? null
+                : new RectOffset(value.left, value.right, value.top, value.bottom);
+
         private static string AssetGuid(UnityEngine.Object obj)
         {
             if (obj == null) return "";
@@ -364,11 +684,32 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             return string.IsNullOrEmpty(path) ? "" : AssetDatabase.AssetPathToGUID(path);
         }
 
+        private static long AssetLocalId(UnityEngine.Object obj)
+            => obj != null && AssetDatabase.TryGetGUIDAndLocalFileIdentifier(obj, out _, out long localId)
+                ? localId
+                : 0L;
+
         private static T ResolveAsset<T>(string guid) where T : UnityEngine.Object
         {
             if (string.IsNullOrEmpty(guid)) return null;
             var path = AssetDatabase.GUIDToAssetPath(guid);
             return string.IsNullOrEmpty(path) ? null : AssetDatabase.LoadAssetAtPath<T>(path);
+        }
+
+        private static T ResolveAsset<T>(string guid, long localId) where T : UnityEngine.Object
+        {
+            if (string.IsNullOrEmpty(guid)) return null;
+            var path = AssetDatabase.GUIDToAssetPath(guid);
+            if (string.IsNullOrEmpty(path)) return null;
+            if (localId != 0L)
+            {
+                foreach (var candidate in AssetDatabase.LoadAllAssetsAtPath(path))
+                    if (candidate is T typed &&
+                        AssetDatabase.TryGetGUIDAndLocalFileIdentifier(candidate, out _, out long candidateLocalId) &&
+                        candidateLocalId == localId)
+                        return typed;
+            }
+            return AssetDatabase.LoadAssetAtPath<T>(path);
         }
 
         private static TEnum ParseEnum<TEnum>(string value, TEnum fallback) where TEnum : struct

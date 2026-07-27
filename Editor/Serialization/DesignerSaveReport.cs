@@ -3,6 +3,31 @@ using System.Text;
 
 namespace emiteat.NexUI.Designer.Editor.Serialization
 {
+    public enum DesignerSaveImpactKind
+    {
+        Created,
+        Modified,
+        Skipped,
+        Unsupported,
+        PreviewOnly,
+        Conflict,
+        Orphan,
+        UserImpact
+    }
+
+    public sealed class DesignerSaveImpact
+    {
+        public DesignerSaveImpactKind Kind;
+        public string Subject;
+        public string Message;
+        public string ElementId;
+        public string Path;
+        public bool WritesToDisk;
+
+        public override string ToString()
+            => $"[{Kind}] {(!string.IsNullOrEmpty(Subject) ? Subject + ": " : string.Empty)}{Message}";
+    }
+
     /// <summary>
     /// Result of a Designer save operation. Distinguishes what was actually persisted
     /// from what was skipped or is preview-only, so the tool never implies a change was
@@ -10,6 +35,12 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
     /// </summary>
     public sealed class DesignerSaveReport
     {
+        /// <summary>True when this report was produced without mutating assets.</summary>
+        public bool IsPreview { get; set; }
+
+        /// <summary>Machine-readable save plan used by the preview UI and tests.</summary>
+        public readonly List<DesignerSaveImpact> Impacts = new List<DesignerSaveImpact>();
+
         /// <summary>Things that were written to disk.</summary>
         public readonly List<string> Changed = new List<string>();
 
@@ -25,10 +56,62 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         public bool HasErrors => Errors.Count > 0;
         public bool HasWarnings => Warnings.Count > 0;
 
-        public void MarkChanged(string message) => Changed.Add(message);
-        public void MarkSkipped(string message) => Skipped.Add(message);
-        public void Warn(string message) => Warnings.Add(message);
-        public void Error(string message) => Errors.Add(message);
+        public void MarkChanged(string message) => AddImpact(DesignerSaveImpactKind.Modified, message, writesToDisk: true);
+        public void MarkCreated(string subject, string message, string elementId = null, string path = null)
+            => AddImpact(DesignerSaveImpactKind.Created, message, subject, elementId, path, true);
+        public void MarkModified(string subject, string message, string elementId = null, string path = null, bool writesToDisk = true)
+            => AddImpact(DesignerSaveImpactKind.Modified, message, subject, elementId, path, writesToDisk);
+        public void MarkSkipped(string message) => AddImpact(DesignerSaveImpactKind.Skipped, message);
+        public void MarkUnsupported(string subject, string message, string elementId = null)
+            => AddImpact(DesignerSaveImpactKind.Unsupported, message, subject, elementId);
+        public void MarkPreviewOnly(string subject, string message, string elementId = null)
+            => AddImpact(DesignerSaveImpactKind.PreviewOnly, message, subject, elementId);
+        public void MarkConflict(string subject, string message, string elementId = null, string path = null)
+        {
+            AddImpact(DesignerSaveImpactKind.Conflict, message, subject, elementId, path);
+            Errors.Add(message);
+        }
+        public void MarkOrphan(string subject, string message, string elementId = null)
+        {
+            AddImpact(DesignerSaveImpactKind.Orphan, message, subject, elementId);
+            Warnings.Add(message);
+        }
+        public void MarkUserImpact(string subject, string message, string elementId = null)
+            => AddImpact(DesignerSaveImpactKind.UserImpact, message, subject, elementId);
+        public void Warn(string message)
+        {
+            Warnings.Add(message);
+            AddImpactOnly(DesignerSaveImpactKind.UserImpact, message);
+        }
+        public void Error(string message)
+        {
+            Errors.Add(message);
+            AddImpactOnly(DesignerSaveImpactKind.Conflict, message);
+        }
+
+        public int Count(DesignerSaveImpactKind kind)
+        {
+            var count = 0;
+            foreach (var impact in Impacts) if (impact.Kind == kind) count++;
+            return count;
+        }
+
+        private void AddImpact(DesignerSaveImpactKind kind, string message, string subject = null,
+            string elementId = null, string path = null, bool writesToDisk = false)
+        {
+            AddImpactOnly(kind, message, subject, elementId, path, writesToDisk);
+            if (kind == DesignerSaveImpactKind.Created || kind == DesignerSaveImpactKind.Modified) Changed.Add(message);
+            else if (kind == DesignerSaveImpactKind.Skipped || kind == DesignerSaveImpactKind.Unsupported ||
+                     kind == DesignerSaveImpactKind.PreviewOnly || kind == DesignerSaveImpactKind.Orphan) Skipped.Add(message);
+        }
+
+        private void AddImpactOnly(DesignerSaveImpactKind kind, string message, string subject = null,
+            string elementId = null, string path = null, bool writesToDisk = false)
+            => Impacts.Add(new DesignerSaveImpact
+            {
+                Kind = kind, Subject = subject, Message = message, ElementId = elementId,
+                Path = path, WritesToDisk = writesToDisk
+            });
 
         public void Merge(DesignerSaveReport other)
         {
@@ -37,11 +120,17 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             Skipped.AddRange(other.Skipped);
             Warnings.AddRange(other.Warnings);
             Errors.AddRange(other.Errors);
+            Impacts.AddRange(other.Impacts);
+            IsPreview |= other.IsPreview;
         }
 
         /// <summary>One-line summary suitable for a toolbar status label.</summary>
         public string Summary()
         {
+            if (IsPreview)
+                return HasErrors
+                    ? $"Save preview found {Errors.Count} conflict(s). {Count(DesignerSaveImpactKind.Created)} create, {Count(DesignerSaveImpactKind.Modified)} modify."
+                    : $"Save preview: {Count(DesignerSaveImpactKind.Created)} create, {Count(DesignerSaveImpactKind.Modified)} modify, {Skipped.Count} skipped/limited.";
             if (HasErrors) return $"Save failed: {Errors.Count} error(s), {Changed.Count} change(s) written.";
             if (HasWarnings) return $"Saved with {Warnings.Count} warning(s). {Changed.Count} change(s) written.";
             return Changed.Count == 0 ? "Nothing to save (no changes)." : $"Saved. {Changed.Count} change(s) written.";

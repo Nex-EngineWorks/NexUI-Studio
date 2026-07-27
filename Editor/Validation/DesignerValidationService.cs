@@ -4,6 +4,8 @@ using emiteat.NexUI.Core;
 using emiteat.NexUI.Designer.Editor.Backend;
 using emiteat.NexUI.Designer.Editor.Components;
 using emiteat.NexUI.Designer.Editor.Serialization;
+using emiteat.NexUI.Integrations.UGUI;
+using emiteat.NexUI.Designer.Editor.Properties;
 using emiteat.NexUI.MotionClip;
 using TMPro;
 using UnityEngine;
@@ -55,6 +57,7 @@ namespace emiteat.NexUI.Designer.Editor.Validation
             ValidateReferences(metadata, screenId, issues);
             ValidateMotion(metadata, screenId, issues);
             ValidatePrefabComponents(screen, metadata, screenId, issues);
+            DesignerComponentValidation.Validate(metadata, screenId, issues);
 
             return issues;
         }
@@ -100,6 +103,7 @@ namespace emiteat.NexUI.Designer.Editor.Validation
         {
             var backend = screen.backendAsset.backend;
             var ids = new HashSet<string>();
+            var stableIds = new HashSet<string>();
             foreach (var element in metadata.elements)
             {
                 if (element == null) continue;
@@ -116,12 +120,21 @@ namespace emiteat.NexUI.Designer.Editor.Validation
                     issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error, "duplicate-element-id",
                         $"Element id '{id}' is used more than once.", "Rename one of the duplicates.", screenId, id));
 
+                if (string.IsNullOrEmpty(element.stableId))
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error, "missing-stable-id",
+                        $"Element '{id}' has no stable identity.", "Run the metadata migration or recreate the element.", screenId, id));
+                else if (!stableIds.Add(element.stableId))
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error, "duplicate-stable-id",
+                        $"Element '{id}' shares stableId '{element.stableId}' with another element.",
+                        "Assign a new stable identity before saving.", screenId, id));
+
                 if (!DesignerMetadataUtility.IsValidElementId(id))
                     issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "invalid-element-id",
                         $"Element id '{id}' is not a safe identifier.",
                         "Use letters, digits, '_' or '-' and start with a letter/underscore.", screenId, id));
 
-                if (backendNames != null && !backendNames.Contains(id))
+                if (backendNames != null && !backendNames.Contains(id) &&
+                    (string.IsNullOrEmpty(element.stableId) || !backendNames.Contains("$stable:" + element.stableId)))
                     issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "missing-backend-element",
                         $"No element named '{id}' exists in the backend asset.",
                         backend == UIRenderBackend.UIToolkit
@@ -129,6 +142,7 @@ namespace emiteat.NexUI.Designer.Editor.Validation
                             : "Save the screen to create the GameObject, or rename to match.", screenId, id));
 
                 ValidateElementDetails(element, screenId, issues);
+                ValidatePropertyParity(element, backend, screenId, issues);
             }
         }
 
@@ -168,6 +182,58 @@ namespace emiteat.NexUI.Designer.Editor.Validation
                 issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Info, "hidden-but-interactive",
                     $"'{id}' is hidden in designer yet declares interactive bindings.",
                     "Unhide it, or remove the command/interactable binding.", screenId, id));
+        }
+
+        private static void ValidatePropertyParity(DesignerElementMetadata element, UIRenderBackend backend,
+            string screenId, List<DesignerValidationIssue> issues)
+        {
+            var layout = DesignerPropertyAdapter.Layout(element);
+            var visual = DesignerPropertyAdapter.Visual(element);
+            var typography = DesignerPropertyAdapter.Typography(element);
+
+            if (layout.hasOverrides)
+            {
+                if (layout.maxSize.x > 0f) CheckProperty(DesignerPropertyId.MaxWidth, backend, element, screenId, issues);
+                if (layout.maxSize.y > 0f) CheckProperty(DesignerPropertyId.MaxHeight, backend, element, screenId, issues);
+                if (layout.aspectRatio > 0f) CheckProperty(DesignerPropertyId.AspectRatio, backend, element, screenId, issues);
+                if (layout.wrap == DesignerLayoutWrap.Wrap) CheckProperty(DesignerPropertyId.Wrap, backend, element, screenId, issues);
+                if (layout.justify == DesignerJustifyContent.SpaceAround || layout.justify == DesignerJustifyContent.SpaceBetween)
+                    CheckProperty(DesignerPropertyId.Justify, backend, element, screenId, issues);
+            }
+            if (visual.hasOverrides)
+            {
+                if (visual.gradient != null) CheckProperty(DesignerPropertyId.Gradient, backend, element, screenId, issues);
+                if (visual.borderWidth > 0f) CheckProperty(DesignerPropertyId.BorderWidth, backend, element, screenId, issues);
+                if (visual.cornerRadius > 0f) CheckProperty(DesignerPropertyId.CornerRadius, backend, element, screenId, issues);
+                if (visual.dropShadow) CheckProperty(DesignerPropertyId.DropShadow, backend, element, screenId, issues);
+                if (visual.innerShadow) CheckProperty(DesignerPropertyId.InnerShadow, backend, element, screenId, issues);
+                if (visual.blur > 0f) CheckProperty(DesignerPropertyId.Blur, backend, element, screenId, issues);
+                if (visual.material != null) CheckProperty(DesignerPropertyId.Material, backend, element, screenId, issues);
+            }
+            if (typography.hasOverrides)
+            {
+                if (typography.fontAsset != null) CheckProperty(DesignerPropertyId.FontAsset, backend, element, screenId, issues);
+                if (typography.autoSize) CheckProperty(DesignerPropertyId.AutoFontSize, backend, element, screenId, issues);
+                if (typography.paragraphSpacing != 0f) CheckProperty(DesignerPropertyId.ParagraphSpacing, backend, element, screenId, issues);
+                if (typography.rightToLeft) CheckProperty(DesignerPropertyId.RightToLeft, backend, element, screenId, issues);
+                if (typography.outlineWidth > 0f) CheckProperty(DesignerPropertyId.TextOutline, backend, element, screenId, issues);
+            }
+        }
+
+        private static void CheckProperty(DesignerPropertyId propertyId, UIRenderBackend backend,
+            DesignerElementMetadata element, string screenId, List<DesignerValidationIssue> issues)
+        {
+            var descriptor = DesignerPropertyRegistry.Get(propertyId);
+            if (descriptor == null) return;
+            var support = backend == UIRenderBackend.UGUI ? descriptor.UGUI : descriptor.UIToolkit;
+            if (support == DesignerPropertyBackendSupport.Supported) return;
+            var fallback = backend == UIRenderBackend.UGUI ? descriptor.UGUIFallback : descriptor.UIToolkitFallback;
+            var severity = support == DesignerPropertyBackendSupport.Unsupported
+                ? DesignerValidationSeverity.Warning : DesignerValidationSeverity.Info;
+            issues.Add(new DesignerValidationIssue(severity, "property-backend-" + support.ToString().ToLowerInvariant(),
+                $"'{element.elementId}' property {descriptor.DisplayName} is {support} on {backend}.",
+                string.IsNullOrEmpty(fallback) ? "Remove the property or provide a custom backend adapter." : fallback,
+                screenId, element.elementId));
         }
 
         /// <summary>
@@ -325,10 +391,15 @@ namespace emiteat.NexUI.Designer.Editor.Validation
                 {
                     if (v == null) continue;
                     foreach (var ov in v.overrides)
-                        if (ov != null && !string.IsNullOrEmpty(ov.targetElementId) && !ids.Contains(ov.targetElementId))
+                    {
+                        if (ov == null) continue;
+                        if (!string.IsNullOrEmpty(ov.targetElementId) && !ids.Contains(ov.targetElementId))
                             issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "variant-target-missing",
                                 $"Variant '{v.variantId}' overrides missing element '{ov.targetElementId}'.",
                                 "Fix the target elementId or remove the override.", screenId, ov.targetElementId));
+                        ValidateOverride(ov.propertyId, ov.typedValue, ov.propertyPath, ov.value,
+                            $"Variant '{v.variantId}'", screenId, ov.targetElementId, issues);
+                    }
                 }
 
             if (metadata.responsiveRules != null)
@@ -336,11 +407,46 @@ namespace emiteat.NexUI.Designer.Editor.Validation
                 {
                     if (r == null) continue;
                     foreach (var ov in r.overrides)
-                        if (ov != null && !string.IsNullOrEmpty(ov.elementId) && !ids.Contains(ov.elementId))
+                    {
+                        if (ov == null) continue;
+                        if (!string.IsNullOrEmpty(ov.elementId) && !ids.Contains(ov.elementId))
                             issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "responsive-target-missing",
                                 $"Responsive rule '{r.ruleId}' overrides missing element '{ov.elementId}'.",
                                 "Fix the target elementId or remove the override.", screenId, ov.elementId));
+                        ValidateOverride(ov.propertyId, ov.typedValue, ov.propertyPath, ov.value,
+                            $"Responsive rule '{r.ruleId}'", screenId, ov.elementId, issues);
+                    }
                 }
+        }
+
+        private static void ValidateOverride(DesignerPropertyId propertyId, DesignerPropertyValue typedValue,
+            string legacyPath, string legacyValue, string owner, string screenId, string elementId,
+            List<DesignerValidationIssue> issues)
+        {
+            var resolved = propertyId != DesignerPropertyId.None ? propertyId : DesignerPropertyRegistry.ResolveLegacyPath(legacyPath);
+            var descriptor = DesignerPropertyRegistry.Get(resolved);
+            if (descriptor == null)
+            {
+                issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "property-path-legacy-unknown",
+                    $"{owner} uses unknown legacy property '{legacyPath}'.",
+                    "Choose a typed property; the legacy value is preserved but cannot be capability-checked.", screenId, elementId));
+                return;
+            }
+            if ((descriptor.Usage & DesignerPropertyUsage.Override) == 0)
+                issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error, "property-override-not-allowed",
+                    $"{owner} cannot override '{descriptor.Path}'.", "Choose a property that supports overrides.", screenId, elementId));
+
+            if (propertyId != DesignerPropertyId.None)
+            {
+                if (typedValue == null || typedValue.type != descriptor.ValueType)
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error, "property-value-type-mismatch",
+                        $"{owner} value for '{descriptor.Path}' is not {descriptor.ValueType}.",
+                        "Re-enter the value using the typed property editor.", screenId, elementId));
+            }
+            else if (descriptor.ValueType != DesignerPropertyValueType.AssetReference &&
+                     !DesignerPropertyRegistry.TryParse(resolved, legacyValue, out _, out var error))
+                issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error, "property-value-invalid",
+                    $"{owner}: {error}", "Enter a value compatible with the selected property type.", screenId, elementId));
         }
 
         private static void ValidateMotion(DesignerMetadataAsset metadata, string screenId, List<DesignerValidationIssue> issues)
@@ -461,7 +567,13 @@ namespace emiteat.NexUI.Designer.Editor.Validation
         {
             var names = new HashSet<string>();
             foreach (var t in prefab.GetComponentsInChildren<Transform>(true))
+            {
                 names.Add(t.name);
+                var tag = t.GetComponent<NxUGuiBindingTag>();
+                if (tag == null) continue;
+                if (!string.IsNullOrEmpty(tag.elementId)) names.Add(tag.elementId);
+                if (!string.IsNullOrEmpty(tag.stableId)) names.Add("$stable:" + tag.stableId);
+            }
             return names;
         }
 
@@ -481,10 +593,20 @@ namespace emiteat.NexUI.Designer.Editor.Validation
                     $"Prefab contains multiple GameObjects named '{name}'.",
                     "Rename duplicates so element matching stays reliable.", screenId, name));
 
+            var stableIds = new HashSet<string>();
+            var duplicateStableIds = new HashSet<string>();
+            foreach (var tag in prefab.GetComponentsInChildren<NxUGuiBindingTag>(true))
+                if (!string.IsNullOrEmpty(tag.stableId) && !stableIds.Add(tag.stableId))
+                    duplicateStableIds.Add(tag.stableId);
+            foreach (var stableId in duplicateStableIds)
+                issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error, "duplicate-prefab-stable-id",
+                    $"Prefab contains multiple binding tags with stableId '{stableId}'.",
+                    "Give every NxUGuiBindingTag a unique stableId before saving.", screenId));
+
             foreach (var element in metadata.elements)
             {
                 if (element == null || string.IsNullOrEmpty(element.elementId)) continue;
-                var child = FindChild(prefab.transform, element.elementId);
+                var child = FindChild(prefab.transform, element);
                 if (child == null) continue; // missing-backend-element already reported.
 
                 var type = element.elementType ?? "Panel";
@@ -540,6 +662,14 @@ namespace emiteat.NexUI.Designer.Editor.Validation
                 if (found != null) return found;
             }
             return null;
+        }
+
+        private static Transform FindChild(Transform root, DesignerElementMetadata element)
+        {
+            if (!string.IsNullOrEmpty(element.stableId))
+                foreach (var tag in root.GetComponentsInChildren<NxUGuiBindingTag>(true))
+                    if (tag.stableId == element.stableId) return tag.transform;
+            return FindChild(root, element.elementId);
         }
 
         private static bool Is(string type, string other)

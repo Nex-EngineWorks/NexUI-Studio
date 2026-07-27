@@ -66,6 +66,26 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
             Assert.That(File.Exists(Folder + "/Test.g.uxml"), Is.False);
         }
 
+        [Test]
+        public void StructuredSaveReport_SeparatesEveryImpactCategory()
+        {
+            var report = new DesignerSaveReport { IsPreview = true };
+            report.MarkCreated("asset", "create");
+            report.MarkModified("asset", "modify");
+            report.MarkSkipped("skip");
+            report.MarkUnsupported("property", "unsupported");
+            report.MarkPreviewOnly("property", "preview");
+            report.MarkConflict("identity", "conflict");
+            report.MarkOrphan("element", "orphan");
+            report.MarkUserImpact("fallback", "impact");
+
+            foreach (DesignerSaveImpactKind kind in System.Enum.GetValues(typeof(DesignerSaveImpactKind)))
+                Assert.That(report.Count(kind), Is.EqualTo(1), kind.ToString());
+            Assert.That(report.IsPreview, Is.True);
+            Assert.That(report.HasErrors, Is.True);
+            StringAssert.Contains("Save preview", report.Summary());
+        }
+
         private static GeneratedAssetFile[] Files(string uxml, string uss) => new[]
         {
             new GeneratedAssetFile(Folder + "/Test.g.uxml", uxml),

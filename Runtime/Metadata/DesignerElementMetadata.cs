@@ -43,6 +43,11 @@ namespace emiteat.NexUI.Designer
     [Serializable]
     public sealed class DesignerElementMetadata
     {
+        /// <summary>
+        /// Immutable backend identity. Unlike <see cref="elementId"/>, this value is not renamed
+        /// by the user and lets serializers reconnect metadata to the same backend object.
+        /// </summary>
+        public string stableId = Guid.NewGuid().ToString("N");
         public string elementId;
         public string parentId;
         /// <summary>
@@ -101,8 +106,22 @@ namespace emiteat.NexUI.Designer
         public DesignerAutoLayoutMetadata autoLayout = new DesignerAutoLayoutMetadata();
         public DesignerConstraintMetadata constraint = new DesignerConstraintMetadata();
         public DesignerFocusMetadata focus = new DesignerFocusMetadata();
+        public DesignerLayoutStyleMetadata layoutStyle = new DesignerLayoutStyleMetadata();
+        public DesignerVisualStyleMetadata visualStyle = new DesignerVisualStyleMetadata();
+        public DesignerTypographyMetadata typography = new DesignerTypographyMetadata();
+        /// <summary>
+        /// Reusable-component reference. Meaningful only when its <c>definitionGuid</c> is set, in
+        /// which case this element is a component instance: authored children below it are slot
+        /// content and the definition sub-tree is expanded underneath at preview/serialize time.
+        /// Always non-null so schema-v3 metadata (authored before components existed) loads unchanged.
+        /// </summary>
+        public DesignerComponentInstanceMetadata componentInstance = new DesignerComponentInstanceMetadata();
+
         public bool locked;
+        /// <summary>Editor-only canvas visibility. Never changes generated/runtime visibility.</summary>
         public bool hiddenInDesigner;
+        /// <summary>Visibility written to the backend and used at runtime.</summary>
+        public bool runtimeVisible = true;
 
         /// <summary>
         /// When true, the Designer canvas clips child previews to this element's content bounds

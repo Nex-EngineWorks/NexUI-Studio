@@ -1,4 +1,5 @@
 using emiteat.NexUI.Designer.Editor;
+using emiteat.NexUI.Designer.Editor.Properties;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -103,6 +104,27 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
         }
 
         [Test]
+        public void Migration_V1AssignsStableIdentityAndPreservesLegacyRuntimeVisibility()
+        {
+            var asset = NewAsset();
+            asset.schemaVersion = 1;
+            var visible = Add(asset, "visible", new Rect(0, 0, 10, 10));
+            var hidden = Add(asset, "hidden", new Rect(0, 0, 10, 10));
+            visible.stableId = string.Empty;
+            hidden.stableId = string.Empty;
+            visible.hiddenInDesigner = false;
+            hidden.hiddenInDesigner = true;
+
+            Assert.IsTrue(DesignerHierarchyMigration.Migrate(asset, recordUndo: false));
+
+            Assert.IsNotEmpty(visible.stableId);
+            Assert.IsNotEmpty(hidden.stableId);
+            Assert.IsTrue(visible.runtimeVisible);
+            Assert.IsFalse(hidden.runtimeVisible);
+            Assert.IsFalse(DesignerHierarchyMigration.Migrate(asset, recordUndo: false));
+        }
+
+        [Test]
         public void Migration_PreservesDrawOrderAsSiblingOrder()
         {
             var asset = NewAsset();
@@ -116,6 +138,35 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
             Assert.AreEqual("first", children[0].elementId);
             Assert.AreEqual("second", children[1].elementId);
             Assert.AreEqual("third", children[2].elementId);
+        }
+
+        [Test]
+        public void Migration_V2SeedsTypedStylesAndConvertsLegacyOverrides()
+        {
+            var asset = NewAsset();
+            asset.schemaVersion = 2;
+            var element = Add(asset, "title", new Rect(0, 0, 100, 30));
+            element.tint = Color.red;
+            element.textColor = Color.green;
+            element.fontSize = 24;
+            var variant = new DesignerVariantMetadata { variantId = "compact" };
+            variant.overrides.Add(new DesignerVariantOverrideMetadata
+            {
+                targetElementId = "title", propertyPath = "fontSize", value = "18"
+            });
+            asset.variants.Add(variant);
+
+            Assert.IsTrue(DesignerHierarchyMigration.Migrate(asset, recordUndo: false));
+            // Migration always lands on the current schema; this test is about the v2 → v3 *effects*,
+            // not the version number, so it must not pin an older version.
+            Assert.AreEqual(DesignerMetadataAsset.CurrentSchemaVersion, asset.schemaVersion);
+            Assert.IsTrue(element.visualStyle.hasOverrides);
+            Assert.AreEqual(Color.red, element.visualStyle.backgroundColor);
+            Assert.AreEqual(Color.green, element.typography.color);
+            Assert.AreEqual(24f, element.typography.fontSize);
+            Assert.AreEqual(DesignerPropertyId.FontSize, variant.overrides[0].propertyId);
+            Assert.AreEqual(18f, variant.overrides[0].typedValue.floatValue);
+            Assert.AreEqual("fontSize", DesignerPropertyRegistry.PathFor(variant.overrides[0].propertyId));
         }
     }
 }

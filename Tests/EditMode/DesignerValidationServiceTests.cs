@@ -92,5 +92,24 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
             var issues = DesignerValidationService.Validate(screen, metadata);
             Assert.IsTrue(HasCode(issues, "small-touch-target"));
         }
+
+        [Test]
+        public void TypedOverrideWithWrongValueType_ReportsError()
+        {
+            var screen = NewScreen("hud", UIRenderBackend.UIToolkit, null);
+            var metadata = ScriptableObject.CreateInstance<DesignerMetadataAsset>();
+            metadata.screenId = "hud";
+            metadata.elements.Add(new DesignerElementMetadata { elementId = "title", rect = new Rect(0, 0, 100, 30) });
+            var variant = new DesignerVariantMetadata { variantId = "Default", isDefault = true };
+            variant.overrides.Add(new DesignerVariantOverrideMetadata
+            {
+                targetElementId = "title", propertyId = DesignerPropertyId.FontSize,
+                typedValue = new DesignerPropertyValue { type = DesignerPropertyValueType.Color, colorValue = Color.red }
+            });
+            metadata.variants.Add(variant);
+
+            var issues = DesignerValidationService.Validate(screen, metadata);
+            Assert.IsTrue(HasCode(issues, "property-value-type-mismatch"));
+        }
     }
 }

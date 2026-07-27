@@ -30,6 +30,8 @@ Global Toolbar의 **Validate** 또는 `Tools > NexUI > Designer > Validate Curre
 | `excessive-depth` | Warning | Hierarchy가 너무 깊음 | 계층 단순화 | 없음 |
 | `invalid-slot` | Error | Parent에 없는 Slot | 유효 Slot 선택 | 없음 |
 | `template-slot-multiple` | Warning | 단일 Slot에 여러 Child | Slot 구성 수정 | 없음 |
+| `missing-stable-id` | Error | Element에 `stableId`가 없음 | Metadata Migration 실행 | 있음 |
+| `duplicate-stable-id` | Error | Metadata 안에서 `stableId` 중복 | 중복 Element의 ID 재생성 | 있음 |
 
 ## Binding, Command와 접근성
 
@@ -49,6 +51,10 @@ Global Toolbar의 **Validate** 또는 `Tools > NexUI > Designer > Validate Curre
 | --- | --- | --- | --- | --- |
 | `variant-target-missing` | Warning | Variant 대상 없음 | Target ID 수정 | 없음 |
 | `responsive-target-missing` | Warning | Responsive 대상 없음 | Target ID 수정 | 없음 |
+| `property-path-legacy-unknown` | Warning | Override의 legacy 문자열 경로를 `DesignerPropertyId`로 해석할 수 없음 | Typed Property를 다시 선택 | 없음 |
+| `property-override-not-allowed` | Warning | 해당 Property가 Override 용도를 지원하지 않음 | 지원하는 Property 사용 | 없음 |
+| `property-value-type-mismatch` | Warning | Override 값의 타입이 Property 정의와 다름 | 값을 올바른 타입으로 입력 | 없음 |
+| `property-value-invalid` | Warning | Override 값을 파싱할 수 없음 | 형식에 맞는 값 입력 | 없음 |
 | `motion-close-missing` | Warning | Open은 있고 Close 없음 | Close Clip 연결 | 있음(역전 생성) |
 | `motion-target-missing` | Error | Motion Target ID 없음 | Target 수정 | 없음 |
 | `screen-motion-has-target` | Warning | Screen Motion에 Element Target | Target 비우기 | 없음 |
@@ -69,6 +75,7 @@ Global Toolbar의 **Validate** 또는 `Tools > NexUI > Designer > Validate Curre
 | --- | --- | --- | --- | --- |
 | `orphan-backend-element` | Info | Backend에만 이름 존재 | Metadata 동기화/정리 | 없음 |
 | `duplicate-gameobject-name` | Warning | Prefab 이름 중복 | 이름 고유화 | 없음 |
+| `duplicate-prefab-stable-id` | Error | Prefab 안에서 Stable Identity Tag가 중복 | 복제된 Object의 Tag를 재생성하거나 제거 | 없음 |
 | `ugui-decorative-raycast` | Warning | 장식 Graphic이 Raycast | Raycast Target 끄기 | 있음 |
 | `ugui-invisible-canvasgroup-blocks-input` | Error | 투명 CanvasGroup이 입력 차단 | Blocks Raycasts 해제 | 있음 |
 | `ugui-button-target-graphic-missing` | Warning | Button Target Graphic 없음 | Graphic 연결 | 있음 |
@@ -76,5 +83,34 @@ Global Toolbar의 **Validate** 또는 `Tools > NexUI > Designer > Validate Curre
 | `ugui-missing-text` | Warning | Text Element에 Text 없음 | TMP/Text 추가 | 없음 |
 | `ugui-missing-graphic` | Warning | 시각 Element에 Graphic 없음 | Graphic 추가 | 없음 |
 | `ugui-modal-without-canvasgroup` | Info | Modal에 CanvasGroup 없음 | 필요 시 추가 | 없음 |
+
+## 재사용 Component
+
+| Code | 심각도 | 발생 조건 | 해결 방법 | Auto Fix |
+| --- | --- | --- | --- | --- |
+| `component-definition-missing` | Error | Instance가 참조하는 Definition asset을 찾을 수 없음 | Definition 복구 또는 Instance Detach | 없음 |
+| `component-cycle` | Error | Component가 자기 자신을 포함 | Definition 내부 자기 참조 제거 | 없음 |
+| `component-definition-empty` | Error | Definition에 root element가 없음 | Definition에 element 추가 | 없음 |
+| `component-expansion-budget` | Error | 중첩 깊이 16 또는 생성 element 4000 초과 | 중첩 구조 평탄화 | 없음 |
+| `component-slot-unknown` | Warning | 선언되지 않은 slot을 가리키는 자식 | 선언된 slot으로 이동하거나 slot 추가 | 없음 |
+| `component-slot-type-rejected` | Warning | slot이 허용하지 않는 component type | 허용 타입 사용 또는 slot 제약 완화 | 없음 |
+| `component-slot-required-empty` | Warning | 필수 slot이 비어 있음 | slot에 내용 추가 또는 optional로 변경 | 없음 |
+| `component-slot-count` | Warning | slot 자식 개수가 min/max 범위 밖 | 자식 수 조정 또는 범위 수정 | 없음 |
+| `component-slot-host-missing` | Warning | slot의 `hostElementId`가 존재하지 않음 | 존재하는 element로 지정하거나 비우기 | 없음 |
+| `component-override-unresolved` | Warning | Override 대상이 Definition에 없음 | Override Reset 또는 Definition 복구 | 없음 |
+| `component-override-unapplied` | Warning | Property에 authored 표현이 없어 적용 불가 | Definition 안에서 값 지정 | 없음 |
+| `component-variant-unknown` | Warning | 선언되지 않은 variant property 선택 | 선택 제거 또는 variant property 추가 | 없음 |
+| `component-variant-value-unknown` | Warning | 선언되지 않은 variant 값 | 정의된 option 선택 | 없음 |
+| `component-version-mismatch` | Warning | Instance와 Definition 버전 불일치 | Update From Definition 실행 | 없음 |
+| `component-exposed-target-missing` | Warning | Exposed property 대상 element 없음 | 대상 재지정 | 없음 |
+| `component-exposed-duplicate-name` / `component-exposed-empty-name` / `component-exposed-no-property` | Warning | Exposed property 계약 오류 | Definition에서 수정 | 없음 |
+| `component-slot-duplicate-id` / `component-slot-empty-id` | Warning | Slot 계약 오류 | Definition에서 수정 | 없음 |
+| `component-variant-rule-orphan` | Warning | 선언되지 않은 variant property를 참조하는 rule | Variant property 추가 또는 rule 삭제 | 없음 |
+| `component-origin-missing` | Info | Detach된 element의 출처 Definition이 사라짐 | 참조 정리 또는 Definition 복구 | 없음 |
+| `component-definition-recovered` | Info | 저장된 GUID는 사라졌지만 `componentId`로 Definition을 찾음 | 저장하면 새 GUID가 기록됩니다 | 없음 |
+
+`component-issue`는 위에 매핑되지 않은 전개 오류를 위한 방어적 Fallback Code입니다. 실제로 표시된다면 Code 매핑 누락이므로 버그로 보고해 주세요.
+
+자세한 내용은 [재사용 Component](../advanced/reusable-components.md)를 참고하세요.
 
 Motion Graph, Motion State Machine, Scenario와 Generated Asset의 일부 검사는 별도 편집기/Publish 결과 메시지로 제공되며 위 Core Validation Code 목록에 Stable Code로 등록되지 않은 항목도 있습니다. 문서가 임의 Code를 만들지 않도록 사용자에게 보이는 메시지를 기준으로 확인하세요.

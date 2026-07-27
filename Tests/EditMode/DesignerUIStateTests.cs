@@ -61,6 +61,61 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
         }
 
         [Test]
+        public void DuplicateSelection_PreservesSubtreeAndRemapsInternalReferences()
+        {
+            var context = new NexUIDesignerContext();
+            var asset = ScriptableObject.CreateInstance<DesignerMetadataAsset>();
+            var parent = new DesignerElementMetadata { elementId = "panel", rect = new Rect(10, 20, 100, 100) };
+            var child = new DesignerElementMetadata { elementId = "button", parentId = "panel", rect = new Rect(20, 30, 30, 20) };
+            var grandchild = new DesignerElementMetadata { elementId = "label", parentId = "button", rect = new Rect(22, 32, 20, 10) };
+            child.focus.rightElementId = "label";
+            asset.elements.Add(parent);
+            asset.elements.Add(child);
+            asset.elements.Add(grandchild);
+            asset.screenMotion.bindings.Add(new DesignerMotionBinding { bindingId = "hover", targetElementId = "button" });
+            context.SetMetadata(asset);
+            context.SelectMetadata(parent);
+
+            var copies = context.DuplicateSelection();
+
+            Assert.AreEqual(3, copies.Count);
+            var parentCopy = copies.Find(e => string.IsNullOrEmpty(e.parentId));
+            var childCopy = copies.Find(e => e.parentId == parentCopy.elementId);
+            var grandchildCopy = copies.Find(e => e.parentId == childCopy.elementId);
+            Assert.NotNull(parentCopy);
+            Assert.NotNull(childCopy);
+            Assert.NotNull(grandchildCopy);
+            Assert.AreEqual(grandchildCopy.elementId, childCopy.focus.rightElementId);
+            Assert.AreEqual(parent.rect.position + Vector2.one * 16f, parentCopy.rect.position);
+            Assert.AreNotEqual(parent.stableId, parentCopy.stableId);
+            Assert.AreNotEqual(child.stableId, childCopy.stableId);
+            Assert.AreEqual(2, asset.screenMotion.bindings.Count);
+            Assert.AreEqual(childCopy.elementId, asset.screenMotion.bindings[1].targetElementId);
+            context.Dispose();
+        }
+
+        [Test]
+        public void CopySelection_UsesSnapshotRatherThanLiveSource()
+        {
+            var context = new NexUIDesignerContext();
+            var asset = ScriptableObject.CreateInstance<DesignerMetadataAsset>();
+            var source = new DesignerElementMetadata { elementId = "label", text = "Before" };
+            source.classes.Add("original");
+            asset.elements.Add(source);
+            context.SetMetadata(asset);
+            context.SelectMetadata(source);
+            context.CopySelection();
+
+            source.text = "After";
+            source.classes.Add("later");
+            var pasted = context.PasteSelection();
+
+            Assert.AreEqual("Before", pasted[0].text);
+            CollectionAssert.AreEqual(new[] { "original" }, pasted[0].classes);
+            context.Dispose();
+        }
+
+        [Test]
         public void LayerOrder_MoveElementChangesMetadataOrder()
         {
             var context = new NexUIDesignerContext();

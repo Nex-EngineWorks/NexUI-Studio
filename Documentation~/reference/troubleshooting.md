@@ -28,11 +28,33 @@ Validation 결과의 Element로 이동합니다. Duplicate ID는 고유하게 �
 
 ## Save 후 Prefab이 바뀌지 않음
 
-uGUI Backend인지, Prefab이 연결됐는지, Element 이름이 맞는지 확인합니다. Save Report의 **Skipped**를 읽으세요. Preview-only 또는 미지원 속성은 Prefab에 쓰이지 않습니다.
+uGUI Backend인지, Prefab이 연결됐는지 확인합니다. Save Report의 **Skipped**와 **Error**를 읽으세요. Preview-only 또는 미지원 속성은 Prefab에 쓰이지 않습니다.
+
+연결은 Element 이름이 아니라 **Stable ID**로 이루어집니다. `duplicate-prefab-stable-id` 오류가 보이면 Prefab 안에 Identity Tag가 중복된 것입니다(대개 Designer가 만든 Object를 Prefab에서 복제한 경우). 복제본의 Tag를 제거하거나 재생성한 뒤 다시 저장하세요. Designer는 잘못된 Object에 쓰지 않기 위해 해당 Element를 건너뜁니다.
 
 ## UI Toolkit Save 후 UXML이 바뀌지 않음
 
-정상일 수 있습니다. 일반 Save는 수동 UXML을 보존하고 Metadata만 저장합니다. UI Builder에서 수동 UXML을 편집하거나 Generation/Sync Publish로 `.g.uxml/.g.uss`를 만드세요.
+정상일 수 있습니다. 일반 Save는 **Generated Marker가 없는** 사용자 UXML을 보존하고 Metadata만 저장합니다. UI Builder에서 수동 UXML을 편집하거나 Generation/Sync Publish로 `.g.uxml/.g.uss`를 만드세요.
+
+대상 UXML이 Marker를 가진 생성물이라면 일반 Save에서도 다시 생성됩니다. 그런데도 파일이 그대로라면 생성 결과가 이전과 동일한 것이며, Save Report에 `unchanged`로 표시됩니다.
+
+## Component Instance가 빈 상자로 보임 / `component-definition-missing`
+
+Definition Asset이 이동·삭제되었거나 다른 프로젝트에서 온 화면입니다. Instance와 Slot 자식은 **삭제되지 않았습니다**.
+
+Definition을 복구하면 그대로 돌아옵니다. 복구할 수 없다면 Inspector의 **Component Instance** Section에서 **Detach**를 눌러 현재 내용을 일반 Element로 물질화하세요. `component-definition-recovered` Info가 대신 보인다면 GUID만 바뀐 것이므로 한 번 저장하면 해결됩니다.
+
+## Definition을 고쳤는데 Instance가 그대로임
+
+Definition Asset을 저장했는지 확인하세요(Project 창에서 편집한 경우 Unity가 자동 저장하지 않을 수 있습니다). Designer 창을 다시 그리려면 아무 편집이나 하거나 **Rebuild Preview**를 누릅니다.
+
+Instance가 해당 값을 **Override**하고 있으면 Definition 값이 보이지 않습니다. Inspector에서 해당 Property의 **Reset**을 누르세요.
+
+## Asset을 Canvas로 드래그해도 아무 일이 없음
+
+커서에 금지 표시가 떴다면 그 Asset에 정의된 동작이 없는 것입니다(지원 목록은 [Assets 패널](../user-guide/assets-panel.md) 참고).
+
+Texture를 끌었는데 적용되지 않으면 Texture Type이 `Sprite`가 아닐 수 있습니다. Preview Log에 이유가 남습니다. Material과 Font는 **Element 위에** 떨어뜨려야 하며 빈 Canvas에서는 거부됩니다.
 
 ## `.g.uxml/.g.uss` 생성 실패 / Generated Marker 오류
 

@@ -127,6 +127,7 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             bottomRow.Add(spacer);
 
             bottomRow.Add(MakeButton(context.RebuildPreview, "Rebuild", "nexui-button-secondary", DesignerLocalization.T("tooltip.toolbar.rebuild")));
+            bottomRow.Add(MakeButton(() => DesignerSavePreviewWindow.Open(context), "Save Preview", "nexui-button-secondary", "저장 전 생성/수정/제외/호환성 영향을 확인합니다."));
             bottomRow.Add(MakeButton(() => context.Save(), DesignerLocalization.T("toolbar.save"), "nexui-button-primary", DesignerLocalization.T("tooltip.toolbar.save")));
             bottomRow.Add(MakeButton(context.Validate, DesignerLocalization.T("toolbar.validate"), "nexui-button-secondary", DesignerLocalization.T("tooltip.toolbar.validate")));
 

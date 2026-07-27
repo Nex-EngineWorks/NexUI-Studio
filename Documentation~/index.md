@@ -15,6 +15,7 @@
 - [Designer 창](user-guide/designer-window.md) — Toolbar, Sidebar, Canvas, Inspector와 Bottom Drawer의 역할을 설명합니다.
 - [Screen과 Metadata](user-guide/screen-and-metadata.md) — 런타임 정의와 편집 데이터의 책임을 구분합니다.
 - [Canvas 편집](user-guide/canvas-editing.md) · [Hierarchy와 Layout](user-guide/hierarchy-and-layout.md)
+- [Assets 패널](user-guide/assets-panel.md) — Designer 안에서 Sprite/Font/Component를 찾아 캔버스로 드래그합니다.
 - [Inspector와 Style](user-guide/inspector-and-style.md) · [Binding](user-guide/binding.md)
 - [자주 사용하는 작업](user-guide/common-workflows.md) — 선택, 정렬, 부모 변경, Binding, Save/Publish를 목적별로 찾습니다.
 - [AI 어시스턴트](user-guide/ai-assistant.md) — Unity 안에서 대화로 변경 계획을 만들고 검토한 뒤 Undo 가능하게 적용합니다.
@@ -43,6 +44,7 @@
 
 ## 고급 기능
 
+- [재사용 Component](advanced/reusable-components.md) — 선택 요소를 Component Definition으로 만들고 Instance/Slot/Variant/Override로 재사용합니다.
 - [Figma Bridge](advanced/figma-bridge.md) — 인증, JSON 조회와 첫 Frame Import를 사용합니다.
 - [Migration Wizard](advanced/migration-wizard.md) — 구버전 Namespace와 Package ID를 안전하게 치환합니다.
 - [Runtime Debugging](advanced/runtime-debugging.md) — Play Mode Snapshot과 Overlay를 사용합니다.

@@ -32,7 +32,12 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
                 tooltip = DesignerLocalization.T("tooltip.toolbar.screen")
             };
             screen.AddToClassList("nexui-global-screen");
-            screen.RegisterValueChangedCallback(evt => context.Open(evt.newValue as UIScreenDefinition));
+            screen.SetValueWithoutNotify(context.CurrentScreen);
+            screen.RegisterValueChangedCallback(evt =>
+            {
+                if (!context.TryOpen(evt.newValue as UIScreenDefinition))
+                    screen.SetValueWithoutNotify(context.CurrentScreen);
+            });
             Add(screen);
 
             _backend = new Label("Backend");
@@ -93,7 +98,11 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             }
 
             var subscriptions = new ContextBoundSubscriptions(this);
-            subscriptions.Add<emiteat.NexUI.Core.UIScreenDefinition>(h => context.ScreenChanged += h, h => context.ScreenChanged -= h, _ => RefreshStatus());
+            subscriptions.Add<emiteat.NexUI.Core.UIScreenDefinition>(h => context.ScreenChanged += h, h => context.ScreenChanged -= h, value =>
+            {
+                screen.SetValueWithoutNotify(value);
+                RefreshStatus();
+            });
             subscriptions.Add(h => context.ValidationChanged += h, h => context.ValidationChanged -= h, RefreshStatus);
             subscriptions.Add<DesignerMode>(h => DesignerEditMode.Changed += h,
                 h => DesignerEditMode.Changed -= h, _ => RefreshMode());

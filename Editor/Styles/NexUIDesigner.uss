@@ -102,15 +102,32 @@
 }
 
 .nexui-canvas-toolbar {
-    height: 36px;
+    height: auto;
     min-height: 36px;
+    flex-shrink: 0;
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
     padding-left: 8px;
     padding-right: 8px;
+    padding-top: 4px;
+    padding-bottom: 1px;
     border-bottom-width: 1px;
     border-bottom-color: var(--nexui-border);
     background-color: #14171d;
+}
+
+.nexui-canvas-toolbar > .nexui-tool-button,
+.nexui-canvas-toolbar > .unity-base-field,
+.nexui-canvas-toolbar > .nexui-toolbar-button,
+.nexui-canvas-toolbar > .nexui-toolbar-divider,
+.nexui-canvas-toolbar > .nexui-zoom-readout {
+    flex-shrink: 0;
+    margin-bottom: 3px;
+}
+
+.nexui-canvas-toolbar > .nexui-toolbar-divider {
+    height: 20px;
 }
 
 .nexui-tool-button {
@@ -1797,6 +1814,132 @@
     color: var(--nexui-guide);
     -unity-font-style: bold;
     font-size: 10px;
+}
+
+/* Feedback shown while an asset is dragged over the canvas, so the drop is never a surprise. */
+.nexui-drop-hint {
+    position: absolute;
+    height: 20px;
+    padding-left: 8px;
+    padding-right: 8px;
+    border-radius: 4px;
+    background-color: var(--nexui-bg-selected);
+    color: var(--nexui-text-primary);
+    border-width: 1px;
+    border-color: var(--nexui-accent);
+    -unity-font-style: bold;
+    font-size: 10px;
+}
+
+/* ---------------------------------------------------------------------------- assets panel */
+
+.nexui-assets-toolbar {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.nexui-assets-search {
+    flex-grow: 1;
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+.nexui-assets-filter {
+    width: 74px;
+}
+
+.nexui-assets-breadcrumbs {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+}
+
+.nexui-assets-crumb {
+    height: 18px;
+    margin-right: 2px;
+    padding-left: 5px;
+    padding-right: 5px;
+    border-width: 0;
+    border-radius: 3px;
+    background-color: transparent;
+    color: var(--nexui-text-secondary);
+    font-size: 10px;
+}
+
+.nexui-assets-crumb:hover {
+    background-color: var(--nexui-bg-hover);
+    color: var(--nexui-text-primary);
+}
+
+.nexui-assets-crumb:disabled {
+    color: var(--nexui-text-primary);
+    opacity: 1;
+}
+
+.nexui-assets-row {
+    flex-direction: row;
+    align-items: center;
+    height: 30px;
+    padding-left: 4px;
+    padding-right: 4px;
+    border-radius: 4px;
+}
+
+.nexui-assets-row:hover {
+    background-color: var(--nexui-bg-hover);
+}
+
+.nexui-assets-row.is-selected {
+    background-color: var(--nexui-bg-selected);
+}
+
+.nexui-assets-icon {
+    width: 22px;
+    height: 22px;
+    margin-right: 6px;
+    border-radius: 3px;
+    background-color: var(--nexui-bg-raised);
+    -unity-background-scale-mode: scale-to-fit;
+    align-items: center;
+    justify-content: center;
+}
+
+.nexui-assets-icon Label {
+    font-size: 11px;
+    color: var(--nexui-text-secondary);
+}
+
+.nexui-assets-text {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.nexui-assets-name {
+    font-size: 11px;
+    color: var(--nexui-text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nexui-assets-path {
+    font-size: 9px;
+    color: var(--nexui-text-disabled);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nexui-assets-status {
+    font-size: 9px;
+    color: var(--nexui-text-disabled);
+    padding-top: 4px;
+}
+
+#AssetsEmptyState {
+    font-size: 10px;
+    color: var(--nexui-text-disabled);
+    padding-top: 10px;
+    white-space: normal;
 }
 
 .nexui-rename-field {

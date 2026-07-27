@@ -14,7 +14,8 @@ Core를 먼저 업데이트하고 Designer를 업데이트합니다. Git depende
 
 ## 데이터와 생성물 확인
 
-1. Migration 도구가 제공되는 버전이면 안내에 따라 실행합니다. 현재 `DesignerMetadataAsset`은 `schemaVersion`을 가지며, 임의로 숫자를 수정하면 안 됩니다.
+1. Metadata Migration은 **Screen을 열 때 자동으로** 실행되고 Console에 한 줄 로그를 남깁니다. `DesignerMetadataAsset.schemaVersion`은 현재 4이며, 이 숫자를 손으로 고치면 Migration이 건너뛰거나 두 번 실행됩니다. 각 단계가 무엇을 바꾸는지는 [Metadata Schema](../developer/metadata-schema.md)를 확인하세요.
+   Migration은 대화형 경로에서 Undo로 기록되므로, 결과가 이상하면 저장 전에 `Ctrl+Z`로 되돌릴 수 있습니다.
 2. 각 주요 Screen을 열고 Validate합니다.
 3. UI Toolkit 생성물은 Dry Run과 Diff를 본 뒤 다시 Generate/Publish합니다.
 4. Sync 상태와 Publish Manifest를 확인합니다.

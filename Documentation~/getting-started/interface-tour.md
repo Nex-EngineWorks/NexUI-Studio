@@ -23,7 +23,7 @@ Screen은 Runtime 화면 정의이고 Metadata는 제작 데이터입니다. 두
 
 ## Left Sidebar
 
-왼쪽 열에는 **Layers**, **Components** 탭과 **Metadata** 필드가 있습니다.
+왼쪽 열에는 **Layers**, **Components**, **Assets** 탭과 **Metadata** 필드가 있습니다.
 
 ### Layers
 
@@ -33,7 +33,11 @@ Element의 부모·자식 관계와 형제 순서를 보여 줍니다. 행을 �
 
 Panel, Container, Label, Button, Image, ProgressBar, Grid, Slot 등 등록된 Component를 검색하고 추가합니다. 버튼을 누르면 Metadata와 Canvas에 새 Element가 생깁니다. Backend별 지원 수준은 [Backend 지원 범위](../reference/backend-support-matrix.md)를 확인하세요.
 
-Sprite, Font, Motion Asset은 Unity Project 창과 Inspector의 Object Field에서 선택합니다. Command Palette의 **Show Project Assets**로 Project 창을 바로 열 수 있습니다.
+### Assets
+
+프로젝트 Asset을 폴더 단위로 탐색하고 검색합니다. Sprite, Font, Material, Component Definition을 Canvas로 바로 드래그할 수 있습니다. 자세한 동작은 [Assets 패널](../user-guide/assets-panel.md)을 확인하세요.
+
+Rename·이동·삭제 같은 파일 관리는 Unity Project 창에서 수행합니다. Command Palette의 **Show Project Window**로 바로 열 수 있습니다.
 
 ## Canvas Toolbar
 

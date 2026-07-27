@@ -13,18 +13,17 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
         private readonly VisualElement _host;
         private readonly NexUILayersPanel _layers;
         private readonly NexUIComponentsPanel _components;
+        private readonly NexUIAssetsPanel _assets;
 
         public NexUILeftSidebar(NexUIDesignerContext context)
         {
             _context = context;
             AddToClassList("nexui-left-sidebar");
 
-            if (context.SidebarTab == DesignerSidebarTab.Assets)
-                context.SetSidebarTab(DesignerSidebarTab.Layers);
-
             _tabs = new NexUITabBar<DesignerSidebarTab>(context.SidebarTab, context.SetSidebarTab,
                 (DesignerSidebarTab.Layers, "Layers", "Show screen element layers."),
-                (DesignerSidebarTab.Components, "Components", "Add UI components."));
+                (DesignerSidebarTab.Components, "Components", "Add UI components."),
+                (DesignerSidebarTab.Assets, "Assets", "Browse project sprites, fonts and components; drag them onto the canvas."));
             Add(_tabs);
 
             var metadataRow = new VisualElement();
@@ -36,7 +35,12 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
                 label = "Metadata",
                 tooltip = DesignerLocalization.T("tooltip.toolbar.metadata")
             };
-            metadata.RegisterValueChangedCallback(evt => context.SetMetadata(evt.newValue as DesignerMetadataAsset));
+            metadata.SetValueWithoutNotify(context.Metadata);
+            metadata.RegisterValueChangedCallback(evt =>
+            {
+                if (!context.TrySetMetadata(evt.newValue as DesignerMetadataAsset))
+                    metadata.SetValueWithoutNotify(context.Metadata);
+            });
             var subscriptions = new ContextBoundSubscriptions(this);
             subscriptions.Add<DesignerMetadataAsset>(h => context.MetadataChanged += h, h => context.MetadataChanged -= h, value => metadata.SetValueWithoutNotify(value));
             metadataRow.Add(metadata);
@@ -51,6 +55,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
 
             _layers = new NexUILayersPanel(context);
             _components = new NexUIComponentsPanel(context);
+            _assets = new NexUIAssetsPanel();
 
             subscriptions.Add(h => context.UIStateChanged += h, h => context.UIStateChanged -= h, Refresh);
             Refresh();
@@ -64,6 +69,9 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             {
                 case DesignerSidebarTab.Components:
                     _host.Add(_components);
+                    break;
+                case DesignerSidebarTab.Assets:
+                    _host.Add(_assets);
                     break;
                 default:
                     _host.Add(_layers);

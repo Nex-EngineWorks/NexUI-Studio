@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
@@ -14,7 +15,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
     {
         private static readonly Regex ValidIdPattern = new Regex("^[A-Za-z_][A-Za-z0-9_-]*$");
 
-        public static void MarkDirty(Object asset)
+        public static void MarkDirty(UnityEngine.Object asset)
         {
             if (asset != null)
                 EditorUtility.SetDirty(asset);
@@ -91,6 +92,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             Undo.RecordObject(asset, undoName);
             var copy = Clone(source);
             copy.elementId = MakeUniqueId(asset, source.elementId + "Copy");
+            copy.stableId = Guid.NewGuid().ToString("N");
             asset.elements.Add(copy);
             MarkDirty(asset);
             return copy;

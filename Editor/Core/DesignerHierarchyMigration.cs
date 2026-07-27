@@ -1,5 +1,7 @@
 using UnityEditor;
 using UnityEngine;
+using System;
+using emiteat.NexUI.Designer.Editor.Properties;
 
 namespace emiteat.NexUI.Designer.Editor
 {
@@ -12,6 +14,9 @@ namespace emiteat.NexUI.Designer.Editor
     /// <see cref="DesignerMetadataAsset.elements"/> order (the order the viewport already drew in),
     /// so an existing screen is visually identical before and after. The schemaVersion stamp makes
     /// the migration idempotent - it never runs twice on the same asset.
+    /// v2 → v3 seeds typed layout/visual/typography blocks from the legacy flat fields and maps
+    /// known string override paths to <see cref="DesignerPropertyId"/> without deleting the legacy data.
+    /// v3 → v4 normalizes the additive component-instance block; no authored value changes.
     /// </summary>
     public static class DesignerHierarchyMigration
     {
@@ -31,22 +36,122 @@ namespace emiteat.NexUI.Designer.Editor
 
             if (recordUndo) Undo.RecordObject(asset, "Migrate NexUI Metadata");
 
-            // v0 → v1: seed sibling indices from current list order within each parent group,
-            // then normalize (contiguous, cycle/dangling-safe).
-            var perParentCounter = new System.Collections.Generic.Dictionary<string, int>();
-            foreach (var e in asset.elements)
+            var originalVersion = asset.schemaVersion;
+            if (asset.schemaVersion < 1)
             {
-                if (e == null) continue;
-                var key = e.parentId ?? string.Empty;
-                perParentCounter.TryGetValue(key, out var next);
-                e.siblingIndex = next;
-                perParentCounter[key] = next + 1;
+                // v0 → v1: seed sibling indices from current list order within each parent group.
+                var perParentCounter = new System.Collections.Generic.Dictionary<string, int>();
+                foreach (var e in asset.elements)
+                {
+                    if (e == null) continue;
+                    var key = e.parentId ?? string.Empty;
+                    perParentCounter.TryGetValue(key, out var next);
+                    e.siblingIndex = next;
+                    perParentCounter[key] = next + 1;
+                }
+                asset.schemaVersion = 1;
             }
+
+            if (asset.schemaVersion < 2)
+            {
+                // v1 → v2: preserve the historical backend result. Before v2 the editor-hidden
+                // flag was also written as runtime active/display state.
+                foreach (var e in asset.elements)
+                {
+                    if (e == null) continue;
+                    if (string.IsNullOrEmpty(e.stableId)) e.stableId = Guid.NewGuid().ToString("N");
+                    e.runtimeVisible = !e.hiddenInDesigner;
+                }
+                asset.schemaVersion = 2;
+            }
+
+            if (asset.schemaVersion < 3)
+            {
+                foreach (var e in asset.elements)
+                {
+                    if (e == null) continue;
+                    e.layoutStyle ??= new DesignerLayoutStyleMetadata();
+                    e.visualStyle ??= new DesignerVisualStyleMetadata();
+                    e.typography ??= new DesignerTypographyMetadata();
+                    e.layoutStyle.hasOverrides = true;
+                    e.layoutStyle.overflow = e.clipChildren ? DesignerOverflowMode.Hidden : DesignerOverflowMode.Visible;
+                    e.visualStyle.hasOverrides = true;
+                    e.visualStyle.backgroundColor = e.tint;
+                    e.visualStyle.opacity = 1f;
+                    e.visualStyle.cornerRadius = ShapeRadius(e);
+                    e.typography.hasOverrides = true;
+                    e.typography.fontSize = e.fontSize;
+                    e.typography.color = e.textColor;
+                }
+                foreach (var variant in asset.variants)
+                    if (variant?.overrides != null)
+                        foreach (var item in variant.overrides) MigrateOverride(item);
+                foreach (var responsive in asset.responsiveRules)
+                    if (responsive?.overrides != null)
+                        foreach (var item in responsive.overrides) MigrateOverride(item);
+                asset.schemaVersion = 3;
+            }
+
+            if (asset.schemaVersion < 4)
+            {
+                // v3 → v4 (reusable components): the componentInstance block is purely additive, so
+                // no authored value changes. This step only normalizes it - Unity gives a freshly
+                // deserialized v3 element a default-constructed block, but metadata built in code
+                // (tests, importers, AI apply) can still leave it null. Overrides that carry no
+                // resolvable property are dropped here because they can never be applied and would
+                // otherwise accumulate silently; everything the user can see is preserved.
+                foreach (var e in asset.elements)
+                {
+                    if (e == null) continue;
+                    e.componentInstance ??= new DesignerComponentInstanceMetadata();
+                    var overrides = e.componentInstance.overrides;
+                    for (int i = overrides.Count - 1; i >= 0; i--)
+                    {
+                        var o = overrides[i];
+                        if (o == null ||
+                            (o.propertyId == DesignerPropertyId.None && string.IsNullOrEmpty(o.exposedPropertyName)))
+                            overrides.RemoveAt(i);
+                    }
+                }
+                asset.schemaVersion = 4;
+            }
+
             DesignerHierarchyUtility.NormalizeSiblingIndices(asset);
 
             asset.schemaVersion = DesignerMetadataAsset.CurrentSchemaVersion;
-            if (recordUndo) EditorUtility.SetDirty(asset);
+            if (recordUndo)
+            {
+                EditorUtility.SetDirty(asset);
+                Debug.Log($"[NexUI Designer] Migrated metadata '{asset.name}' schema v{originalVersion} → v{asset.schemaVersion}. Use Undo to restore the pre-migration state.");
+            }
             return true;
+        }
+
+        private static float ShapeRadius(DesignerElementMetadata element)
+        {
+            switch (element.shape)
+            {
+                case DesignerElementShape.Rectangle: return 0f;
+                case DesignerElementShape.Pill:
+                case DesignerElementShape.Circle: return Mathf.Min(element.rect.width, element.rect.height) * 0.5f;
+                default: return 8f;
+            }
+        }
+
+        private static void MigrateOverride(DesignerVariantOverrideMetadata item)
+        {
+            if (item == null || item.propertyId != DesignerPropertyId.None) return;
+            item.propertyId = DesignerPropertyRegistry.ResolveLegacyPath(item.propertyPath);
+            if (item.propertyId != DesignerPropertyId.None)
+                item.typedValue = DesignerPropertyRegistry.Parse(item.propertyId, item.value);
+        }
+
+        private static void MigrateOverride(DesignerResponsiveOverrideMetadata item)
+        {
+            if (item == null || item.propertyId != DesignerPropertyId.None) return;
+            item.propertyId = DesignerPropertyRegistry.ResolveLegacyPath(item.propertyPath);
+            if (item.propertyId != DesignerPropertyId.None)
+                item.typedValue = DesignerPropertyRegistry.Parse(item.propertyId, item.value);
         }
 
         private static bool NormalizeOnly(DesignerMetadataAsset asset, bool recordUndo)

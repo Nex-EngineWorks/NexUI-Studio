@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using emiteat.NexUI.Core;
+using emiteat.NexUI.Designer.Editor.Properties;
 
 namespace emiteat.NexUI.Designer.Editor.Responsive
 {
@@ -34,7 +35,8 @@ namespace emiteat.NexUI.Designer.Editor.Responsive
             foreach (var o in src.overrides)
                 copy.overrides.Add(new DesignerResponsiveOverrideMetadata
                 {
-                    elementId = o.elementId, propertyPath = o.propertyPath, value = o.value
+                    elementId = o.elementId, propertyId = o.propertyId, typedValue = o.typedValue?.Clone(),
+                    propertyPath = o.propertyPath, value = o.value
                 });
             asset.responsiveRules.Add(copy);
             return copy;
@@ -50,12 +52,15 @@ namespace emiteat.NexUI.Designer.Editor.Responsive
                     ruleId = r.ruleId,
                     minResolution = r.minResolution,
                     maxResolution = r.maxResolution,
-                    inputMode = r.inputMode
+                    inputMode = r.inputMode,
+                    constrainInputMode = r.constrainInputMode
                 };
                 foreach (var o in r.overrides)
                     rule.overrides.Add(new UIResponsiveOverride
                     {
-                        elementId = o.elementId, propertyPath = o.propertyPath, value = o.value
+                        elementId = o.elementId,
+                        propertyPath = DesignerPropertyRegistry.EffectivePath(o.propertyId, o.propertyPath),
+                        value = DesignerPropertyRegistry.EffectiveValue(o.propertyId, o.typedValue, o.value)
                     });
                 result.Add(rule);
             }
@@ -78,8 +83,14 @@ namespace emiteat.NexUI.Designer.Editor.Responsive
                     messages.Add($"• {r.ruleId}: min resolution greater than max");
 
                 foreach (var o in r.overrides)
+                {
                     if (string.IsNullOrEmpty(o.elementId) || asset.Find(o.elementId) == null)
                         messages.Add($"• {r.ruleId}: unknown elementId '{o.elementId}'");
+                    if (o.propertyId == DesignerPropertyId.None && string.IsNullOrEmpty(o.propertyPath))
+                        messages.Add($"• {r.ruleId}: empty property");
+                    else if (o.propertyId == DesignerPropertyId.None && DesignerPropertyRegistry.ResolveLegacyPath(o.propertyPath) == DesignerPropertyId.None)
+                        messages.Add($"• {r.ruleId}: legacy/unknown propertyPath '{o.propertyPath}'");
+                }
 
                 for (int j = i + 1; j < rules.Count; j++)
                 {

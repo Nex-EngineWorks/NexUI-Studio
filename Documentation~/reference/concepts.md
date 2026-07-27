@@ -57,6 +57,14 @@
 
 Element는 Stable ID와 Parent를 가진 화면 항목입니다. Component는 해당 Element가 Panel, Button, ProgressBar 등 어떤 역할과 Binding/Event를 지원하는지 설명합니다.
 
+## 재사용 Component
+
+`DesignerComponentDefinitionAsset`은 Element sub-tree와 그 계약(Exposed Property, Slot, Variant)을 담은 사용자 제작 에셋입니다. 화면에 놓인 **Instance는 그 element를 복사하지 않고 참조만** 저장합니다.
+
+그래서 Definition을 한 번 고치면 전파 버튼 없이 모든 Instance가 따라옵니다. Preview·Serializer·Validation은 `DesignerComponentExpander`가 만든 평탄화 트리를 소비하고, 이 결과는 메모리에만 존재하므로 사용자 Asset에 기록되지 않습니다.
+
+Instance element는 전개 시 **Definition root가 됩니다** — 별도 wrapper object를 만들지 않고 자신의 `elementId`/`stableId`/배치를 유지하므로 uGUI Prefab object 연결이 저장마다 끊기지 않습니다. 자세한 내용은 [재사용 Component](../advanced/reusable-components.md)를 참고하세요.
+
 ## Binding과 Command
 
 Binding은 `UIStateStore` Key를 표시 속성과 연결합니다. Command는 클릭 같은 사용자 동작을 `UIActionResolver`의 문자열 Action Key로 연결합니다. Designer는 Key 계약을 저장하지만 게임 로직을 구현하지 않습니다.
@@ -64,6 +72,8 @@ Binding은 `UIStateStore` Key를 표시 속성과 연결합니다. Command는 �
 ## Theme와 Variant
 
 Theme은 여러 Screen이 공유하는 시각 Token 집합입니다. Variant는 입력 방식이나 상황에 따라 다른 설정을 선택하는 대안입니다. 둘 다 Preview만 보고 Runtime 선택 로직이 자동 완성됐다고 판단해서는 안 됩니다.
+
+Variant라는 이름은 두 곳에 쓰입니다. **Screen Variant**(`DesignerVariantMetadata`)는 한 화면 안의 Element Override 묶음이고, **Component Variant**(`DesignerComponentVariantProperty`)는 Definition이 선언한 축을 Instance가 고르는 것입니다. 서로 독립된 기능이며 데이터도 분리되어 있습니다.
 
 ## Motion Graph와 Motion Clip
 

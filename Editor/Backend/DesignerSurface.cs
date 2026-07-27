@@ -67,7 +67,7 @@ namespace emiteat.NexUI.Designer.Editor.Backend
         }
     }
 
-    internal sealed class DesignerElementHandle : IUIElementHandle, IUITransformCapability, IUIVisibilityCapability, IUIStyleCapability, IUITextCapability, IUIValueCapability
+    internal sealed class DesignerElementHandle : IUIElementHandle, IUITransformCapability, IUIVisibilityCapability, IUIStyleCapability, IUITextCapability, IUIValueCapability, IUIColorCapability, IUITypographyCapability
     {
         private readonly HashSet<string> _classes = new HashSet<string>();
         public string Id { get; private set; }
@@ -83,6 +83,9 @@ namespace emiteat.NexUI.Designer.Editor.Backend
         public float Value { get; set; }
         public float Min { get; set; }
         public float Max { get; set; }
+        public Color BackgroundColor { get; set; }
+        public Color TextColor { get; set; }
+        public float FontSize { get; set; }
 
         public DesignerElementHandle(string id, UIRenderBackend backend, object native)
         {

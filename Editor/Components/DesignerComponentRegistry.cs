@@ -387,6 +387,25 @@ namespace emiteat.NexUI.Designer.Editor.Components
                 UGUISupport = DesignerBackendSupport.Partial, UIToolkitSupport = DesignerBackendSupport.Partial
             };
 
+            // ---- Reusable components ------------------------------------------------------
+            // Placeholder type for an instance whose definition cannot be resolved. A healthy
+            // instance takes its definition root's type instead, so this only ever shows when
+            // something is broken - which is exactly when the user needs to see it on the canvas.
+            yield return new DesignerComponentDescriptor
+            {
+                TypeId = "ComponentInstance", DisplayName = "Component Instance",
+                LocalizationKey = "component.instance",
+                Category = DesignerComponentCategory.Generic, Icon = "◈",
+                Description = "Instance of a reusable component definition whose asset is not currently resolvable.",
+                DefaultSize = new Vector2(240, 96), DefaultColor = new Color(0.20f, 0.15f, 0.28f, 1f),
+                CanHaveChildren = true,
+                SupportedStates = DesignerComponentState.Normal | DesignerComponentState.Error,
+                SupportedBindings = B_Vis | B_Class | B_Text | B_Value | B_Cmd | B_Inter,
+                Slots = { Slot(DesignerComponentSlot.Content, "Content") },
+                UGUISupport = DesignerBackendSupport.Partial,
+                UIToolkitSupport = DesignerBackendSupport.Partial
+            };
+
             // ---- Fallback -----------------------------------------------------------------
             yield return Generic("Custom");
         }

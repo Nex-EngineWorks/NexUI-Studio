@@ -2,7 +2,7 @@
 
 Inspector는 선택 상태에 따라 Screen 또는 Element 설정을 하나의 스크롤 영역에 보여 줍니다. 상단 검색과 Workflow 필터로 Section을 좁히고, 각 Section은 독립적으로 접거나 펼칠 수 있습니다.
 
-- **Build:** Position, Size, Anchor, Auto Layout, Constraints, Element Type, Text, Classes, Shape, Tint, Text Color, Font Size, Image와 값 Preview를 편집합니다.
+- **Build:** Position, Size, Anchor, Auto Layout, Constraints, Element Type, Text, Classes, Shape, Tint, Text Color, Font Size, Image와 값 Preview를 편집합니다. 선택이 재사용 Component의 Instance이면 **Component Instance** Section이 함께 나타나 Variant 선택, Exposed Property Override와 Detach/Update를 제공합니다(그 외의 선택에서는 숨겨집니다).
 - **Connect:** Text/Value/Visibility/Class/Interactable/Command Binding, Preview State와 Focus Navigation을 다룹니다.
 - **Animate:** Screen Entry/Exit Clip, Element Trigger, Reduced Motion Clip, State/Command 조건과 Theme을 연결합니다.
 - **Verify:** Validation과 Accessibility를 확인합니다.
@@ -13,3 +13,5 @@ Beginner Mode는 필수·일반 Section만 보여 주고, Pro Mode는 고급·�
 ProgressBar, StatBar, RadialFill은 Min/Max/Preview Value와 Fill Direction을 제공합니다. ChoiceList는 Preview Options, List/Grid/Hotbar는 Preview Item Count를 사용합니다. 이 값 중 `preview*` 필드는 Runtime 데이터가 아니라 제작 확인용일 수 있습니다.
 
 현재 Component Registry에는 Panel, Container, Card, Modal, Popover, Label, Image, Button, IconButton, ChoiceList, ProgressBar, StatBar, RadialFill, Spinner, Skeleton, Toast, Tooltip, List, Grid, Slot, Hotbar와 Custom fallback이 등록되어 있습니다.
+
+`ComponentInstance`도 등록되어 있지만 Palette에서 직접 추가하는 타입이 아닙니다. 재사용 Component의 Definition을 찾을 수 없을 때만 이 타입으로 표시되어, 문제가 있다는 사실이 Canvas에 드러나게 합니다. 정상적인 Instance는 Definition root의 타입을 그대로 사용합니다.

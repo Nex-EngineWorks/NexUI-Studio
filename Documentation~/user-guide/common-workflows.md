@@ -110,6 +110,50 @@ Dim, Popup, Tooltip의 그리기 순서를 조정할 때 사용합니다.
 
 [Hierarchy와 Layout](hierarchy-and-layout.md)
 
+## Sprite를 Element에 넣기
+
+### 사용하는 상황
+
+아이콘이나 배경 이미지를 지정할 때 사용합니다.
+
+### 작업 순서
+
+Left Sidebar의 **Assets** 탭에서 필터를 `Image`로 두고 Sprite를 찾습니다. 대상 Element 위로 드래그하거나, 빈 Canvas에 드래그해 새 Image Element를 만듭니다. Inspector의 Object Field로 드래그해도 됩니다.
+
+### 정상 결과
+
+드래그 중 커서 옆에 무슨 일이 일어날지 표시되고, 드롭하면 한 번의 Undo로 되돌릴 수 있는 변경이 적용됩니다.
+
+### 자주 발생하는 문제
+
+Texture Type이 `Sprite`가 아니면 Sprite sub-asset이 없어 드롭이 적용되지 않고 Preview Log에 이유가 남습니다. 정의된 동작이 없는 Asset은 커서에 금지 표시가 뜹니다.
+
+### 관련 문서
+
+[Assets 패널](assets-panel.md)
+
+## 반복되는 UI를 재사용 Component로 만들기
+
+### 사용하는 상황
+
+카드, 슬롯, 설정 Row처럼 같은 구조를 여러 번 쓰고 한 곳에서 관리하고 싶을 때 사용합니다.
+
+### 작업 순서
+
+Component의 root가 될 Element를 선택하고 `Tools > NexUI > Designer > Component Library`에서 저장 폴더를 확인한 뒤 **Create Component From '...'** 을 누릅니다. 이후 같은 창의 **Place Instance** 또는 Assets 탭에서 Definition을 Canvas로 드래그해 배치합니다.
+
+### 정상 결과
+
+원본 subtree가 Instance 하나로 접히고 Canvas 모양은 그대로입니다. Definition을 고치면 모든 Instance가 즉시 따라옵니다.
+
+### 자주 발생하는 문제
+
+Instance만 다르게 하고 싶으면 Inspector의 **Component Instance** 섹션에서 Exposed Property를 Override합니다. Definition Asset을 지우면 Instance는 남고 `component-definition-missing` Error가 뜹니다 — 내용을 지키려면 **Detach**하세요.
+
+### 관련 문서
+
+[재사용 Component](../advanced/reusable-components.md)
+
 ## Button에 Command Key 연결하기
 
 ### 사용하는 상황

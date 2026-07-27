@@ -18,5 +18,17 @@
 | Motion Graph v2 | Beta | Common | Common | Partial | Event/Flow Preview |
 | Motion State Machine | Beta | Common | Common | Partial | Transition Clip Preview |
 | Component Registry Backend 변환 | Partial | Partial | Partial | Yes | Component별 지원 등급 확인 |
+| Typed Property Schema v3 | Beta | Yes | Yes | Yes | legacy path adapter 및 JSON round trip |
+| Layout Property Parity | Beta | Partial | Yes | Yes | uGUI max/margin은 명시적 fallback |
+| Visual Property Parity | Partial | Partial | Partial | Yes | blur/inner shadow/gradient 등 stock backend 제한 보고 |
+| Typography Property Parity | Partial | Partial | Partial | Yes | font fallback/family의 backend 제한 보고 |
+| Structured Save Preview | Beta | Yes | Yes | Yes | Create/Modify/Skip/Unsupported/PreviewOnly/Conflict/Orphan/User Impact |
+| Reusable Component Definition / Instance | Beta | Yes | Yes | Yes | 참조 기반 expansion. 전용 편집 창 없음 |
+| Component Slot / Exposed Property Override | Beta | Yes | Yes | Yes | Typed override, 미적용 property는 Validation 보고 |
+| Component Variant (Bool/Enum/String) | Beta | Yes | Yes | Yes | Rule 기반 override + visibility |
+| Component Detach / Swap / Version 보고 | Beta | Yes | Yes | Yes | 파괴적 작업은 확인 필요. 자동 property 재매핑 없음 |
+| Component Motion / Theme / Responsive Override | Planned | N/A | N/A | No | Phase 5–7 범위 |
+| Assets 패널 (탐색/검색/필터) | Beta | Common | Common | Yes | 읽기 전용. Rename/Move/Delete 없음 |
+| Asset → Canvas Drag & Drop | Beta | Common | Common | Yes | Sprite/Font/Material/Component. 그 외는 거부 |
 
 상태 값은 `Complete`, `Beta`, `Partial`, `Stub`, `Planned`, `Unsupported`를 사용합니다. 구현되지 않은 장기 목표는 [목표 기능 명세](reference/feature-specification.md)에만 기록하며 현재 지원으로 간주하지 않습니다.

@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using emiteat.NexUI.Core;
 using emiteat.NexUI.Designer.Editor.Backend;
 using emiteat.NexUI.Designer.Editor.Components;
+using emiteat.NexUI.Integrations.UGUI;
+using emiteat.NexUI.Designer.Editor.Properties;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
@@ -57,10 +59,16 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             try
             {
                 root = PrefabUtility.LoadPrefabContents(path);
-                WarnOnDuplicateNames(root, report);
                 ApplyMetadata(root, metadata, report);
-                PrefabUtility.SaveAsPrefabAsset(root, path);
-                report.MarkChanged($"Prefab '{System.IO.Path.GetFileName(path)}'");
+                if (!report.HasErrors)
+                {
+                    PrefabUtility.SaveAsPrefabAsset(root, path);
+                    report.MarkChanged($"Prefab '{System.IO.Path.GetFileName(path)}'");
+                }
+                else
+                {
+                    report.MarkSkipped($"Prefab '{System.IO.Path.GetFileName(path)}' was not written because identity validation failed.");
+                }
             }
             catch (System.Exception e)
             {
@@ -84,19 +92,83 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
 
         private static void ApplyMetadata(GameObject root, DesignerMetadataAsset metadata, DesignerSaveReport report)
         {
+            var prefabIndex = BuildPrefabIndex(root, report);
+            var usedObjects = new HashSet<GameObject>();
+            var metadataStableIds = new HashSet<string>();
+            var invalidStableIds = new HashSet<string>();
+            var metadataElementIds = new HashSet<string>();
+            var invalidElementIds = new HashSet<string>();
+            foreach (var element in metadata.elements)
+            {
+                if (element == null || string.IsNullOrEmpty(element.elementId)) continue;
+                if (!metadataElementIds.Add(element.elementId)) invalidElementIds.Add(element.elementId);
+                if (string.IsNullOrEmpty(element.stableId))
+                    report.Error($"Element '{element.elementId}' has no stableId; run metadata migration before saving.");
+                else if (!metadataStableIds.Add(element.stableId))
+                    invalidStableIds.Add(element.stableId);
+            }
+            foreach (var id in invalidStableIds)
+                report.Error($"Duplicate metadata stableId '{id}'. No element with that identity was applied.");
+            foreach (var id in invalidElementIds)
+                report.Error($"Duplicate metadata elementId '{id}'. No element with that public id was applied.");
+            if (report.HasErrors)
+            {
+                ReportOrphans(root, usedObjects, report);
+                return;
+            }
+
             // Pass 1: ensure every element exists so parents resolve regardless of order.
             var objects = new Dictionary<string, GameObject>();
             foreach (var element in metadata.elements)
             {
                 if (element == null || string.IsNullOrEmpty(element.elementId)) continue;
-                var go = FindDescendant(root.transform, element.elementId);
+                if (string.IsNullOrEmpty(element.stableId) || invalidStableIds.Contains(element.stableId) ||
+                    invalidElementIds.Contains(element.elementId)) continue;
+                if (prefabIndex.AmbiguousStableIds.Contains(element.stableId))
+                {
+                    report.Error($"Element '{element.elementId}' cannot be matched because stableId '{element.stableId}' is duplicated in the prefab.");
+                    continue;
+                }
+
+                var go = ResolveExisting(prefabIndex, element);
+                var created = false;
+                if (go != null && usedObjects.Contains(go))
+                {
+                    report.Error($"Prefab object '{go.name}' matched more than one metadata element; no additional changes were applied.");
+                    continue;
+                }
                 if (go == null)
                 {
                     go = new GameObject(element.elementId, typeof(RectTransform));
                     go.transform.SetParent(root.transform, false);
-                    report.MarkChanged($"Created element '{element.elementId}'");
+                    created = true;
+                    report.MarkCreated("Prefab element", $"Created element '{element.elementId}'", element.elementId);
+                }
+
+                var tag = go.GetComponent<NxUGuiBindingTag>();
+                if (tag == null)
+                {
+                    tag = go.AddComponent<NxUGuiBindingTag>();
+                    tag.ownership = created ? NexUIElementOwnership.DesignerOwned : NexUIElementOwnership.UserOwned;
+                    report.MarkChanged($"Added stable identity tag to '{element.elementId}'");
+                }
+                else if (!string.IsNullOrEmpty(tag.stableId) && tag.stableId != element.stableId)
+                {
+                    report.Error($"'{go.name}' is already bound to stableId '{tag.stableId}', so '{element.elementId}' was not applied.");
+                    continue;
+                }
+
+                tag.stableId = element.stableId;
+                tag.elementId = element.elementId;
+                if (tag.ownership == NexUIElementOwnership.Unknown)
+                    tag.ownership = created ? NexUIElementOwnership.DesignerOwned : NexUIElementOwnership.UserOwned;
+                if (tag.ownership == NexUIElementOwnership.DesignerOwned && go.name != element.elementId)
+                {
+                    go.name = element.elementId;
+                    report.MarkChanged($"Renamed Designer-owned object to '{element.elementId}'");
                 }
                 objects[element.elementId] = go;
+                usedObjects.Add(go);
             }
 
             // Pass 2: parent + apply properties.
@@ -117,8 +189,9 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 // moving a parent carries its children, matching the Designer canvas).
                 var local = DesignerCoordinateUtility.GetLocalPosition(metadata, element);
                 ApplyRect(go, element, local);
+                ApplyTypedLayout(go, element, report);
                 ApplyAutoLayout(go, element, report);
-                go.SetActive(!element.hiddenInDesigner);
+                go.SetActive(element.runtimeVisible);
                 ApplyVisualAndText(go, element, report);
             }
 
@@ -133,6 +206,75 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 if (index >= 0 && index < go.transform.parent.childCount)
                     go.transform.SetSiblingIndex(index);
             }
+
+            ReportOrphans(root, usedObjects, report);
+        }
+
+        private static void ReportOrphans(GameObject root, HashSet<GameObject> usedObjects, DesignerSaveReport report)
+        {
+            foreach (var tag in root.GetComponentsInChildren<NxUGuiBindingTag>(includeInactive: true))
+                if (tag.ownership == NexUIElementOwnership.DesignerOwned && !usedObjects.Contains(tag.gameObject))
+                    report.MarkOrphan("Prefab element", $"Orphaned Designer-owned object '{tag.name}' was preserved. Remove it manually after confirming it is unused.", tag.elementId);
+        }
+
+        private sealed class PrefabIndex
+        {
+            public readonly Dictionary<string, GameObject> StableIds = new Dictionary<string, GameObject>();
+            public readonly HashSet<string> AmbiguousStableIds = new HashSet<string>();
+            public readonly Dictionary<string, GameObject> ElementIds = new Dictionary<string, GameObject>();
+            public readonly HashSet<string> AmbiguousElementIds = new HashSet<string>();
+            public readonly Dictionary<string, GameObject> Names = new Dictionary<string, GameObject>();
+            public readonly HashSet<string> AmbiguousNames = new HashSet<string>();
+        }
+
+        private static PrefabIndex BuildPrefabIndex(GameObject root, DesignerSaveReport report)
+        {
+            var index = new PrefabIndex();
+            var stack = new Stack<Transform>();
+            stack.Push(root.transform);
+            while (stack.Count > 0)
+            {
+                var transform = stack.Pop();
+                AddUnique(index.Names, index.AmbiguousNames, transform.name, transform.gameObject);
+                var tag = transform.GetComponent<NxUGuiBindingTag>();
+                if (tag != null)
+                {
+                    AddUnique(index.StableIds, index.AmbiguousStableIds, tag.stableId, transform.gameObject);
+                    AddUnique(index.ElementIds, index.AmbiguousElementIds, tag.elementId, transform.gameObject);
+                }
+                for (var i = 0; i < transform.childCount; i++) stack.Push(transform.GetChild(i));
+            }
+
+            foreach (var id in index.AmbiguousStableIds)
+                report.Error($"Duplicate prefab stableId '{id}'. Resolve the duplicate tags before saving.");
+            foreach (var id in index.AmbiguousElementIds)
+                report.Warn($"Duplicate prefab elementId tag '{id}'; fallback matching for that id is disabled.");
+            foreach (var name in index.AmbiguousNames)
+                report.Warn($"Duplicate GameObject name '{name}'; name fallback matching for that name is disabled.");
+            return index;
+        }
+
+        private static void AddUnique(Dictionary<string, GameObject> values, HashSet<string> ambiguous,
+            string key, GameObject value)
+        {
+            if (string.IsNullOrEmpty(key) || ambiguous.Contains(key)) return;
+            if (values.ContainsKey(key))
+            {
+                values.Remove(key);
+                ambiguous.Add(key);
+                return;
+            }
+            values.Add(key, value);
+        }
+
+        private static GameObject ResolveExisting(PrefabIndex index, DesignerElementMetadata element)
+        {
+            if (index.StableIds.TryGetValue(element.stableId, out var stableMatch)) return stableMatch;
+            if (!index.AmbiguousElementIds.Contains(element.elementId) &&
+                index.ElementIds.TryGetValue(element.elementId, out var tagMatch)) return tagMatch;
+            if (!index.AmbiguousNames.Contains(element.elementId) &&
+                index.Names.TryGetValue(element.elementId, out var nameMatch)) return nameMatch;
+            return null;
         }
 
         private static void ApplyRect(GameObject go, DesignerElementMetadata element, Vector2 localPosition)
@@ -150,6 +292,52 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             rt.sizeDelta = new Vector2(element.rect.width, element.rect.height);
             rt.anchoredPosition = new Vector2(localPosition.x, -localPosition.y);
             UGUIAnchorUtility.Apply(rt, element.anchorPreset);
+            var layout = DesignerPropertyAdapter.Layout(element);
+            if (layout.hasOverrides)
+            {
+                rt.pivot = layout.pivot;
+                rt.localEulerAngles = new Vector3(0f, 0f, layout.rotation);
+                rt.localScale = new Vector3(layout.scale.x, layout.scale.y, 1f);
+            }
+        }
+
+        private static void ApplyTypedLayout(GameObject go, DesignerElementMetadata element, DesignerSaveReport report)
+        {
+            var layout = DesignerPropertyAdapter.Layout(element);
+            if (!layout.hasOverrides) return;
+            var layoutElement = go.GetComponent<LayoutElement>();
+            if (layout.minSize != Vector2.zero || layout.maxSize != Vector2.zero)
+                layoutElement = layoutElement ?? go.AddComponent<LayoutElement>();
+            if (layoutElement != null)
+            {
+                layoutElement.minWidth = layout.minSize.x > 0f ? layout.minSize.x : -1f;
+                layoutElement.minHeight = layout.minSize.y > 0f ? layout.minSize.y : -1f;
+            }
+            if (layout.maxSize != Vector2.zero)
+                report.MarkUnsupported("Maximum size", $"'{element.elementId}' max size has no native uGUI LayoutElement equivalent; metadata was preserved.", element.elementId);
+
+            var aspect = go.GetComponent<AspectRatioFitter>();
+            if (layout.aspectRatio > 0f)
+            {
+                aspect = aspect ?? go.AddComponent<AspectRatioFitter>();
+                aspect.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
+                aspect.aspectRatio = layout.aspectRatio;
+            }
+            else if (aspect != null)
+                Object.DestroyImmediate(aspect);
+
+            if (DesignerPropertyAdapter.Clip(element))
+            {
+                if (go.GetComponent<RectMask2D>() == null) go.AddComponent<RectMask2D>();
+            }
+            else
+            {
+                var mask = go.GetComponent<RectMask2D>();
+                if (mask != null) Object.DestroyImmediate(mask);
+            }
+
+            if (layout.marginLeft != 0f || layout.marginTop != 0f || layout.marginRight != 0f || layout.marginBottom != 0f)
+                report.MarkSkipped($"'{element.elementId}' per-element margin is preserved but uGUI LayoutGroup has no native child margin.");
         }
 
         private static void ApplyVisualAndText(GameObject go, DesignerElementMetadata element, DesignerSaveReport report)
@@ -165,16 +353,16 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             if (isValueFill)
             {
                 ApplyValueFill(go, element, report);
-                report.MarkSkipped($"'{element.elementId}' Track/Label/animation are preview-only (uGUI ProgressBar is Partial).");
+                report.MarkPreviewOnly("ProgressBar", $"'{element.elementId}' Track/Label/animation are preview-only (uGUI ProgressBar is Partial).", element.elementId);
             }
 
             // Honest per-element backend-support note: never claim to have written preview-only /
             // unsupported descriptor values.
             var support = DesignerComponentRegistry.Get(type).UGUISupport;
             if (support == DesignerBackendSupport.PreviewOnly)
-                report.MarkSkipped($"'{element.elementId}' ({type}) is Preview-only on uGUI; only its rect/tint were written.");
+                report.MarkPreviewOnly(type, $"'{element.elementId}' ({type}) is Preview-only on uGUI; only its rect/tint were written.", element.elementId);
             else if (support == DesignerBackendSupport.Unsupported)
-                report.MarkSkipped($"'{element.elementId}' ({type}) is not supported on uGUI; only a placeholder GameObject was written.");
+                report.MarkUnsupported(type, $"'{element.elementId}' ({type}) is not supported on uGUI; only a placeholder GameObject was written.", element.elementId);
 
             // Tint on any Graphic; add an Image for Image/Button backgrounds when missing.
             var graphic = go.GetComponent<Graphic>();
@@ -184,7 +372,9 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 report.MarkChanged($"Added Image to '{element.elementId}'");
             }
             if (graphic != null)
-                graphic.color = element.tint;
+                graphic.color = DesignerPropertyAdapter.BackgroundColor(element);
+
+            ApplyVisualStyle(go, element, graphic, report);
 
             // The image selected in Designer is the real backend sprite, not merely a canvas
             // thumbnail. Preserve its aspect ratio by default so wide/tall source art does not
@@ -192,8 +382,9 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             if (isImage && graphic is Image image)
             {
                 image.sprite = element.previewImage;
-                image.preserveAspect = element.previewImage != null;
-                image.type = Image.Type.Simple;
+                var visual = DesignerPropertyAdapter.Visual(element);
+                image.preserveAspect = element.previewImage != null && visual.imageFit != DesignerImageFit.Stretch;
+                image.type = visual.imageSlice ? Image.Type.Sliced : Image.Type.Simple;
                 report.MarkChanged(element.previewImage != null
                     ? $"Applied sprite to '{element.elementId}'"
                     : $"Cleared sprite on '{element.elementId}'");
@@ -210,6 +401,49 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             // Text: set on an existing text component, else create one for text-y elements.
             if (!string.IsNullOrEmpty(element.text) || isText || isButton)
                 ApplyText(go, element, isButton, report);
+        }
+
+        private static void ApplyVisualStyle(GameObject go, DesignerElementMetadata element, Graphic graphic, DesignerSaveReport report)
+        {
+            var visual = DesignerPropertyAdapter.Visual(element);
+            if (!visual.hasOverrides) return;
+
+            var group = go.GetComponent<CanvasGroup>();
+            if (visual.opacity < 0.999f || group != null)
+            {
+                group = group ?? go.AddComponent<CanvasGroup>();
+                group.alpha = Mathf.Clamp01(visual.opacity);
+            }
+            if (graphic != null && visual.material != null) graphic.material = visual.material;
+
+            var outline = go.GetComponent<UnityEngine.UI.Outline>();
+            if (visual.borderWidth > 0f || visual.outlineWidth > 0f)
+            {
+                outline = outline ?? go.AddComponent<UnityEngine.UI.Outline>();
+                var width = visual.outlineWidth > 0f ? visual.outlineWidth : visual.borderWidth;
+                outline.effectDistance = new Vector2(width, -width);
+                outline.effectColor = visual.outlineWidth > 0f ? visual.outlineColor : visual.borderColor;
+                if (visual.borderWidth > 0f)
+                    report.MarkSkipped($"'{element.elementId}' border uses uGUI Outline fallback (outside edge, not inset border).");
+            }
+            else if (outline != null) Object.DestroyImmediate(outline);
+
+            UnityEngine.UI.Shadow shadow = null;
+            foreach (var candidate in go.GetComponents<UnityEngine.UI.Shadow>())
+                if (!(candidate is UnityEngine.UI.Outline)) { shadow = candidate; break; }
+            if (visual.dropShadow)
+            {
+                shadow = shadow ?? go.AddComponent<UnityEngine.UI.Shadow>();
+                shadow.effectColor = visual.shadowColor;
+                shadow.effectDistance = visual.shadowOffset;
+            }
+            else if (shadow != null) Object.DestroyImmediate(shadow);
+
+            if (visual.cornerRadius > 0f && (!(graphic is Image image) || image.sprite == null || !visual.imageSlice))
+                report.MarkSkipped($"'{element.elementId}' numeric corner radius requires a rounded sliced Sprite on uGUI.");
+            if (visual.innerShadow) report.MarkUnsupported("Inner shadow", $"'{element.elementId}' inner shadow is unsupported on stock uGUI.", element.elementId);
+            if (visual.blur > 0f) report.MarkUnsupported("Blur", $"'{element.elementId}' blur is unsupported on stock uGUI.", element.elementId);
+            if (visual.gradient != null) report.MarkUnsupported("Gradient", $"'{element.elementId}' gradient requires a custom uGUI material.", element.elementId);
         }
 
         private static void ApplyAutoLayout(GameObject go, DesignerElementMetadata element, DesignerSaveReport report)
@@ -252,6 +486,8 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 group.childControlHeight = false;
                 group.childForceExpandWidth = false;
                 group.childForceExpandHeight = false;
+                group.childAlignment = TextAnchorFor(DesignerPropertyAdapter.Layout(element).align,
+                    DesignerPropertyAdapter.Layout(element).justify);
             }
             report.MarkChanged($"Applied {layout.direction} layout to '{element.elementId}'");
         }
@@ -308,7 +544,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             var uiText = tmp == null ? go.GetComponentInChildren<Text>(true) : null;
 
             if (tmp != null) { if (element.text != null) tmp.text = element.text; ApplyTextStyle(tmp, element); return; }
-            if (uiText != null) { if (element.text != null) uiText.text = element.text; uiText.color = element.textColor; uiText.fontSize = element.fontSize; return; }
+            if (uiText != null) { if (element.text != null) uiText.text = element.text; ApplyTextStyle(uiText, element); return; }
 
             if (string.IsNullOrEmpty(element.text)) return;
 
@@ -333,35 +569,101 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
 
         private static void ApplyTextStyle(TMP_Text tmp, DesignerElementMetadata element)
         {
-            tmp.color = element.textColor;
-            tmp.fontSize = element.fontSize;
+            var typography = DesignerPropertyAdapter.Typography(element);
+            tmp.color = DesignerPropertyAdapter.TextColor(element);
+            tmp.fontSize = DesignerPropertyAdapter.FontSize(element);
+            if (!typography.hasOverrides) return;
+            if (typography.fontAsset is TMP_FontAsset font) tmp.font = font;
+            tmp.enableAutoSizing = typography.autoSize;
+            tmp.fontSizeMin = typography.minFontSize;
+            tmp.fontSizeMax = typography.maxFontSize;
+            tmp.alignment = TmpAlignment(typography.alignment);
+            tmp.textWrappingMode = typography.wrapping ? TextWrappingModes.Normal : TextWrappingModes.NoWrap;
+            tmp.overflowMode = TmpOverflow(typography);
+            tmp.richText = typography.richText;
+            tmp.isRightToLeftText = typography.rightToLeft;
+            tmp.lineSpacing = (typography.lineHeight - 1f) * 100f;
+            tmp.characterSpacing = typography.letterSpacing;
+            tmp.paragraphSpacing = typography.paragraphSpacing;
+            tmp.fontStyle = TmpFontStyle(typography);
+            tmp.outlineWidth = typography.outlineWidth;
+            tmp.outlineColor = typography.outlineColor;
+            ApplyTextShadow(tmp, typography);
         }
 
-        private static void WarnOnDuplicateNames(GameObject root, DesignerSaveReport report)
+        private static void ApplyTextStyle(Text text, DesignerElementMetadata element)
         {
-            var seen = new HashSet<string>();
-            var reported = new HashSet<string>();
-            var stack = new Stack<Transform>();
-            stack.Push(root.transform);
-            while (stack.Count > 0)
+            var typography = DesignerPropertyAdapter.Typography(element);
+            text.color = DesignerPropertyAdapter.TextColor(element);
+            text.fontSize = Mathf.RoundToInt(DesignerPropertyAdapter.FontSize(element));
+            if (!typography.hasOverrides) return;
+            if (typography.fontAsset is Font font) text.font = font;
+            text.resizeTextForBestFit = typography.autoSize;
+            text.resizeTextMinSize = Mathf.RoundToInt(typography.minFontSize);
+            text.resizeTextMaxSize = Mathf.RoundToInt(typography.maxFontSize);
+            text.alignment = (TextAnchor)typography.alignment;
+            text.horizontalOverflow = typography.wrapping ? HorizontalWrapMode.Wrap : HorizontalWrapMode.Overflow;
+            text.verticalOverflow = typography.overflow == DesignerTextOverflow.Overflow ? VerticalWrapMode.Overflow : VerticalWrapMode.Truncate;
+            text.supportRichText = typography.richText;
+            var bold = typography.fontWeight >= DesignerFontWeight.SemiBold || (typography.fontStyle & DesignerFontStyle.Bold) != 0;
+            var italic = (typography.fontStyle & DesignerFontStyle.Italic) != 0;
+            text.fontStyle = bold && italic ? FontStyle.BoldAndItalic : bold ? FontStyle.Bold : italic ? FontStyle.Italic : FontStyle.Normal;
+            ApplyTextShadow(text, typography);
+        }
+
+        private static void ApplyTextShadow(Graphic graphic, DesignerTypographyMetadata typography)
+        {
+            UnityEngine.UI.Shadow shadow = null;
+            foreach (var candidate in graphic.GetComponents<UnityEngine.UI.Shadow>())
+                if (!(candidate is UnityEngine.UI.Outline)) { shadow = candidate; break; }
+            if (typography.textShadow)
             {
-                var t = stack.Pop();
-                if (!seen.Add(t.name) && reported.Add(t.name))
-                    report.Warn($"Duplicate GameObject name '{t.name}' in prefab; name-based element matching may be unpredictable.");
-                for (int i = 0; i < t.childCount; i++)
-                    stack.Push(t.GetChild(i));
+                shadow = shadow ?? graphic.gameObject.AddComponent<UnityEngine.UI.Shadow>();
+                shadow.effectColor = typography.shadowColor;
+                shadow.effectDistance = typography.shadowOffset;
+            }
+            else if (shadow != null) Object.DestroyImmediate(shadow);
+        }
+
+        private static TextAnchor TextAnchorFor(DesignerLayoutAlignment align, DesignerJustifyContent justify)
+        {
+            var vertical = align == DesignerLayoutAlignment.Center ? 1 : align == DesignerLayoutAlignment.End ? 2 : 0;
+            var horizontal = justify == DesignerJustifyContent.Center ? 1 : justify == DesignerJustifyContent.End ? 2 : 0;
+            return (TextAnchor)(vertical * 3 + horizontal);
+        }
+
+        private static TextAlignmentOptions TmpAlignment(DesignerTextAlignment value)
+        {
+            switch (value)
+            {
+                case DesignerTextAlignment.UpperLeft: return TextAlignmentOptions.TopLeft;
+                case DesignerTextAlignment.UpperCenter: return TextAlignmentOptions.Top;
+                case DesignerTextAlignment.UpperRight: return TextAlignmentOptions.TopRight;
+                case DesignerTextAlignment.MiddleLeft: return TextAlignmentOptions.Left;
+                case DesignerTextAlignment.MiddleRight: return TextAlignmentOptions.Right;
+                case DesignerTextAlignment.LowerLeft: return TextAlignmentOptions.BottomLeft;
+                case DesignerTextAlignment.LowerCenter: return TextAlignmentOptions.Bottom;
+                case DesignerTextAlignment.LowerRight: return TextAlignmentOptions.BottomRight;
+                default: return TextAlignmentOptions.Center;
             }
         }
 
-        private static GameObject FindDescendant(Transform root, string name)
+        private static TextOverflowModes TmpOverflow(DesignerTypographyMetadata typography)
         {
-            if (root.name == name) return root.gameObject;
-            for (int i = 0; i < root.childCount; i++)
-            {
-                var found = FindDescendant(root.GetChild(i), name);
-                if (found != null) return found;
-            }
-            return null;
+            if (typography.ellipsis || typography.overflow == DesignerTextOverflow.Ellipsis) return TextOverflowModes.Ellipsis;
+            if (typography.overflow == DesignerTextOverflow.Clip) return TextOverflowModes.Masking;
+            if (typography.overflow == DesignerTextOverflow.Truncate) return TextOverflowModes.Truncate;
+            return TextOverflowModes.Overflow;
+        }
+
+        private static FontStyles TmpFontStyle(DesignerTypographyMetadata typography)
+        {
+            var style = FontStyles.Normal;
+            if (typography.fontWeight >= DesignerFontWeight.SemiBold || (typography.fontStyle & DesignerFontStyle.Bold) != 0) style |= FontStyles.Bold;
+            if ((typography.fontStyle & DesignerFontStyle.Italic) != 0) style |= FontStyles.Italic;
+            if ((typography.fontStyle & DesignerFontStyle.Underline) != 0) style |= FontStyles.Underline;
+            if ((typography.fontStyle & DesignerFontStyle.Strikethrough) != 0) style |= FontStyles.Strikethrough;
+            return style;
         }
 
         private static bool Is(string type, string other)

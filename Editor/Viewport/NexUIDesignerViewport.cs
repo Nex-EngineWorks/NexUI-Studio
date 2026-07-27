@@ -2,12 +2,17 @@ using System.Collections.Generic;
 using emiteat.NexUI.Designer.Editor.Backend;
 using emiteat.NexUI.Designer.Editor.Commands;
 using emiteat.NexUI.Designer.Editor.Components;
+using emiteat.NexUI.Designer.Editor.Components.Definitions;
 using emiteat.NexUI.Designer.Editor.Components.Preview;
 using emiteat.NexUI.Designer.Editor.Localization;
+using emiteat.NexUI.Designer.Editor.Properties;
 using emiteat.NexUI.Designer.Editor.MotionClipEditor;
+using emiteat.NexUI.Designer.Editor.UI.Panels;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Unity.Profiling;
+using Object = UnityEngine.Object;
 
 namespace emiteat.NexUI.Designer.Editor.Viewport
 {
@@ -44,6 +49,7 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         };
         private readonly Label _emptyState;
         private readonly Label _distanceLabel;
+        private readonly Label _dropHint;
         private readonly Dictionary<DesignerElementMetadata, VisualElement> _views = new Dictionary<DesignerElementMetadata, VisualElement>();
 
         // Single element drag/resize state (also used as the "grabbed" element during a group move).
@@ -161,6 +167,10 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _emptyState = new Label();
             _emptyState.AddToClassList("nexui-canvas-empty-state");
             _emptyState.pickingMode = PickingMode.Ignore;
+            _dropHint = new Label();
+            _dropHint.AddToClassList("nexui-drop-hint");
+            _dropHint.style.display = DisplayStyle.None;
+            _dropHint.pickingMode = PickingMode.Ignore;
 
             _previewCanvas.Add(_gridLayer);
             _previewCanvas.Add(_elementLayer);
@@ -173,6 +183,7 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _previewCanvas.Add(_distanceLabel);
             _previewCanvas.Add(_inlineMenuLayer);
             _previewCanvas.Add(_emptyState);
+            _previewCanvas.Add(_dropHint);
             _previewFrame.Add(_previewCanvas);
             Add(_previewFrame);
 
@@ -182,6 +193,10 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _previewCanvas.RegisterCallback<PointerUpEvent>(OnCanvasPointerUp);
             _previewCanvas.RegisterCallback<ContextClickEvent>(OnCanvasContextClick);
             _previewCanvas.RegisterCallback<PointerDownEvent>(OnDismissInlineMenuPointerDown, TrickleDown.TrickleDown);
+            _previewCanvas.RegisterCallback<DragUpdatedEvent>(OnCanvasDragUpdated);
+            _previewCanvas.RegisterCallback<DragPerformEvent>(OnCanvasDragPerform);
+            _previewCanvas.RegisterCallback<DragLeaveEvent>(_ => HideDropHint());
+            _previewCanvas.RegisterCallback<DragExitedEvent>(_ => HideDropHint());
             RegisterCallback<KeyDownEvent>(OnKeyDown);
 
             subscriptions.Add(h => context.PreviewRebuilt += h, h => context.PreviewRebuilt -= h, RefreshAll);
@@ -259,11 +274,18 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             }
 
             _emptyState.style.display = DisplayStyle.None;
-            foreach (var element in _context.Metadata.elements)
+
+            // Draw the *expanded* tree so component instances show their real content, but key the
+            // view map by the *authored* element so selection, drag and the Inspector keep operating
+            // on data the user actually owns. Generated children have no authored counterpart and are
+            // therefore drawn but never selected (HitTest* only walks Metadata.elements).
+            foreach (var element in _context.PreviewElements)
             {
                 if (element == null || element.hiddenInDesigner) continue;
                 var view = CreateElementView(element);
-                _views[element] = view;
+                var authored = _context.ResolveAuthoredElement(element) ?? element;
+                if (!_views.ContainsKey(authored))
+                    _views[authored] = view;
                 _elementLayer.Add(view);
             }
         }
@@ -321,10 +343,11 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             // desaturate/dim, error/success/warning border, selected/focused accent) so the State
             // dropdown visibly changes the canvas.
             var previewState = EffectivePreviewState(element);
-            var stateTint = DesignerPreviewColors.Modulate(element.tint, previewState);
+            var backgroundColor = DesignerPropertyAdapter.BackgroundColor(element);
+            var stateTint = DesignerPreviewColors.Modulate(backgroundColor, previewState);
             if (hasPreviewImage)
             {
-                var outline = ImageOutlineColor(element.tint);
+                var outline = ImageOutlineColor(backgroundColor);
                 view.style.backgroundColor = new StyleColor(Color.clear);
                 view.style.borderTopColor = new StyleColor(outline);
                 view.style.borderRightColor = new StyleColor(outline);
@@ -348,7 +371,28 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
                 view.style.borderBottomColor = c; view.style.borderLeftColor = c;
             }
             var stateOpacity = DesignerPreviewColors.StateOpacity(previewState);
-            if (stateOpacity < 1f) view.style.opacity = stateOpacity;
+            view.style.opacity = stateOpacity * DesignerPropertyAdapter.Opacity(element);
+
+            var visual = DesignerPropertyAdapter.Visual(element);
+            var borderWidth = Mathf.Max(0f, visual.borderWidth);
+            if (borderWidth > 0f)
+            {
+                view.style.borderTopWidth = borderWidth;
+                view.style.borderRightWidth = borderWidth;
+                view.style.borderBottomWidth = borderWidth;
+                view.style.borderLeftWidth = borderWidth;
+                var border = new StyleColor(visual.borderColor);
+                view.style.borderTopColor = border; view.style.borderRightColor = border;
+                view.style.borderBottomColor = border; view.style.borderLeftColor = border;
+            }
+            var radius = DesignerPropertyAdapter.CornerRadius(element);
+            view.style.borderTopLeftRadius = radius;
+            view.style.borderTopRightRadius = radius;
+            view.style.borderBottomLeftRadius = radius;
+            view.style.borderBottomRightRadius = radius;
+            var layout = DesignerPropertyAdapter.Layout(element);
+            view.style.scale = new Scale(layout.scale);
+            view.style.rotate = new Rotate(new Angle(layout.rotation, AngleUnit.Degree));
 
             AddTypeSpecificPreview(view, element);
 
@@ -363,8 +407,22 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             {
                 var text = new Label(element.text);
                 text.AddToClassList("nexui-element-text");
-                text.style.color = new StyleColor(element.textColor);
-                text.style.fontSize = Mathf.Max(9, element.fontSize) * _context.Zoom;
+                text.style.color = new StyleColor(DesignerPropertyAdapter.TextColor(element));
+                text.style.fontSize = Mathf.Max(9f, DesignerPropertyAdapter.FontSize(element)) * _context.Zoom;
+                var typography = DesignerPropertyAdapter.Typography(element);
+                if (typography.hasOverrides)
+                {
+                    text.style.unityTextAlign = (TextAnchor)typography.alignment;
+                    text.style.whiteSpace = typography.wrapping ? WhiteSpace.Normal : WhiteSpace.NoWrap;
+                    text.style.overflow = typography.overflow == DesignerTextOverflow.Overflow ? Overflow.Visible : Overflow.Hidden;
+                    text.style.textOverflow = typography.ellipsis || typography.overflow == DesignerTextOverflow.Ellipsis
+                        ? TextOverflow.Ellipsis : TextOverflow.Clip;
+                    text.style.letterSpacing = typography.letterSpacing;
+                    text.style.unityFontStyleAndWeight = PreviewFontStyle(typography);
+                    text.style.unityTextOutlineWidth = typography.outlineWidth;
+                    text.style.unityTextOutlineColor = typography.outlineColor;
+                    if (typography.fontAsset is Font font) text.style.unityFont = font;
+                }
                 view.Add(text);
             }
 
@@ -425,6 +483,14 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             if (tint.a > 0.05f)
                 return new Color(tint.r, tint.g, tint.b, 0.8f);
             return new Color(0.35f, 0.66f, 1f, 0.75f);
+        }
+
+        private static FontStyle PreviewFontStyle(DesignerTypographyMetadata typography)
+        {
+            var bold = typography.fontWeight >= DesignerFontWeight.SemiBold ||
+                       (typography.fontStyle & DesignerFontStyle.Bold) != 0;
+            var italic = (typography.fontStyle & DesignerFontStyle.Italic) != 0;
+            return bold && italic ? FontStyle.BoldAndItalic : bold ? FontStyle.Bold : italic ? FontStyle.Italic : FontStyle.Normal;
         }
 
         /// <summary>
@@ -988,6 +1054,147 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
 
         private static string Label(DesignerElementMetadata element)
             => string.IsNullOrEmpty(element.displayName) ? element.elementId : element.displayName;
+
+        // ---- Asset drag & drop -----------------------------------------------------------------
+        // Accepts payloads from the Designer's own Assets panel and from Unity's Project window
+        // alike, because both use UnityEditor.DragAndDrop. What each payload does is decided by
+        // DesignerAssetDropResolver so the rule lives in one testable place; anything it does not
+        // recognise is rejected outright rather than guessed at.
+
+        private void OnCanvasDragUpdated(DragUpdatedEvent evt)
+        {
+            // Drag events expose mousePosition (panel space) rather than the pointer events' position.
+            var canvasPoint = _previewCanvas.WorldToLocal(evt.mousePosition) / Mathf.Max(0.01f, _context.Zoom);
+            var payload = FirstDraggedObject();
+            var target = TopHit(canvasPoint);
+            var action = DesignerAssetDropResolver.Resolve(payload, target);
+
+            if (action == DesignerAssetDropAction.None)
+            {
+                DragAndDrop.visualMode = DragAndDropVisualMode.Rejected;
+                HideDropHint();
+                return;
+            }
+
+            DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
+            ShowDropHint(canvasPoint, DesignerAssetDropResolver.Describe(action, payload, target));
+            evt.StopPropagation();
+        }
+
+        private void OnCanvasDragPerform(DragPerformEvent evt)
+        {
+            HideDropHint();
+            if (_context.Metadata == null) return;
+
+            var canvasPoint = _previewCanvas.WorldToLocal(evt.mousePosition) / Mathf.Max(0.01f, _context.Zoom);
+            var payload = FirstDraggedObject();
+            var target = TopHit(canvasPoint);
+            var action = DesignerAssetDropResolver.Resolve(payload, target);
+            if (action == DesignerAssetDropAction.None) return;
+
+            DragAndDrop.AcceptDrag();
+            evt.StopPropagation();
+
+            switch (action)
+            {
+                case DesignerAssetDropAction.SetSprite:
+                {
+                    var sprite = ResolveSprite(payload);
+                    if (sprite == null)
+                    {
+                        _context.PreviewLog.Log(DesignerPreviewLogKind.Info, target?.elementId,
+                            $"'{payload.name}' has no Sprite sub-asset; set its Texture Type to Sprite to use it here.");
+                        return;
+                    }
+                    _context.UpdateElement(target, e => e.previewImage = sprite, "Drop NexUI Sprite");
+                    break;
+                }
+                case DesignerAssetDropAction.SetFont:
+                    _context.UpdateElement(target, e =>
+                    {
+                        var typography = DesignerPropertyAdapter.Typography(e);
+                        typography.hasOverrides = true;
+                        typography.fontAsset = payload;
+                    }, "Drop NexUI Font");
+                    break;
+                case DesignerAssetDropAction.SetMaterial:
+                    _context.UpdateElement(target, e =>
+                    {
+                        var visual = DesignerPropertyAdapter.Visual(e);
+                        visual.hasOverrides = true;
+                        visual.material = payload as Material;
+                    }, "Drop NexUI Material");
+                    break;
+                case DesignerAssetDropAction.CreateImage:
+                {
+                    var sprite = ResolveSprite(payload);
+                    if (sprite == null) return;
+                    var created = _context.CreateMetadataElement(DesignerElementType.Image);
+                    if (created == null) return;
+                    var rect = created.rect;
+                    rect.position = canvasPoint;
+                    if (sprite.rect.width > 0f && sprite.rect.height > 0f)
+                        rect.size = new Vector2(sprite.rect.width, sprite.rect.height);
+                    _context.UpdateElement(created, e =>
+                    {
+                        e.previewImage = sprite;
+                        e.rect = rect;
+                    }, "Drop NexUI Image");
+                    break;
+                }
+                case DesignerAssetDropAction.PlaceComponent:
+                {
+                    var definition = payload as DesignerComponentDefinitionAsset;
+                    var result = DesignerComponentService.Instantiate(_context.Metadata, definition, canvasPoint);
+                    if (!result.Success)
+                    {
+                        Debug.LogError("[NexUI Designer] " + result.Message);
+                        return;
+                    }
+                    _context.InvalidateComponentExpansion();
+                    _context.Validate();
+                    _context.Select(result.Element);
+                    break;
+                }
+            }
+        }
+
+        private static Object FirstDraggedObject()
+        {
+            var references = DragAndDrop.objectReferences;
+            return references != null && references.Length > 0 ? references[0] : null;
+        }
+
+        /// <summary>The Sprite a payload represents: itself, or the main sprite sub-asset of a texture.</summary>
+        private static Sprite ResolveSprite(Object payload)
+        {
+            if (payload is Sprite sprite) return sprite;
+            if (payload is not Texture2D) return null;
+
+            var path = UnityEditor.AssetDatabase.GetAssetPath(payload);
+            if (string.IsNullOrEmpty(path)) return null;
+            foreach (var sub in UnityEditor.AssetDatabase.LoadAllAssetsAtPath(path))
+                if (sub is Sprite found) return found;
+            return null;
+        }
+
+        /// <summary>Top-most authored element under a canvas point, or null over empty canvas.</summary>
+        private DesignerElementMetadata TopHit(Vector2 canvasPoint)
+        {
+            var hits = HitTestPoint(canvasPoint);
+            return hits.Count > 0 ? hits[0] : null;
+        }
+
+        private void ShowDropHint(Vector2 canvasPoint, string text)
+        {
+            if (string.IsNullOrEmpty(text)) { HideDropHint(); return; }
+            _dropHint.text = text;
+            _dropHint.style.display = DisplayStyle.Flex;
+            _dropHint.style.left = canvasPoint.x * _context.Zoom + 12f;
+            _dropHint.style.top = canvasPoint.y * _context.Zoom + 12f;
+        }
+
+        private void HideDropHint() => _dropHint.style.display = DisplayStyle.None;
 
         private void CreateAt(DesignerElementType type, Vector2 canvasPoint)
         {
