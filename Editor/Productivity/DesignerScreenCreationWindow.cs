@@ -1,4 +1,5 @@
 using emiteat.NexUI.Abstractions;
+using emiteat.NexUI.Designer.Editor.Localization;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,10 +10,10 @@ namespace emiteat.NexUI.Designer.Editor.Productivity
     {
         [SerializeField] private DesignerScreenCreationRequest request = new DesignerScreenCreationRequest();
 
-        [MenuItem("Tools/NexUI/Designer/New Screen", priority = 20)]
+        [MenuItem("Tools/NexUI/Screen/New Screen", priority = NexUIDesignerMenu.PriorityScreen)]
         public static void Open()
         {
-            var window = GetWindow<DesignerScreenCreationWindow>(true, "NexUI 새 화면", true);
+            var window = GetWindow<DesignerScreenCreationWindow>(true, DesignerLocalization.T("productivity.newScreen"), true);
             window.minSize = new Vector2(460, 520);
             window.Show();
         }

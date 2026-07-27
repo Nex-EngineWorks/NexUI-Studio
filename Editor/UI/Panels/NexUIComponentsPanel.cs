@@ -10,13 +10,18 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
 {
     public sealed class NexUIComponentsPanel : VisualElement
     {
-        private static readonly (string category, (DesignerElementType type, string label)[] items)[] Categories =
+        /// <summary>
+        /// Library contents, grouped the way UI Builder's Library groups its own entries. Both the
+        /// group titles and the element names are localization keys so the panel reads in the
+        /// editor language instead of mixing English labels into a Korean UI.
+        /// </summary>
+        private static readonly (string categoryKey, (DesignerElementType type, string labelKey)[] items)[] Categories =
         {
-            ("Containers", new[] { (DesignerElementType.Panel, "Panel"), (DesignerElementType.Card, "Card"), (DesignerElementType.Container, "Container"), (DesignerElementType.Modal, "Modal") }),
-            ("Text & Media", new[] { (DesignerElementType.Label, "Text"), (DesignerElementType.Image, "Image") }),
-            ("Input", new[] { (DesignerElementType.Button, "Button"), (DesignerElementType.IconButton, "Icon Button"), (DesignerElementType.ChoiceList, "Choice List") }),
-            ("Feedback", new[] { (DesignerElementType.Toast, "Toast"), (DesignerElementType.Tooltip, "Tooltip"), (DesignerElementType.ProgressBar, "Progress"), (DesignerElementType.Spinner, "Spinner") }),
-            ("Data", new[] { (DesignerElementType.List, "List"), (DesignerElementType.Grid, "Grid"), (DesignerElementType.Slot, "Slot"), (DesignerElementType.Skeleton, "Skeleton") }),
+            ("shell.library.category.containers", new[] { (DesignerElementType.Panel, "component.panel"), (DesignerElementType.Card, "component.card"), (DesignerElementType.Container, "component.container"), (DesignerElementType.Modal, "component.modal") }),
+            ("shell.library.category.textMedia", new[] { (DesignerElementType.Label, "component.label"), (DesignerElementType.Image, "component.image") }),
+            ("shell.library.category.controls", new[] { (DesignerElementType.Button, "component.button"), (DesignerElementType.IconButton, "component.iconButton"), (DesignerElementType.ChoiceList, "component.choiceList") }),
+            ("shell.library.category.feedback", new[] { (DesignerElementType.Toast, "component.toast"), (DesignerElementType.Tooltip, "component.tooltip"), (DesignerElementType.ProgressBar, "component.progressBar"), (DesignerElementType.Spinner, "component.spinner") }),
+            ("shell.library.category.data", new[] { (DesignerElementType.List, "component.list"), (DesignerElementType.Grid, "component.grid"), (DesignerElementType.Slot, "component.slot"), (DesignerElementType.Skeleton, "component.skeleton") }),
         };
 
         private readonly NexUIDesignerContext _context;
@@ -43,41 +48,47 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
 
             BuildRecent();
             foreach (var category in Categories)
-                BuildCategory(category.category, category.items);
+                BuildCategory(category.categoryKey, category.items);
         }
 
         private void BuildRecent()
         {
-            var foldout = new Foldout { text = "Recent", value = true };
+            var foldout = new Foldout { text = DesignerLocalization.T("shell.library.recent"), value = true };
             foldout.AddToClassList("nexui-sidebar-foldout");
             var grid = new VisualElement();
             grid.AddToClassList("nexui-component-grid");
             foldout.Add(grid);
 
-            foreach (DesignerElementType type in new[] { DesignerElementType.Panel, DesignerElementType.Button, DesignerElementType.Label, DesignerElementType.Image })
-                grid.Add(CreateCard(type, type == DesignerElementType.Label ? "Text" : type.ToString()));
+            grid.Add(CreateCard(DesignerElementType.Panel, "component.panel"));
+            grid.Add(CreateCard(DesignerElementType.Button, "component.button"));
+            grid.Add(CreateCard(DesignerElementType.Label, "component.label"));
+            grid.Add(CreateCard(DesignerElementType.Image, "component.image"));
 
             _content.Add(foldout);
         }
 
-        private void BuildCategory(string title, IReadOnlyList<(DesignerElementType type, string label)> items)
+        private void BuildCategory(string titleKey, IReadOnlyList<(DesignerElementType type, string labelKey)> items)
         {
-            var foldout = new Foldout { text = title, value = EditorPrefs.GetBool("NexUI.Designer.Components." + title, true) };
+            // The pref key stays on the stable localization key, not the translated title, so the
+            // expanded/collapsed state survives a language switch.
+            var prefKey = "NexUI.Designer.Components." + titleKey;
+            var foldout = new Foldout { text = DesignerLocalization.T(titleKey), value = EditorPrefs.GetBool(prefKey, true) };
             foldout.AddToClassList("nexui-sidebar-foldout");
-            foldout.RegisterValueChangedCallback(evt => EditorPrefs.SetBool("NexUI.Designer.Components." + title, evt.newValue));
+            foldout.RegisterValueChangedCallback(evt => EditorPrefs.SetBool(prefKey, evt.newValue));
 
             var grid = new VisualElement();
             grid.AddToClassList("nexui-component-grid");
             foldout.Add(grid);
 
             foreach (var item in items)
-                grid.Add(CreateCard(item.type, item.label));
+                grid.Add(CreateCard(item.type, item.labelKey));
 
             _content.Add(foldout);
         }
 
-        private Button CreateCard(DesignerElementType type, string label)
+        private Button CreateCard(DesignerElementType type, string labelKey)
         {
+            var label = DesignerLocalization.T(labelKey);
             var button = new Button(() => _context.CreateMetadataElement(type))
             {
                 text = IconFor(type) + " " + label,

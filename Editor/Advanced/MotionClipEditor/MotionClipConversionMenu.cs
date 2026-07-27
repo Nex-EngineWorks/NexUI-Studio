@@ -7,7 +7,7 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
     /// <summary>Asset menu entry points for standard AnimationClip interoperability.</summary>
     public static class MotionClipConversionMenu
     {
-        [MenuItem("Assets/NexUI/AnimationClip을 Motion Clip으로 변환", priority = 2010)]
+        [MenuItem("Assets/NexUI/Convert AnimationClip To Motion Clip", priority = 2010)]
         public static void ImportSelected()
         {
             var source = Selection.activeObject as AnimationClip;
@@ -22,10 +22,10 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
             EditorGUIUtility.PingObject(result);
         }
 
-        [MenuItem("Assets/NexUI/AnimationClip을 Motion Clip으로 변환", true)]
+        [MenuItem("Assets/NexUI/Convert AnimationClip To Motion Clip", true)]
         private static bool CanImportSelected() => Selection.activeObject is AnimationClip;
 
-        [MenuItem("Assets/NexUI/Motion Clip을 AnimationClip으로 내보내기", priority = 2011)]
+        [MenuItem("Assets/NexUI/Export Motion Clip To AnimationClip", priority = 2011)]
         public static void ExportSelected()
         {
             var source = Selection.activeObject as UIMotionClip;
@@ -33,7 +33,7 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
             Export(source);
         }
 
-        [MenuItem("Assets/NexUI/Motion Clip을 AnimationClip으로 내보내기", true)]
+        [MenuItem("Assets/NexUI/Export Motion Clip To AnimationClip", true)]
         private static bool CanExportSelected() => Selection.activeObject is UIMotionClip;
 
         public static AnimationClip Export(UIMotionClip source)

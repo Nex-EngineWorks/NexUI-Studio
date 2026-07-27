@@ -1,3 +1,4 @@
+using emiteat.NexUI.Designer.Editor.Localization;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,7 +12,7 @@ namespace emiteat.NexUI.Designer.Editor.Productivity
 
         public static void Open(NexUIDesignerContext context)
         {
-            var window = GetWindow<DesignerLayoutConversionWindow>(true, "레이아웃 정리", true);
+            var window = GetWindow<DesignerLayoutConversionWindow>(true, DesignerLocalization.T("productivity.layout"), true);
             window.context = context;
             window.analysis = DesignerLayoutAnalysisService.Analyze(context?.SelectedElements);
             if (context?.Metadata != null && context.SelectedElements != null)

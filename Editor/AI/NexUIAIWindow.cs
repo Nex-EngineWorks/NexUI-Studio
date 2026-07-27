@@ -33,7 +33,7 @@ namespace emiteat.NexUI.Designer.Editor.AI
         private Button _sendButton;
         private IDesignerSessionProvider _sessionProvider;
 
-        [MenuItem("Tools/NexUI/Designer/AI Assistant", priority = 2)]
+        [MenuItem("Tools/NexUI/AI Assistant", priority = NexUIDesignerMenu.PriorityWindows + 2)]
         public static void Open()
         {
             var window = GetWindow<NexUIAIWindow>();

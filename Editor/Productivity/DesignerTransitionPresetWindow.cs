@@ -1,6 +1,7 @@
 using System.Linq;
 using emiteat.NexUI.MotionClip;
 using emiteat.NexUI.Abstractions;
+using emiteat.NexUI.Designer.Editor.Localization;
 using UnityEditor;
 using UnityEngine;
 
@@ -17,7 +18,7 @@ namespace emiteat.NexUI.Designer.Editor.Productivity
 
         public static void Open(NexUIDesignerContext context)
         {
-            var window = GetWindow<DesignerTransitionPresetWindow>(true, "전환 프리셋", true);
+            var window = GetWindow<DesignerTransitionPresetWindow>(true, DesignerLocalization.T("productivity.transition"), true);
             window.context = context;
             window.minSize = new Vector2(420, 490);
             window.RebuildPreview();

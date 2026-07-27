@@ -22,7 +22,7 @@ namespace emiteat.NexUI.Designer.Editor.ScreenFlow
         private VisualElement _statusRow;
         private VisualElement _validationRow;
 
-        [MenuItem("Tools/NexUI/Designer/Advanced/Screen Flow Editor")]
+        /// <summary>Opens the window. Reached through Tools/NexUI/Utilities.</summary>
         public static void OpenFromMenu()
         {
             var window = GetWindow<ScreenFlowWindow>();

@@ -29,7 +29,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             panel.AddToClassList("nexui-command-palette");
             Add(panel);
 
-            _search = new TextField { tooltip = "Search commands." };
+            _search = new TextField { tooltip = DesignerLocalization.T("shell.palette.search") };
             _search.AddToClassList("nexui-command-search");
             _search.RegisterValueChangedCallback(_ => Refresh());
             panel.Add(_search);
@@ -74,19 +74,20 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             {
                 if (type == DesignerElementType.Custom) continue;
                 var captured = type;
-                _entries.Add(new Entry("Add " + captured, "component " + captured, () => _context.CreateMetadataElement(captured), () => _context.Metadata != null));
+                _entries.Add(new Entry(DesignerLocalization.T("shell.palette.add", captured), "component " + captured, () => _context.CreateMetadataElement(captured), () => _context.Metadata != null));
             }
 
-            _entries.Add(new Entry("Validate", "screen validation", _context.Validate, () => true));
-            _entries.Add(new Entry("Save", "screen metadata", () => _context.Save(), () => _context.CurrentScreen != null));
-            _entries.Add(new Entry("Toggle Grid Snap", "canvas snap", () => _context.SetSnap(!_context.SnapEnabled), () => true));
-            _entries.Add(new Entry("Open Layers", "sidebar", () => _context.SetSidebarTab(DesignerSidebarTab.Layers), () => true));
-            _entries.Add(new Entry("Open Components", "sidebar", () => _context.SetSidebarTab(DesignerSidebarTab.Components), () => true));
-            _entries.Add(new Entry("Open Assets", "assets sprites fonts materials browse sidebar", () => _context.SetSidebarTab(DesignerSidebarTab.Assets), () => true));
-            _entries.Add(new Entry("Show Project Window", "assets project unity window", EditorUtility.FocusProjectWindow, () => true));
-            _entries.Add(new Entry("Open Validation Drawer", "drawer", () => _context.SetBottomTab(DesignerBottomTab.Validation), () => true));
-            _entries.Add(new Entry("Open History Drawer", "drawer", () => _context.SetBottomTab(DesignerBottomTab.History), () => true));
-            _entries.Add(new Entry("Open Graph Drawer", "drawer", () => _context.SetBottomTab(DesignerBottomTab.Graph), () => true));
+            _entries.Add(new Entry(DesignerLocalization.T("toolbar.validate"), "screen validation 검사", _context.Validate, () => true));
+            _entries.Add(new Entry(DesignerLocalization.T("toolbar.save"), "screen metadata 저장", () => _context.Save(), () => _context.CurrentScreen != null));
+            _entries.Add(new Entry(DesignerLocalization.T("shell.palette.toggleSnap"), "canvas snap grid 스냅 그리드", () => _context.SetSnap(!_context.SnapEnabled), () => true));
+            AddPanelEntry("shell.tab.hierarchy", "sidebar layers 계층", () => _context.SetSidebarTab(DesignerSidebarTab.Layers));
+            AddPanelEntry("shell.tab.library", "sidebar components palette 라이브러리 컴포넌트", () => _context.SetSidebarTab(DesignerSidebarTab.Components));
+            AddPanelEntry("shell.tab.project", "assets sprites fonts materials browse sidebar 에셋 프로젝트", () => _context.SetSidebarTab(DesignerSidebarTab.Assets));
+            _entries.Add(new Entry(DesignerLocalization.T("shell.palette.focusProject"), "assets project unity window 프로젝트 창", EditorUtility.FocusProjectWindow, () => true));
+            AddPanelEntry("shell.tab.console", "drawer validation errors warnings 콘솔 검사", () => _context.SetBottomTab(DesignerBottomTab.Validation));
+            AddPanelEntry("shell.tab.undoHistory", "drawer history undo 실행 취소 기록", () => _context.SetBottomTab(DesignerBottomTab.History));
+            AddPanelEntry("shell.tab.screenGraph", "drawer graph binding 그래프", () => _context.SetBottomTab(DesignerBottomTab.Graph));
+            AddPanelEntry("shell.tab.eventLog", "drawer preview command log 이벤트 로그", () => _context.SetBottomTab(DesignerBottomTab.Preview));
             _entries.Add(new Entry(DesignerLocalization.T("ai.command.open"),
                 DesignerLocalization.T("ai.command.keywords"), NexUIAIWindow.Open, () => true));
             _entries.Add(new Entry(DesignerLocalization.T("utilities.command.open"),
@@ -95,8 +96,16 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             foreach (var preset in DesignerResolutionPreset.Defaults)
             {
                 var captured = preset;
-                _entries.Add(new Entry("Resolution " + captured.Name, "frame canvas", () => _context.SetResolution(captured.Resolution), () => true));
+                _entries.Add(new Entry(DesignerLocalization.T("shell.canvas.resolution") + " " + captured.Name,
+                    "resolution frame canvas 해상도", () => _context.SetResolution(captured.Resolution), () => true));
             }
+        }
+
+        /// <summary>Adds an "Open &lt;panel&gt;" entry named after the panel's own tab label.</summary>
+        private void AddPanelEntry(string titleKey, string keywords, Action open)
+        {
+            _entries.Add(new Entry(DesignerLocalization.T("shell.palette.open", DesignerLocalization.T(titleKey)),
+                keywords, open, () => true));
         }
 
         private void Refresh()

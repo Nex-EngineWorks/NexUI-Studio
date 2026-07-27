@@ -108,13 +108,15 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
             if (_context.Metadata == null || _context.Metadata.elements.Count == 0)
             {
                 _empty.style.display = DisplayStyle.Flex;
-                _empty.text = _context.Metadata == null ? "Select a Metadata asset to show layers." : "No layers yet.";
+                _empty.text = DesignerLocalization.T(_context.Metadata == null
+                    ? "shell.hierarchy.empty.noMetadata"
+                    : "shell.hierarchy.empty.noElements");
                 return;
             }
 
             var rows = BuildRows(out var matchSet);
             _empty.style.display = rows.Count == 0 ? DisplayStyle.Flex : DisplayStyle.None;
-            _empty.text = "No layers match the filter.";
+            _empty.text = DesignerLocalization.T("shell.hierarchy.empty.noMatch");
             foreach (var row in rows)
                 _list.Add(new NexUILayerRow(_context, this, row.element, row.depth, row.hasChildren, row.dimmed, Refresh));
             RefreshSelectionOnly();
@@ -338,7 +340,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
             if (hasChildren)
             {
                 var collapsed = _panel.IsCollapsed(element.elementId);
-                var arrow = new Label(collapsed ? "▸" : "▾") { tooltip = "Expand / collapse children." };
+                var arrow = new Label(collapsed ? "▸" : "▾") { tooltip = DesignerLocalization.T("shell.hierarchy.expand") };
                 arrow.RegisterCallback<PointerDownEvent>(evt =>
                 {
                     _panel.ToggleCollapsed(_element.elementId);

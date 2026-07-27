@@ -25,7 +25,7 @@
 - Generated element ids are `{instanceId}--{definitionElementId}` and generated stableIds are derived deterministically from the instance and definition, so uGUI prefab objects reconnect across saves instead of being recreated.
 - Added `DesignerPropertyApplier`, completing the Phase 1 typed-property model with apply/read against element metadata. Properties with no authored representation are reported, never silently ignored.
 - Added `DesignerComponentService` for create-from-selection, instantiate, override set/reset, detach, swap and update-from-definition — all Undo-aware, with destructive operations reporting exactly what they drop.
-- Added `DesignerComponentLibrary` (project index with search, categories, tags, favourites and usage lookup) and a Component Library window under `Tools/NexUI/Designer/Component Library`.
+- Added `DesignerComponentLibrary` (project index with search, categories, tags, favourites and usage lookup) and a Component Library window under `Tools/NexUI/Component Library`.
 - Added a Component Instance Inspector section for variant selection, per-property override with Reset, and lifecycle actions.
 - Added 19 component validation codes covering missing definitions, cycles, slot contracts, override resolution, variant contracts and version mismatch.
 - Bumped metadata schema to v4. The v3 → v4 migration is additive and idempotent; no authored value changes.
@@ -76,14 +76,14 @@
 - Updated Korean documentation, architecture, implementation status, installation and testing guides.
 
 ### Added
-- **Motion Clip Editor**: new standalone `Tools/NexUI/Designer/Motion Clip Editor` window for
+- **Motion Clip Editor**: new standalone `Tools/NexUI/Utilities > Motion Clip Editor` window for
   authoring multi-element, multi-property, keyframe-based `UIMotionClip` assets, with a Designer
   selection-linked entry point ("Open Motion Clip Editor") from the Motion inspector. Includes a
   minimal timeline view (draggable keyframes), live preview against the Designer's preview
   surface, and Play/Stop. See `Documentation~/motion/motion-clip-editor.md`.
 - `UnityAnimationClipAdapter` (preview an existing `AnimationClip` via `SampleAnimation`) and
   implemented `UIMotionClipImporter`/`UIMotionClipExporter` conversion services.
-- Motion Graph Editor: `Tools/NexUI/Designer/Motion Graph` menu entry so it can be opened
+- Motion Graph Editor: `Tools/NexUI/Utilities > Motion Graph` menu entry so it can be opened
   standalone (with its own Preset picker) instead of only from the Motion inspector; new
   documentation (`Documentation~/motion/motion-graph-editor.md`, previously undocumented); "Auto
   Layout" and "Duplicate Node" context menu actions; brand-new (empty) graphs are now seeded

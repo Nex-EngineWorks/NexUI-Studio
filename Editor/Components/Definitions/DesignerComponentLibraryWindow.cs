@@ -30,7 +30,7 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
         protected override string TitleKey => "panel.componentLibrary";
         protected override string TooltipKey => "tooltip.componentLibrary";
 
-        [MenuItem("Tools/NexUI/Designer/Component Library")]
+        [MenuItem("Tools/NexUI/Component Library", priority = NexUIDesignerMenu.PriorityWindows + 4)]
         public static void Open() => GetWindow<DesignerComponentLibraryWindow>();
 
         protected override void OnEnable()

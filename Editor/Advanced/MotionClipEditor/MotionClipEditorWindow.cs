@@ -12,7 +12,7 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
 {
     /// <summary>
     /// Standalone timeline/keyframe editor for <see cref="UIMotionClip"/> assets. Opened either
-    /// via Tools/NexUI/Designer/Motion Clip Editor (pick any clip from the toolbar) or from the
+    /// via Tools/NexUI/Utilities > Motion Clip Editor (pick any clip from the toolbar) or from the
     /// Motion inspector's "Open Motion Clip Editor" button (preview surface + selected element
     /// pre-filled), matching the standalone-window convention used by <c>MotionGraphWindow</c>.
     /// MVP: buttons-first UI, not a polished drag-and-drop timeline.
@@ -56,7 +56,8 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
             GetHostWindow = () => this
         };
 
-        [MenuItem("Tools/NexUI/Designer/Advanced/Motion Clip Editor")]
+        /// <summary>Opens the window. Reached through Tools/NexUI/Utilities, which is the single
+        /// searchable home for the advanced tools rather than a second copy of them in the menu.</summary>
         public static void OpenFromMenu()
         {
             var window = GetWindow<MotionClipEditorWindow>();
@@ -160,9 +161,9 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
                     _clip = Selection.activeObject as UIMotionClip;
                     BuildUI();
                 }
-            }, "AnimationClip 가져오기", "nexui-button-secondary");
+            }, DesignerLocalization.T("motionClip.toolbar.importAnimationClip"), "nexui-button-secondary");
             importButton.SetEnabled(Selection.activeObject is AnimationClip);
-            importButton.tooltip = "Project에서 선택한 AnimationClip을 Motion Clip 에셋으로 변환합니다.";
+            importButton.tooltip = DesignerLocalization.T("tooltip.motionClip.importAnimationClip");
             toolbar.Add(importButton);
 
             _addTrackButton = MakeButton(AddTrackFromSelection, DesignerLocalization.T("motionClip.toolbar.addTrackFromSelection"), "nexui-button-secondary");

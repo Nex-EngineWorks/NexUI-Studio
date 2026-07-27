@@ -41,7 +41,7 @@ namespace emiteat.NexUI.Designer.Editor.Productivity
         private readonly List<Check> _checks = new List<Check>();
         private Vector2 _scroll;
 
-        [MenuItem("Tools/NexUI/Setup Doctor", priority = 0)]
+        [MenuItem("Tools/NexUI/Setup Doctor", priority = NexUIDesignerMenu.PriorityWindows + 3)]
         public static void Open()
         {
             var window = GetWindow<NexUISetupDoctorWindow>();

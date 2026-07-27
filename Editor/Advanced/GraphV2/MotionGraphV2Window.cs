@@ -26,7 +26,7 @@ namespace emiteat.NexUI.Designer.Editor.GraphV2
         private VisualElement _statusRow;
         private CancellationTokenSource _previewCts;
 
-        [MenuItem("Tools/NexUI/Designer/Advanced/Motion Graph (v2)")]
+        /// <summary>Opens the window. Reached through Tools/NexUI/Utilities.</summary>
         public static void OpenFromMenu()
         {
             var window = GetWindow<MotionGraphV2Window>();

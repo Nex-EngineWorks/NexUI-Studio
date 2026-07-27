@@ -16,7 +16,7 @@ namespace emiteat.NexUI.Designer.Editor.Snapshot
         protected override string TitleKey => "panel.snapshot";
         protected override string TooltipKey => "tooltip.snapshot";
 
-        [MenuItem("Tools/NexUI/Designer/QA/Runtime Snapshot & Diff")]
+        [MenuItem("Tools/NexUI/QA/Runtime Snapshot & Diff", priority = NexUIDesignerMenu.PriorityQa + 2)]
         public static void Open() => GetWindow<SnapshotEditorWindow>();
 
         protected override void DrawBody()

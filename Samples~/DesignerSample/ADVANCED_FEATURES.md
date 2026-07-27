@@ -13,12 +13,12 @@
 ## 유용한 메뉴
 
 - `Tools/NexUI/Designer`
-- `Tools/NexUI/Designer/Rebuild Preview`
-- `Tools/NexUI/Designer/Validate Current Screen`
-- `Tools/NexUI/Designer/Save Current Screen`
-- `Tools/NexUI/Designer/QA/Run Advanced Validation`
-- `Tools/NexUI/Designer/QA/Run Snapshot Tests`
-- `Tools/NexUI/Designer/Advanced/Export Agent Manifest`
+- `Tools/NexUI/Screen/Rebuild Preview`
+- `Tools/NexUI/Screen/Validate Screen`
+- `Tools/NexUI/Screen/Save Screen`
+- `Tools/NexUI/QA/Run Advanced Validation`
+- `Tools/NexUI/QA/Run Snapshot Tests`
+- `Tools/NexUI/QA/Export Agent Manifest`
 
 ## 코드 예시
 

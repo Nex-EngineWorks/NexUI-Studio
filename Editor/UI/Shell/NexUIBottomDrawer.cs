@@ -1,3 +1,4 @@
+using emiteat.NexUI.Designer.Editor.Localization;
 using emiteat.NexUI.Designer.Editor.Panels;
 using emiteat.NexUI.Designer.Editor.UI.Controls;
 using UnityEngine;
@@ -11,6 +12,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
         private readonly NexUITabBar<DesignerBottomTab> _tabs;
         private readonly VisualElement _content;
         private readonly Label _badge;
+        private readonly Button _toggle;
         private readonly NexUIDesignerValidationPanel _validation;
         private readonly NexUIDesignerHistoryPanel _history;
         private readonly NexUIDesignerScreenGraphPanel _graph;
@@ -37,11 +39,13 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             if (context.BottomTab == DesignerBottomTab.Timeline)
                 context.SetBottomTab(DesignerBottomTab.Validation, false);
 
+            // Named after the Unity windows that do the same job (Console, Undo History) so the
+            // drawer reads like the rest of the editor. Enum values are unchanged.
             _tabs = new NexUITabBar<DesignerBottomTab>(context.BottomTab, tab => context.SetBottomTab(tab, true),
-                (DesignerBottomTab.Validation, "Validation", "Validation issues."),
-                (DesignerBottomTab.History, "History", "Recent edit history."),
-                (DesignerBottomTab.Graph, "Graph", "Screen graph and binding summary."),
-                (DesignerBottomTab.Preview, "Preview", "Interactive preview log (simulated commands)."));
+                (DesignerBottomTab.Validation, DesignerLocalization.T("shell.tab.console"), DesignerLocalization.T("shell.tab.console.tooltip")),
+                (DesignerBottomTab.History, DesignerLocalization.T("shell.tab.undoHistory"), DesignerLocalization.T("shell.tab.undoHistory.tooltip")),
+                (DesignerBottomTab.Graph, DesignerLocalization.T("shell.tab.screenGraph"), DesignerLocalization.T("shell.tab.screenGraph.tooltip")),
+                (DesignerBottomTab.Preview, DesignerLocalization.T("shell.tab.eventLog"), DesignerLocalization.T("shell.tab.eventLog.tooltip")));
             bar.Add(_tabs);
 
             _badge = new Label();
@@ -52,10 +56,10 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             spacer.style.flexGrow = 1;
             bar.Add(spacer);
 
-            var toggle = new Button(() => context.SetBottomDrawerOpen(!context.BottomDrawerOpen)) { text = "Toggle", tooltip = "Open or close bottom drawer." };
-            toggle.AddToClassList("nexui-toolbar-button");
-            toggle.AddToClassList("nexui-button-secondary");
-            bar.Add(toggle);
+            _toggle = new Button(() => context.SetBottomDrawerOpen(!context.BottomDrawerOpen));
+            _toggle.AddToClassList("nexui-toolbar-button");
+            _toggle.AddToClassList("nexui-button-secondary");
+            bar.Add(_toggle);
 
             _content = new VisualElement();
             _content.AddToClassList("nexui-drawer-content");
@@ -80,6 +84,8 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
         private void Refresh()
         {
             _tabs.SetCurrent(_context.BottomTab);
+            _toggle.text = _context.BottomDrawerOpen ? "▾" : "▴";
+            _toggle.tooltip = DesignerLocalization.T(_context.BottomDrawerOpen ? "shell.drawer.collapse" : "shell.drawer.expand");
             style.height = _context.BottomDrawerOpen ? _context.BottomDrawerHeight : 36f;
             EnableInClassList("is-open", _context.BottomDrawerOpen);
             _content.style.display = _context.BottomDrawerOpen ? DisplayStyle.Flex : DisplayStyle.None;
@@ -106,11 +112,11 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
         private void RefreshBadge()
         {
             if (_context.ErrorCount > 0)
-                _badge.text = _context.ErrorCount + " errors";
+                _badge.text = DesignerLocalization.T("shell.status.errors", _context.ErrorCount);
             else if (_context.WarningCount > 0)
-                _badge.text = _context.WarningCount + " warnings";
+                _badge.text = DesignerLocalization.T("shell.status.warnings", _context.WarningCount);
             else
-                _badge.text = "Valid";
+                _badge.text = DesignerLocalization.T("shell.status.noIssues");
             _badge.EnableInClassList("is-warning", _context.ErrorCount > 0 || _context.WarningCount > 0);
             _badge.EnableInClassList("is-ok", _context.ErrorCount == 0 && _context.WarningCount == 0);
         }

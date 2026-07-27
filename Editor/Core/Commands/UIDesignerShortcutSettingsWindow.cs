@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using emiteat.NexUI.Designer.Editor.Localization;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,13 +11,15 @@ namespace emiteat.NexUI.Designer.Editor.Commands
     {
         private Vector2 scroll;
 
-        [MenuItem("Tools/NexUI/Designer/Preferences/단축키 설정")]
-        public static void Open() => GetWindow<UIDesignerShortcutSettingsWindow>("NexUI 단축키");
+        [MenuItem("Tools/NexUI/Preferences/Shortcuts", priority = NexUIDesignerMenu.PriorityPreferences)]
+        public static void Open() => GetWindow<UIDesignerShortcutSettingsWindow>(T("shortcuts.window.title"));
+
+        private static string T(string key) => DesignerLocalization.T(key);
 
         private void OnGUI()
         {
-            EditorGUILayout.LabelField("NexUI Designer 단축키", EditorStyles.boldLabel);
-            EditorGUILayout.HelpBox("동일한 키 조합이 여러 Command에 지정되면 위쪽 항목이 먼저 실행됩니다.", MessageType.Info);
+            EditorGUILayout.LabelField(T("shortcuts.heading"), EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox(T("shortcuts.help"), MessageType.Info);
             scroll = EditorGUILayout.BeginScrollView(scroll);
             var shortcuts = UIDesignerShortcutRegistry.Current;
             for (var i = 0; i < shortcuts.Count; i++)
@@ -35,15 +38,15 @@ namespace emiteat.NexUI.Designer.Editor.Commands
 
             var duplicates = shortcuts.GroupBy(Signature).Where(x => x.Count() > 1).Select(x => x.Key).ToList();
             if (duplicates.Count > 0)
-                EditorGUILayout.HelpBox("중복 조합: " + string.Join(", ", duplicates), MessageType.Warning);
+                EditorGUILayout.HelpBox(T("shortcuts.duplicates") + " " + string.Join(", ", duplicates), MessageType.Warning);
 
             using (new EditorGUILayout.HorizontalScope())
             {
-                if (GUILayout.Button("기본값 복원")) UIDesignerShortcutRegistry.ResetToDefaults();
-                if (GUILayout.Button("저장"))
+                if (GUILayout.Button(T("shortcuts.reset"))) UIDesignerShortcutRegistry.ResetToDefaults();
+                if (GUILayout.Button(T("toolbar.save")))
                 {
                     UIDesignerShortcutRegistry.Save();
-                    ShowNotification(new GUIContent("단축키를 저장했습니다."));
+                    ShowNotification(new GUIContent(T("shortcuts.saved")));
                 }
             }
         }

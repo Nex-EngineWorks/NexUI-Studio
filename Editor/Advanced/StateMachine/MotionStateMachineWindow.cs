@@ -28,7 +28,7 @@ namespace emiteat.NexUI.Designer.Editor.StateMachine
         private VisualElement _transitionsHost;
         private VisualElement _statusRow;
 
-        [MenuItem("Tools/NexUI/Designer/Advanced/Motion State Machine")]
+        /// <summary>Opens the window. Reached through Tools/NexUI/Utilities.</summary>
         public static void OpenFromMenu()
         {
             var window = GetWindow<MotionStateMachineWindow>();

@@ -78,7 +78,7 @@ namespace emiteat.NexUI.Designer.Editor.Utilities
             Repaint();
         }
 
-        [MenuItem("Tools/NexUI/유틸리티", priority = 1)]
+        [MenuItem("Tools/NexUI/Utilities", priority = NexUIDesignerMenu.PriorityWindows + 1)]
         public static void Open()
         {
             var window = GetWindow<NexUIUtilitiesWindow>();

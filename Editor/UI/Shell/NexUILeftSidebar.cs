@@ -20,10 +20,14 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             _context = context;
             AddToClassList("nexui-left-sidebar");
 
+            // Tab names follow Unity's own windows so the vocabulary transfers: the element tree is
+            // the Hierarchy, the element palette is the Library (as in UI Builder) and the asset
+            // browser is the Project. The enum values keep their original names so saved layouts,
+            // EditorPrefs and command ids stay valid.
             _tabs = new NexUITabBar<DesignerSidebarTab>(context.SidebarTab, context.SetSidebarTab,
-                (DesignerSidebarTab.Layers, "Layers", "Show screen element layers."),
-                (DesignerSidebarTab.Components, "Components", "Add UI components."),
-                (DesignerSidebarTab.Assets, "Assets", "Browse project sprites, fonts and components; drag them onto the canvas."));
+                (DesignerSidebarTab.Layers, DesignerLocalization.T("shell.tab.hierarchy"), DesignerLocalization.T("shell.tab.hierarchy.tooltip")),
+                (DesignerSidebarTab.Components, DesignerLocalization.T("shell.tab.library"), DesignerLocalization.T("shell.tab.library.tooltip")),
+                (DesignerSidebarTab.Assets, DesignerLocalization.T("shell.tab.project"), DesignerLocalization.T("shell.tab.project.tooltip")));
             Add(_tabs);
 
             var metadataRow = new VisualElement();
@@ -32,7 +36,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             {
                 objectType = typeof(DesignerMetadataAsset),
                 allowSceneObjects = false,
-                label = "Metadata",
+                label = DesignerLocalization.T("shell.field.metadata"),
                 tooltip = DesignerLocalization.T("tooltip.toolbar.metadata")
             };
             metadata.SetValueWithoutNotify(context.Metadata);

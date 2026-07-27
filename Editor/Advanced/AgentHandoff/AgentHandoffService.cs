@@ -77,7 +77,7 @@ namespace emiteat.NexUI.Designer.Editor.AgentHandoff
             Bullets(sb, "Known issues", m.knownIssues);
             Bullets(sb, "Forbidden rules", m.forbiddenRules);
             sb.AppendLine("## Suggested next steps").AppendLine();
-            sb.AppendLine("- Run Tools/NexUI/Designer/Run Advanced Validation and resolve findings.");
+            sb.AppendLine("- Run Tools/NexUI/QA/Run Advanced Validation and resolve findings.");
             sb.AppendLine("- Fill missing contracts / focus graphs flagged above.");
             return sb.ToString();
         }

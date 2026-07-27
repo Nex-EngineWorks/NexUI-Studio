@@ -9,7 +9,7 @@ namespace emiteat.NexUI.Designer.Editor.Graph
     /// <summary>
     /// Standalone editor window hosting the visual Motion Graph editor for a single
     /// <see cref="UIMotionPreset"/>. Opened either from the Motion inspector's "Open Motion
-    /// Graph" button (preset pre-filled) or directly via Tools/NexUI/Designer/Motion Graph
+    /// Graph" button (preset pre-filled) or directly via Tools/NexUI/Utilities > Motion Graph
     /// (pick any preset from the toolbar). The preset is stored in a serialized field so the
     /// window survives domain reloads.
     /// </summary>
