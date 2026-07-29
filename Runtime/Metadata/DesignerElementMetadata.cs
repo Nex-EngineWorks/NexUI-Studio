@@ -133,6 +133,22 @@ namespace emiteat.NexUI.Designer
         /// </summary>
         public List<DesignerAttachedComponentMetadata> attachedComponents = new List<DesignerAttachedComponentMetadata>();
 
+        /// <summary>
+        /// Values for the component type's own properties (a Slider's whole-numbers, a Scroll Area's
+        /// inertia). Keyed by the schema the component declares in the editor; only values the user
+        /// changed are stored, everything else falls back to the schema default. Unknown keys are
+        /// preserved so a screen authored with a newer component library still round-trips here.
+        /// </summary>
+        public List<DesignerComponentPropertyEntry> componentProperties = new List<DesignerComponentPropertyEntry>();
+
+        /// <summary>
+        /// Sparse Unity-like transform overrides for named internal component parts. Authored child
+        /// elements still live in the normal hierarchy; this list is only for library-owned parts
+        /// such as a Slider track/handle or Toggle checkmark.
+        /// </summary>
+        public List<DesignerComponentPartOverrideMetadata> componentPartOverrides =
+            new List<DesignerComponentPartOverrideMetadata>();
+
         public bool locked;
         /// <summary>Editor-only canvas visibility. Never changes generated/runtime visibility.</summary>
         public bool hiddenInDesigner;

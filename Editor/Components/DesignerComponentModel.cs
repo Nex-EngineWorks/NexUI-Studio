@@ -108,6 +108,20 @@ namespace emiteat.NexUI.Designer.Editor.Components
             => AcceptedComponentTypes == null || Array.IndexOf(AcceptedComponentTypes, typeId) >= 0;
     }
 
+    /// <summary>A selectable, customizable library-owned part inside a component.</summary>
+    public sealed class DesignerComponentPartDescriptor
+    {
+        public string PartId;
+        public string DisplayName;
+        public string Description;
+        /// <summary>Relative path under the generated uGUI control root.</summary>
+        public string UGUIPath;
+        /// <summary>Descendant USS selector appended after the generated element id.</summary>
+        public string UIToolkitSelector;
+        /// <summary>Whether the part exists only in the Designer preview for this component.</summary>
+        public bool PreviewOnly;
+    }
+
     /// <summary>
     /// Single source of truth for one component type: its identity, defaults, capabilities, slots,
     /// supported states/bindings and per-backend support. Palette, Inspector, Preview, Validation,
@@ -170,6 +184,16 @@ namespace emiteat.NexUI.Designer.Editor.Components
 
         public AccessibilityRole DefaultAccessibilityRole = AccessibilityRole.None;
 
+        /// <summary>
+        /// The component's own properties - the Designer equivalent of a Unity component's serialized
+        /// fields. Attached by <c>NexUIComponentPropertySchemas</c> when the registry is built, read by
+        /// the Inspector, the canvas preview and both backend writers.
+        /// </summary>
+        public List<DesignerComponentProperty> Properties = new List<DesignerComponentProperty>();
+
+        /// <summary>Library-owned internal parts that can receive sparse transform overrides.</summary>
+        public List<DesignerComponentPartDescriptor> Parts = new List<DesignerComponentPartDescriptor>();
+
         // Structure & contracts
         public List<DesignerComponentSlot> Slots = new List<DesignerComponentSlot>();
         public DesignerComponentState SupportedStates = DesignerComponentState.Normal;
@@ -201,6 +225,14 @@ namespace emiteat.NexUI.Designer.Editor.Components
             if (string.IsNullOrEmpty(slotId)) slotId = DesignerComponentSlot.Content;
             foreach (var s in Slots)
                 if (s.SlotId == slotId) return s;
+            return null;
+        }
+
+        public DesignerComponentPartDescriptor GetPart(string partId)
+        {
+            if (string.IsNullOrEmpty(partId)) return null;
+            foreach (var part in Parts)
+                if (part.PartId == partId) return part;
             return null;
         }
 

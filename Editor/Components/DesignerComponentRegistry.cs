@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using emiteat.NexUI.Accessibility;
 using emiteat.NexUI.Designer.Editor.Backend;
+using emiteat.NexUI.Designer.Editor.Components.Definitions;
 using UnityEngine;
 
 namespace emiteat.NexUI.Designer.Editor.Components
@@ -107,6 +108,16 @@ namespace emiteat.NexUI.Designer.Editor.Components
                 _byId[d.TypeId] = d;
             foreach (var d in UIToolkitComponentCatalog.Build())
                 _byId[d.TypeId] = d;
+
+            // Backend mappings and property schemas last: both are attached by component shape, so
+            // every catalog must be registered before they run. Mappings go first because a schema
+            // can depend on the control a component ends up writing.
+            foreach (var d in _byId.Values)
+            {
+                NexUIBackendMappings.Apply(d);
+                NexUIComponentPropertySchemas.Apply(d);
+                NexUIComponentPartSchemas.Apply(d);
+            }
         }
 
         /// <summary>

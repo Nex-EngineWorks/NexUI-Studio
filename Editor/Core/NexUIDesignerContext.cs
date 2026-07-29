@@ -45,6 +45,7 @@ namespace emiteat.NexUI.Designer.Editor
         private int _metadataExpectedDirtyCount;
         private bool _screenWasDirtyAtBaseline;
         private bool _metadataWasDirtyAtBaseline;
+        private bool? _lastReportedDirtyState;
 
         public bool IsDisposed => _disposed;
         public bool HasUnsavedChanges => _hasUnsavedChanges || HasExternalAssetChanges();
@@ -151,6 +152,7 @@ namespace emiteat.NexUI.Designer.Editor
             BottomDrawerHeight = EditorPrefs.GetFloat(PrefPrefix + "BottomHeight", 220f);
             DesignerBackendRegistry.RegisterDefaults();
             Undo.undoRedoPerformed += OnUndoRedoPerformed;
+            EditorApplication.projectChanged += OnProjectAssetsChanged;
         }
 
         public void Open(UIScreenDefinition definition) => TryOpen(definition);
@@ -267,6 +269,8 @@ namespace emiteat.NexUI.Designer.Editor
             _selection.Clear();
             if (element != null)
                 _selection.Add(element);
+            _selectedComponentPartId = null;
+            ComponentPartSelectionChanged?.Invoke(null);
             KeyObject = null;
             RaiseSelectionChanged();
         }
@@ -377,6 +381,12 @@ namespace emiteat.NexUI.Designer.Editor
         private void RaiseSelectionChanged()
         {
             var primary = SelectedMetadata;
+            if (!string.IsNullOrEmpty(_selectedComponentPartId) &&
+                (primary == null || DesignerComponentRegistry.Get(primary.elementType).GetPart(_selectedComponentPartId) == null))
+            {
+                _selectedComponentPartId = null;
+                ComponentPartSelectionChanged?.Invoke(null);
+            }
             SelectedElement = primary != null && TryFindElement(primary.elementId, out var handle) ? handle : null;
             SelectionChanged?.Invoke(SelectedElement);
             MetadataSelectionChanged?.Invoke(primary);
@@ -388,6 +398,10 @@ namespace emiteat.NexUI.Designer.Editor
         public void RebuildPreview()
         {
             using var markerScope = CanvasRebuildMarker.Auto();
+            var selectedIds = new List<string>();
+            foreach (var selected in _selection)
+                if (selected != null && !string.IsNullOrEmpty(selected.elementId)) selectedIds.Add(selected.elementId);
+            var keyObjectId = KeyObject?.elementId;
             if (PreviewSurface != null && CurrentBackend != null)
                 CurrentBackend.DestroyPreviewSurface(PreviewSurface);
 
@@ -400,7 +414,7 @@ namespace emiteat.NexUI.Designer.Editor
                 PreviewSurface = backend.CreatePreviewSurface(CurrentScreen);
             }
 
-            ClearSelection();
+            RestoreSelection(selectedIds, keyObjectId);
             PreviewRebuilt?.Invoke();
             Validate();
         }
@@ -433,13 +447,21 @@ namespace emiteat.NexUI.Designer.Editor
                 return report;
             }
 
-            SynchronizeScreenMotionReferences();
-            if (Metadata != null)
+            var preflightIssues = DesignerValidationService.Validate(CurrentScreen, Metadata);
+            foreach (var issue in preflightIssues)
+                if (issue.Severity == DesignerValidationSeverity.Error)
+                    report.Error($"Validation {issue.Code}: {issue.Message}  →  {issue.Fix}");
+            if (report.HasErrors)
             {
-                CurrentScreen.variants = VariantService.Compile(Metadata);
-                CurrentScreen.responsiveRules = ResponsiveService.Compile(Metadata);
-                EditorUtility.SetDirty(CurrentScreen);
+                LastSaveReport = report;
+                SaveCompleted?.Invoke(report);
+                Debug.LogError("[NexUI Designer] Save blocked by validation. " + report.Details());
+                Validate();
+                return report;
             }
+
+            var screenBeforePublish = EditorJsonUtility.ToJson(CurrentScreen);
+            var screenWasDirtyBeforePublish = EditorUtility.IsDirty(CurrentScreen);
             var serializer = DesignerSerializerRegistry.Get(CurrentScreen.backendAsset.backend);
 
             // Component instances are references, not copies: the backend must receive the flattened
@@ -459,7 +481,17 @@ namespace emiteat.NexUI.Designer.Editor
                     else
                         report.Warn(text);
                 }
-                report.Merge(serializer.Save(CurrentScreen, expansion.Expanded));
+                if (!report.HasErrors)
+                {
+                    SynchronizeScreenMotionReferences();
+                    if (Metadata != null)
+                    {
+                        CurrentScreen.variants = VariantService.Compile(Metadata);
+                        CurrentScreen.responsiveRules = ResponsiveService.Compile(Metadata);
+                        EditorUtility.SetDirty(CurrentScreen);
+                    }
+                    report.Merge(serializer.Save(CurrentScreen, expansion.Expanded));
+                }
             }
             finally
             {
@@ -470,11 +502,18 @@ namespace emiteat.NexUI.Designer.Editor
 
             // B8: keep the git-friendly companion JSON in sync with every save so it's always
             // the reviewable diff for a PR, never stale relative to the .asset.
-            if (Metadata != null)
+            if (Metadata != null && !report.HasErrors)
             {
                 var jsonPath = DesignerMetadataJsonSerializer.Export(Metadata);
                 if (!string.IsNullOrEmpty(jsonPath))
                     report.MarkChanged($"Companion JSON: {jsonPath}");
+            }
+
+            if (report.HasErrors)
+            {
+                EditorJsonUtility.FromJsonOverwrite(screenBeforePublish, CurrentScreen);
+                if (screenWasDirtyBeforePublish) EditorUtility.SetDirty(CurrentScreen);
+                else EditorUtility.ClearDirty(CurrentScreen);
             }
 
             if (report.HasErrors)
@@ -1306,9 +1345,33 @@ namespace emiteat.NexUI.Designer.Editor
                 _screenExpectedDirtyCount = DirtyCount(_screenBaselineTarget);
                 _metadataExpectedDirtyCount = DirtyCount(_metadataBaselineTarget);
             }
-            if (_hasUnsavedChanges == dirty) return;
             _hasUnsavedChanges = dirty;
+            PublishDirtyState();
+        }
+
+        private void PublishDirtyState()
+        {
+            var dirty = HasUnsavedChanges;
+            if (_lastReportedDirtyState.HasValue && _lastReportedDirtyState.Value == dirty) return;
+            _lastReportedDirtyState = dirty;
             DirtyStateChanged?.Invoke(dirty);
+        }
+
+        private bool MatchesBaselines()
+            => MatchesBaseline(_screenBaselineTarget, _screenBaselineJson) &&
+               MatchesBaseline(_metadataBaselineTarget, _metadataBaselineJson);
+
+        private static bool MatchesBaseline(UnityEngine.Object target, string baselineJson)
+        {
+            if (target == null) return string.IsNullOrEmpty(baselineJson);
+            if (string.IsNullOrEmpty(baselineJson)) return false;
+            return string.Equals(EditorJsonUtility.ToJson(target), baselineJson, StringComparison.Ordinal);
+        }
+
+        private void OnProjectAssetsChanged()
+        {
+            if (_disposed) return;
+            PublishDirtyState();
         }
 
         private static void StoreAssetGuid(string key, UnityEngine.Object asset)
@@ -1458,6 +1521,7 @@ namespace emiteat.NexUI.Designer.Editor
             if (_disposed) return;
             _disposed = true;
             Undo.undoRedoPerformed -= OnUndoRedoPerformed;
+            EditorApplication.projectChanged -= OnProjectAssetsChanged;
             DisposeComponentExpansion();
             if (PreviewSurface != null && CurrentBackend != null)
                 CurrentBackend.DestroyPreviewSurface(PreviewSurface);
@@ -1466,15 +1530,33 @@ namespace emiteat.NexUI.Designer.Editor
         private void OnUndoRedoPerformed()
         {
             if (_disposed) return;
+            var selectedIds = new List<string>();
+            foreach (var selected in _selection)
+                if (selected != null && !string.IsNullOrEmpty(selected.elementId)) selectedIds.Add(selected.elementId);
+            var keyObjectId = KeyObject?.elementId;
             _screenExpectedDirtyCount = DirtyCount(_screenBaselineTarget);
             _metadataExpectedDirtyCount = DirtyCount(_metadataBaselineTarget);
             _expansionValid = false;   // Undo can add/remove/retarget component instances
-            SetDirtyState(true);
             EnsureScreenMotion();
+            SetDirtyState(!MatchesBaselines());
             ApplyMetadataToPreview();
-            RaiseSelectionChanged();
+            RestoreSelection(selectedIds, keyObjectId);
             CanvasChanged?.Invoke();
             Validate();
+        }
+
+        private void RestoreSelection(IReadOnlyList<string> selectedIds, string keyObjectId)
+        {
+            _selection.Clear();
+            if (Metadata != null && selectedIds != null)
+                foreach (var id in selectedIds)
+                {
+                    var element = Metadata.Find(id);
+                    if (element != null && !_selection.Contains(element)) _selection.Add(element);
+                }
+            KeyObject = !string.IsNullOrEmpty(keyObjectId) && Metadata != null ? Metadata.Find(keyObjectId) : null;
+            if (KeyObject != null && !_selection.Contains(KeyObject)) KeyObject = null;
+            RaiseSelectionChanged();
         }
     }
 }

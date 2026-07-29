@@ -79,13 +79,35 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                     if (element.attachedComponents != null && element.attachedComponents.Count > 0)
                         report.MarkPreviewOnly("Attached components",
                             $"'{element.elementId}' has MonoBehaviour attachments; these are applied only to uGUI GameObjects.", element.elementId);
+                    if (element.componentPartOverrides != null)
+                    {
+                        var descriptor = DesignerComponentRegistry.Get(element.elementType);
+                        foreach (var value in element.componentPartOverrides)
+                        {
+                            if (value == null || !value.HasAnyOverride) continue;
+                            var part = descriptor.GetPart(value.partId);
+                            if (part == null)
+                            {
+                                report.Warn($"'{element.elementId}' preserves an unknown component part override '{value.partId}'.");
+                                continue;
+                            }
+                            if (part.PreviewOnly || string.IsNullOrEmpty(part.UIToolkitSelector))
+                                report.MarkPreviewOnly("Component part transform",
+                                    $"'{element.elementId}/{part.DisplayName}' has no stable UI Toolkit internal selector; metadata was preserved.",
+                                    element.elementId);
+                            else if (value.hasSizeDelta)
+                                report.MarkPreviewOnly("Component part size delta",
+                                    $"'{element.elementId}/{part.DisplayName}' size delta is preview-only; generated USS still writes its position, rotation, scale and visibility.",
+                                    element.elementId);
+                        }
+                    }
                     if (!names.Contains(element.elementId))
                         report.MarkPreviewOnly("Unmatched element", $"Metadata element '{element.elementId}' has no matching named VisualElement in UXML. " +
                                     "Add name=\"" + element.elementId + "\" in UI Builder, or use 'Sync Metadata From UXML'.", element.elementId);
                 }
             }
 
-            SaveDirtyAssets(metadata, definition);
+            if (!report.HasErrors) SaveDirtyAssets(metadata, definition);
             return report;
         }
 

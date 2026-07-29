@@ -69,6 +69,8 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 sb.Append(' ').Append(attribute).Append("=\"").Append(EscapeAttr(element.text)).Append('"');
             }
 
+            AppendPropertyAttributes(sb, element, descriptor);
+
             if (children.Count == 0)
             {
                 sb.AppendLine(" />");
@@ -80,6 +82,42 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 AppendUxmlElement(sb, metadata, child, depth + 1);
             sb.Append(indent).Append("</").Append(tag).AppendLine(">");
         }
+
+        /// <summary>
+        /// Emits UXML attributes for component properties that declare one and that the user actually
+        /// set. Unset properties are deliberately omitted: the control's own default is a better
+        /// answer than restating it in every generated file, and it keeps the diff to what was authored.
+        /// </summary>
+        private static void AppendPropertyAttributes(StringBuilder sb, DesignerElementMetadata element,
+            DesignerComponentDescriptor descriptor)
+        {
+            for (var i = 0; i < descriptor.Properties.Count; i++)
+            {
+                var property = descriptor.Properties[i];
+                if (!DesignerComponentPropertySupport.CanEmitUxmlAttribute(descriptor, property)) continue;
+                if (!DesignerComponentPropertyAccess.IsOverridden(element, property.Key)) continue;
+
+                var value = DesignerComponentPropertyAccess.Value(element, property.Key);
+                if (value == null) continue;
+
+                var text = property.Type switch
+                {
+                    DesignerPropertyValueType.Boolean => value.boolValue ? "true" : "false",
+                    DesignerPropertyValueType.Integer => value.intValue.ToString(CultureInfo.InvariantCulture),
+                    DesignerPropertyValueType.Float => value.floatValue.ToString("0.###", CultureInfo.InvariantCulture),
+                    DesignerPropertyValueType.Enum => EnumName(property, value.intValue),
+                    _ => value.stringValue
+                };
+                if (text == null) continue;
+
+                sb.Append(' ').Append(property.UxmlAttribute).Append("=\"").Append(EscapeAttr(text)).Append('"');
+            }
+        }
+
+        private static string EnumName(DesignerComponentProperty property, int index)
+            => property.EnumOptions != null && index >= 0 && index < property.EnumOptions.Length
+                ? property.EnumOptions[index]
+                : null;
 
         // ---- USS ----------------------------------------------------------------
 
@@ -143,8 +181,34 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 sb.AppendLine("    display: none;");
             if (DesignerPropertyAdapter.Clip(element))
                 sb.AppendLine("    overflow: hidden;");
+            else if (DesignerComponentPropertyAccess.GetBool(element, "clipContent"))
+                sb.AppendLine("    overflow: hidden;");
 
             sb.AppendLine("}");
+            AppendComponentPartRules(sb, element);
+        }
+
+        private static void AppendComponentPartRules(StringBuilder sb, DesignerElementMetadata element)
+        {
+            if (element.componentPartOverrides == null) return;
+            var descriptor = DesignerComponentRegistry.Get(element.elementType);
+            foreach (var value in element.componentPartOverrides)
+            {
+                if (value == null || !value.HasAnyOverride) continue;
+                var part = descriptor.GetPart(value.partId);
+                if (part == null || string.IsNullOrEmpty(part.UIToolkitSelector)) continue;
+                sb.Append('#').Append(element.elementId).Append(' ').Append(part.UIToolkitSelector).AppendLine(" {");
+                if (value.hasPosition)
+                    sb.Append("    translate: ").Append(Px(value.position.x)).Append(' ').Append(Px(value.position.y)).AppendLine(";");
+                if (value.hasRotation)
+                    sb.Append("    rotate: ").Append(value.rotation.ToString("0.###", CultureInfo.InvariantCulture)).AppendLine("deg;");
+                if (value.hasScale)
+                    sb.Append("    scale: ").Append(value.scale.x.ToString("0.###", CultureInfo.InvariantCulture)).Append(' ')
+                      .Append(value.scale.y.ToString("0.###", CultureInfo.InvariantCulture)).AppendLine(";");
+                if (value.hasVisibility && !value.visible)
+                    sb.AppendLine("    display: none;");
+                sb.AppendLine("}");
+            }
         }
 
         private static void AppendTypedLayout(StringBuilder sb, DesignerElementMetadata element)

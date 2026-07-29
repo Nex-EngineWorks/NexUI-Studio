@@ -21,17 +21,30 @@ namespace emiteat.NexUI.Designer.Editor.Components.Preview
         public void BuildPreview(VisualElement view, in DesignerPreviewContext ctx)
         {
             var element = ctx.Element;
-            var direction = element.fill.direction;
+            var direction = DesignerComponentPropertyAccess.GetEnum(element, "value.direction") switch
+            {
+                "RightToLeft" => DesignerFillDirection.RightToLeft,
+                "BottomToTop" => DesignerFillDirection.BottomToTop,
+                "TopToBottom" => DesignerFillDirection.TopToBottom,
+                _ => element.fill.direction
+            };
             var horizontal = direction == DesignerFillDirection.LeftToRight || direction == DesignerFillDirection.RightToLeft;
 
             var track = new VisualElement();
             track.AddToClassList("nexui-preview-fill-track");
             track.EnableInClassList("is-vertical", !horizontal);
+            DesignerPreviewPartUtility.Register(track, ctx, "track");
             view.Add(track);
 
             var indeterminate = ctx.State == DesignerComponentState.Indeterminate;
+            var minimum = DesignerComponentPropertyAccess.GetFloat(element, "value.min", element.fill.minValue);
+            var maximum = DesignerComponentPropertyAccess.GetFloat(element, "value.max", element.fill.maxValue);
+            if (maximum <= minimum) maximum = minimum + 1f;
+            var previewValue = DesignerComponentPropertyAccess.GetBool(element, "value.wholeNumbers")
+                ? Mathf.Round(element.previewValue)
+                : element.previewValue;
             var fraction = indeterminate ? 0.4f
-                : Mathf.Clamp01(Mathf.InverseLerp(element.fill.minValue, element.fill.maxValue, element.previewValue));
+                : Mathf.Clamp01(Mathf.InverseLerp(minimum, maximum, previewValue));
 
             var fillColor = ctx.State == DesignerComponentState.Error ? DesignerPreviewColors.Error
                 : ctx.State == DesignerComponentState.Success ? DesignerPreviewColors.Success
@@ -58,6 +71,7 @@ namespace emiteat.NexUI.Designer.Editor.Components.Preview
                 if (direction == DesignerFillDirection.TopToBottom) { fillBar.style.top = 0; fillBar.style.bottom = StyleKeyword.Auto; }
                 else { fillBar.style.bottom = 0; fillBar.style.top = StyleKeyword.Auto; }
             }
+            DesignerPreviewPartUtility.Register(fillBar, ctx, "fill");
             track.Add(fillBar);
 
             if (indeterminate)

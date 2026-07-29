@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+### Editable component structure
+- Added a Component Structure Inspector that separates real authored children from library-owned internal parts.
+- Toggle Group and other containers can create/select real child elements; those children use the standard Layout, Style, Binding and Motion inspectors.
+- Slider, Toggle, Switch, Dropdown, Input Field, Scroll View and related controls expose named internal parts with Position, Size Delta, Rotation, Scale, Visibility and Reset controls. Major preview parts can also be selected and dragged directly on the canvas.
+- uGUI part overrides map onto the stock control hierarchy and capture hidden baselines so repeated saves are idempotent. Generated UI Toolkit USS emits transforms for stable internal selectors and reports unsupported size deltas honestly.
+- Companion JSON format 6 round-trips sparse component-part overrides with validation for malformed, duplicate, unknown and backend-preview-only parts.
+
+### Schema-driven Unity-like component properties
+- Added typed, sparse component-property storage and per-component schemas across the full registry. Inspector fields are grouped into Basic/Advanced foldouts, searchable on large components, localized, documented with tooltips, and resettable to schema defaults.
+- Connected representative control properties to canvas previews and real backend output: Slider ranges/direction/whole numbers, Toggle state, Dropdown options/index, input placeholder/content rules, ScrollRect behavior, media, text, selection transition/navigation, and content clipping.
+- NexUI controls with honest stock equivalents now generate real uGUI control hierarchies. Legacy plain elements are upgraded without deleting unrelated components, and clean projects without TMP Essential Resources fall back to working legacy Text.
+- Companion JSON format 5 round-trips component properties and asset references. Validation and Save Preview now report malformed values and property-level Full/Partial/Preview-only/Unsupported backend parity.
+
+### 컴포넌트 이름 529종을 한국어로
+- 팔레트에 노출되는 모든 컴포넌트(NexUI 448 · uGUI 22 · UI Toolkit 59)에 `component.*` 이름 키를 ko/en 양쪽에 채웠습니다. 각 파일에 508개가 추가되어 총 1,718개 키가 되었습니다.
+- 지금까지는 번역 키가 없으면 팔레트가 영문 DisplayName으로 조용히 되돌아갔습니다. 한국어 에디터에서 "체력 바"가 아니라 "Health Bar"로 보이던 이유이고, 실패로 드러나지 않는 종류의 문제라 **누락을 잡는 테스트**(`EveryPaletteComponentIsNamedInBothLanguages`)를 함께 넣었습니다.
+- Unity 타입 이름 자체가 식별자인 항목(`Rect Mask 2D`, `Visual Element`)은 원문을 유지했습니다. 검색은 한국어 이름과 타입 ID(`UGUI.Toggle`) 양쪽에 걸리므로 어느 쪽으로 찾아도 나옵니다.
+
 ### 게임 UI 컴포넌트 143종 추가 (게임 계열 총 190종)
 - `NexUIGameCatalog`을 추가했습니다. 게임이 실제로 출시할 때 필요한 화면을 팔레트에서 조립할 수 있도록, HUD 하나만이 아니라 게임 UI 전 영역을 채웠습니다.
 - 팔레트 폴더를 5개 더 나눴습니다. HUD 하나에 몰아넣으면 찾을 수 없기 때문입니다: **게임 월드 및 맵**(18), **게임 아이템 및 인벤토리**(29), **게임 성장 및 보상**(19), **게임 메뉴 및 결과**(25), **게임 멀티플레이**(20). 기존 게임 HUD는 47 → 79종.

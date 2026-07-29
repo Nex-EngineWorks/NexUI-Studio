@@ -225,7 +225,7 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
         [Test]
         public void ProviderRegistryIncludesHostedAndExtensibleProviders()
         {
-            Assert.That(NexUIAIProviderRegistry.All, Has.Count.EqualTo(4));
+            Assert.That(NexUIAIProviderRegistry.All.Count, Is.EqualTo(4));
             Assert.AreEqual("OPENAI_API_KEY", NexUIAIProviderRegistry.Get(NexUIAIProviderKind.OpenAI).EnvironmentVariable);
             Assert.AreEqual("ANTHROPIC_API_KEY", NexUIAIProviderRegistry.Get(NexUIAIProviderKind.Anthropic).EnvironmentVariable);
             Assert.AreEqual("GEMINI_API_KEY", NexUIAIProviderRegistry.Get(NexUIAIProviderKind.Gemini).EnvironmentVariable);

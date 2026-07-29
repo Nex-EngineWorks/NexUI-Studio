@@ -4,9 +4,9 @@ using UnityEngine;
 namespace emiteat.NexUI.Designer
 {
     /// <summary>
-    /// Tracks only MonoBehaviours created by the Designer's Add Component flow. This lets a later
-    /// save remove a Designer-managed attachment without deleting a same-type component authored
-    /// manually by the user on the prefab.
+    /// Tracks components created by the Designer. Separate lists keep explicit Add Component
+    /// attachments distinct from optional serializer helpers such as Outline or LayoutGroup, so
+    /// a later save never removes a same-type component authored manually by the user.
     /// </summary>
     [DisallowMultipleComponent]
     [AddComponentMenu("")]
@@ -14,5 +14,8 @@ namespace emiteat.NexUI.Designer
     {
         [SerializeField, HideInInspector]
         public List<Component> managedComponents = new List<Component>();
+
+        [SerializeField, HideInInspector]
+        public List<Component> managedGeneratedComponents = new List<Component>();
     }
 }

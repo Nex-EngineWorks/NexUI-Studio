@@ -1,7 +1,10 @@
 using System.IO;
+using emiteat.NexUI.Designer.Editor.Components;
 using emiteat.NexUI.Designer.Editor.Serialization;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace emiteat.NexUI.Designer.Tests.EditMode
 {
@@ -67,6 +70,17 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
         }
 
         [Test]
+        public void DirectoryTraversal_IsRejectedBeforeAnyWrite()
+        {
+            var escaped = Folder + "/../../Escaped.g.uxml";
+            var result = new GeneratedAssetWriter().Write(new[] { new GeneratedAssetFile(escaped, Uxml) });
+
+            Assert.That(result.Success, Is.False);
+            StringAssert.Contains("traverse", result.Errors[0].ToLowerInvariant());
+            Assert.That(File.Exists("Assets/Escaped.g.uxml"), Is.False);
+        }
+
+        [Test]
         public void StructuredSaveReport_SeparatesEveryImpactCategory()
         {
             var report = new DesignerSaveReport { IsPreview = true };
@@ -84,6 +98,38 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
             Assert.That(report.IsPreview, Is.True);
             Assert.That(report.HasErrors, Is.True);
             StringAssert.Contains("Save preview", report.Summary());
+        }
+
+        [Test]
+        public void GeneratedControlPropertyAttributesImportAndInstantiate()
+        {
+            var metadata = ScriptableObject.CreateInstance<DesignerMetadataAsset>();
+            var toggle = new DesignerElementMetadata
+            {
+                elementId = "music", elementType = "UITK.Toggle", text = "Music",
+                rect = new Rect(0, 0, 180, 28)
+            };
+            DesignerComponentPropertyAccess.Set(toggle, "interactable",
+                new DesignerPropertyValue { type = DesignerPropertyValueType.Boolean, boolValue = false });
+            DesignerComponentPropertyAccess.Set(toggle, "toggle.isOn",
+                new DesignerPropertyValue { type = DesignerPropertyValueType.Boolean, boolValue = true });
+            metadata.elements.Add(toggle);
+
+            var path = Folder + "/Properties.g.uxml";
+            var result = new GeneratedAssetWriter().Write(new[]
+            {
+                new GeneratedAssetFile(path, UIToolkitCodeGenerator.GenerateUxml(metadata))
+            });
+
+            Assert.That(result.Success, Is.True, string.Join("\n", result.Errors));
+            var asset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(path);
+            Assert.That(asset, Is.Not.Null);
+            var root = asset.CloneTree();
+            var control = root.Q<UnityEngine.UIElements.Toggle>("music");
+            Assert.That(control, Is.Not.Null);
+            Assert.That(control.value, Is.True);
+            Assert.That(control.enabledSelf, Is.False);
+            Object.DestroyImmediate(metadata);
         }
 
         private static GeneratedAssetFile[] Files(string uxml, string uss) => new[]

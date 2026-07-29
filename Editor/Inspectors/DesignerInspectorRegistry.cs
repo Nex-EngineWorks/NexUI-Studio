@@ -114,6 +114,10 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
                 DesignerInspectorExposure.Common, DesignerInspectorTarget.SingleElement, c => new ComponentInspector(c));
             Register("attached-components", "inspector.section.attachedComponents", "add component monobehaviour script ugui", DesignerInspectorWorkflow.Build,
                 DesignerInspectorExposure.Common, DesignerInspectorTarget.SingleElement, c => new AttachedComponentsInspector(c));
+            Register("component-properties", "inspector.section.componentProperties", "properties fields options settings value interaction data", DesignerInspectorWorkflow.Build,
+                DesignerInspectorExposure.Essential, DesignerInspectorTarget.SingleElement, c => new ComponentPropertiesInspector(c));
+            Register("component-parts", "inspector.section.componentParts", "parts internals content children position size rotation scale transform", DesignerInspectorWorkflow.Build,
+                DesignerInspectorExposure.Essential, DesignerInspectorTarget.SingleElement, c => new ComponentPartsInspector(c));
             Register("component-instance", "inspector.section.componentInstance", "reusable definition override variant slot detach swap instance", DesignerInspectorWorkflow.Build,
                 DesignerInspectorExposure.Common, DesignerInspectorTarget.SingleElement, c => new ComponentInstanceInspector(c));
             Register("layout", "inspector.section.layout", "position size anchor locked transform", DesignerInspectorWorkflow.Build,
@@ -143,7 +147,7 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
 
             Register("validation", "inspector.section.validation", "errors warnings unsupported backend quick fix", DesignerInspectorWorkflow.Verify,
                 DesignerInspectorExposure.Essential, DesignerInspectorTarget.Element, c => new ValidationInspector(c));
-            Register("capabilities", "inspector.section.capabilities", "runtime interfaces support diagnostic", DesignerInspectorWorkflow.Advanced,
+            Register("capabilities", "inspector.section.capabilities", "runtime interfaces backend support diagnostic", DesignerInspectorWorkflow.Advanced,
                 DesignerInspectorExposure.Diagnostic, DesignerInspectorTarget.Element, c => new CapabilityInspector(c));
 
             ReadOnlySections = Sections.AsReadOnly();

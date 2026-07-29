@@ -174,7 +174,9 @@ namespace emiteat.NexUI.Designer.Editor.Components.Preview
         public void BuildPreview(VisualElement view, in DesignerPreviewContext ctx)
         {
             var row = DesignerStockPreviewRenderers.Row();
-            var checkedOn = ctx.State == DesignerComponentState.Selected || ctx.Element.previewValue >= 50f;
+            var checkedOn = DesignerComponentPropertyAccess.IsOverridden(ctx.Element, "toggle.isOn")
+                ? DesignerComponentPropertyAccess.GetBool(ctx.Element, "toggle.isOn")
+                : ctx.State == DesignerComponentState.Selected || ctx.Element.previewValue >= 50f;
             var indeterminate = ctx.State == DesignerComponentState.Indeterminate;
             var radio = ctx.Element.elementType == "UITK.RadioButton";
 
@@ -185,12 +187,15 @@ namespace emiteat.NexUI.Designer.Editor.Components.Preview
             box.style.flexShrink = 0;
             box.style.alignItems = Align.Center;
             box.style.justifyContent = Justify.Center;
-            if (checkedOn && !radio) box.Add(DesignerStockPreviewRenderers.Text("✓", ctx, 10f, 1f));
-            if (indeterminate) box.Add(DesignerStockPreviewRenderers.Text("–", ctx, 10f, 1f));
+            DesignerPreviewPartUtility.Register(box, ctx, "background");
+            if (checkedOn && !radio)
+                box.Add(DesignerPreviewPartUtility.Register(DesignerStockPreviewRenderers.Text("✓", ctx, 10f, 1f), ctx, "checkmark"));
+            if (indeterminate)
+                box.Add(DesignerPreviewPartUtility.Register(DesignerStockPreviewRenderers.Text("–", ctx, 10f, 1f), ctx, "checkmark"));
             row.Add(box);
 
             if (!string.IsNullOrEmpty(ctx.Element.text))
-                row.Add(DesignerStockPreviewRenderers.Text(ctx.Element.text, ctx));
+                row.Add(DesignerPreviewPartUtility.Register(DesignerStockPreviewRenderers.Text(ctx.Element.text, ctx), ctx, "label"));
             view.Add(row);
         }
     }
@@ -200,7 +205,9 @@ namespace emiteat.NexUI.Designer.Editor.Components.Preview
     {
         public void BuildPreview(VisualElement view, in DesignerPreviewContext ctx)
         {
-            var on = ctx.State == DesignerComponentState.Selected || ctx.Element.previewValue >= 50f;
+            var on = DesignerComponentPropertyAccess.IsOverridden(ctx.Element, "toggle.isOn")
+                ? DesignerComponentPropertyAccess.GetBool(ctx.Element, "toggle.isOn")
+                : ctx.State == DesignerComponentState.Selected || ctx.Element.previewValue >= 50f;
             var track = DesignerStockPreviewRenderers.Box(
                 on ? DesignerPreviewColors.Accent : DesignerPreviewColors.Lighten(ctx.Tint, 0.15f), 999f);
             track.style.position = Position.Absolute;
@@ -212,7 +219,8 @@ namespace emiteat.NexUI.Designer.Editor.Components.Preview
             var knob = DesignerStockPreviewRenderers.Box(Color.white, 999f);
             knob.style.width = 14; knob.style.height = 14;
             knob.style.marginLeft = 3; knob.style.marginRight = 3;
-            track.Add(knob);
+            DesignerPreviewPartUtility.Register(track, ctx, "track");
+            track.Add(DesignerPreviewPartUtility.Register(knob, ctx, "handle"));
             view.Add(track);
         }
     }
@@ -225,8 +233,29 @@ namespace emiteat.NexUI.Designer.Editor.Components.Preview
 
         public void BuildPreview(VisualElement view, in DesignerPreviewContext ctx)
         {
-            var fraction = Mathf.Clamp01(Mathf.InverseLerp(ctx.Element.fill.minValue, ctx.Element.fill.maxValue, ctx.Element.previewValue));
-            var low = _range ? Mathf.Max(0f, fraction - 0.35f) : 0f;
+            var minimum = DesignerComponentPropertyAccess.GetFloat(ctx.Element, "value.min", ctx.Element.fill.minValue);
+            var maximum = DesignerComponentPropertyAccess.GetFloat(ctx.Element, "value.max", ctx.Element.fill.maxValue);
+            if (maximum <= minimum) maximum = minimum + 1f;
+            var authoredValue = ctx.Element.previewValue;
+            if (DesignerComponentPropertyAccess.GetBool(ctx.Element, "value.wholeNumbers"))
+                authoredValue = Mathf.Round(authoredValue);
+            var fraction = Mathf.Clamp01(Mathf.InverseLerp(minimum, maximum, authoredValue));
+            var low = _range
+                ? Mathf.Clamp01(Mathf.InverseLerp(minimum, maximum,
+                    DesignerComponentPropertyAccess.GetFloat(ctx.Element, "range.low", authoredValue - (maximum - minimum) * 0.35f)))
+                : 0f;
+            if (_range)
+                fraction = Mathf.Clamp01(Mathf.InverseLerp(minimum, maximum,
+                    DesignerComponentPropertyAccess.GetFloat(ctx.Element, "range.high", authoredValue)));
+
+            var direction = DesignerComponentPropertyAccess.GetEnum(ctx.Element, "value.direction");
+            var reverse = direction == "RightToLeft" || direction == "TopToBottom";
+            if (reverse)
+            {
+                fraction = 1f - fraction;
+                low = 1f - low;
+                if (_range && low > fraction) (low, fraction) = (fraction, low);
+            }
 
             var track = DesignerStockPreviewRenderers.Box(DesignerPreviewColors.Darken(ctx.Tint, 0.25f), 999f);
             track.style.position = Position.Absolute;
@@ -234,6 +263,7 @@ namespace emiteat.NexUI.Designer.Editor.Components.Preview
             track.style.top = new Length(50, LengthUnit.Percent);
             track.style.height = 4;
             track.style.marginTop = -2;
+            DesignerPreviewPartUtility.Register(track, ctx, "track");
             view.Add(track);
 
             var fill = DesignerStockPreviewRenderers.Box(DesignerPreviewColors.Accent, 999f);
@@ -241,13 +271,14 @@ namespace emiteat.NexUI.Designer.Editor.Components.Preview
             fill.style.left = new Length(low * 100f, LengthUnit.Percent);
             fill.style.width = new Length((fraction - low) * 100f, LengthUnit.Percent);
             fill.style.top = 0; fill.style.bottom = 0;
+            DesignerPreviewPartUtility.Register(fill, ctx, "fill");
             track.Add(fill);
 
-            AddHandle(view, fraction);
-            if (_range) AddHandle(view, low);
+            AddHandle(view, ctx, fraction);
+            if (_range) AddHandle(view, ctx, low);
         }
 
-        private static void AddHandle(VisualElement view, float fraction)
+        private static void AddHandle(VisualElement view, in DesignerPreviewContext ctx, float fraction)
         {
             var handle = DesignerStockPreviewRenderers.Box(Color.white, 999f);
             handle.style.position = Position.Absolute;
@@ -256,7 +287,7 @@ namespace emiteat.NexUI.Designer.Editor.Components.Preview
             handle.style.marginLeft = -6;
             handle.style.top = new Length(50, LengthUnit.Percent);
             handle.style.marginTop = -6;
-            view.Add(handle);
+            view.Add(DesignerPreviewPartUtility.Register(handle, ctx, "handle"));
         }
     }
 
@@ -278,7 +309,7 @@ namespace emiteat.NexUI.Designer.Editor.Components.Preview
                 handle.style.top = 2; handle.style.bottom = 2; handle.style.left = 2;
                 handle.style.width = new Length(35, LengthUnit.Percent);
             }
-            view.Add(handle);
+            view.Add(DesignerPreviewPartUtility.Register(handle, ctx, "handle"));
         }
     }
 
@@ -290,12 +321,16 @@ namespace emiteat.NexUI.Designer.Editor.Components.Preview
             var row = DesignerStockPreviewRenderers.Row();
             row.style.justifyContent = Justify.SpaceBetween;
 
-            var options = ctx.Element.previewOptions;
+            var authoredOptions = DesignerComponentPropertyAccess.GetString(ctx.Element, "choice.options");
+            var options = !string.IsNullOrWhiteSpace(authoredOptions)
+                ? new List<string>(authoredOptions.Split(',')).ConvertAll(option => option.Trim())
+                : ctx.Element.previewOptions;
+            var selected = DesignerComponentPropertyAccess.GetInt(ctx.Element, "choice.value");
             var caption = !string.IsNullOrEmpty(ctx.Element.text) ? ctx.Element.text
-                : options != null && options.Count > 0 ? options[0]
-                : "Option";
-            row.Add(DesignerStockPreviewRenderers.Text(caption, ctx));
-            row.Add(DesignerStockPreviewRenderers.Text("▾", ctx, 11f, 0.7f));
+                : options != null && options.Count > 0 ? options[Mathf.Clamp(selected, 0, options.Count - 1)]
+                : DesignerComponentPropertyAccess.GetString(ctx.Element, "choice.placeholder", "Option");
+            row.Add(DesignerPreviewPartUtility.Register(DesignerStockPreviewRenderers.Text(caption, ctx), ctx, "label"));
+            row.Add(DesignerPreviewPartUtility.Register(DesignerStockPreviewRenderers.Text("▾", ctx, 11f, 0.7f), ctx, "arrow"));
             view.Add(row);
         }
     }
@@ -310,8 +345,11 @@ namespace emiteat.NexUI.Designer.Editor.Components.Preview
             row.style.alignItems = ctx.Element.rect.height > 60f ? Align.FlexStart : Align.Center;
             row.style.paddingTop = ctx.Element.rect.height > 60f ? 6 : 0;
 
-            var value = string.IsNullOrEmpty(ctx.Element.text) ? "Enter text..." : ctx.Element.text;
-            row.Add(DesignerStockPreviewRenderers.Text(value, ctx, 11f, string.IsNullOrEmpty(ctx.Element.text) ? 0.45f : 0.9f));
+            var placeholder = DesignerComponentPropertyAccess.GetString(ctx.Element, "input.placeholder", "Enter text...");
+            var value = string.IsNullOrEmpty(ctx.Element.text) ? placeholder : ctx.Element.text;
+            row.Add(DesignerPreviewPartUtility.Register(
+                DesignerStockPreviewRenderers.Text(value, ctx, 11f, string.IsNullOrEmpty(ctx.Element.text) ? 0.45f : 0.9f),
+                ctx, string.IsNullOrEmpty(ctx.Element.text) ? "placeholder" : "text"));
             if (focused) row.Add(DesignerStockPreviewRenderers.Text("|", ctx, 11f, 1f));
             view.Add(row);
 
@@ -334,7 +372,9 @@ namespace emiteat.NexUI.Designer.Editor.Components.Preview
             var options = ctx.Element.previewOptions;
             var count = options != null && options.Count > 0 ? Mathf.Min(options.Count, 8)
                 : ctx.Element.previewItemCount > 0 ? Mathf.Min(ctx.Element.previewItemCount, 8) : 3;
-            var active = Mathf.Clamp(Mathf.RoundToInt(ctx.Element.previewValue / 100f * (count - 1)), 0, count - 1);
+            var active = DesignerComponentPropertyAccess.IsOverridden(ctx.Element, "tabs.activeIndex")
+                ? Mathf.Clamp(DesignerComponentPropertyAccess.GetInt(ctx.Element, "tabs.activeIndex"), 0, count - 1)
+                : Mathf.Clamp(Mathf.RoundToInt(ctx.Element.previewValue / 100f * (count - 1)), 0, count - 1);
 
             var strip = new VisualElement { style = { flexDirection = FlexDirection.Row, height = 28, flexShrink = 0 } };
             strip.pickingMode = PickingMode.Ignore;
@@ -365,9 +405,10 @@ namespace emiteat.NexUI.Designer.Editor.Components.Preview
             var header = DesignerStockPreviewRenderers.Box(DesignerPreviewColors.Lighten(ctx.Tint, 0.22f), 0f);
             header.style.height = 22; header.style.flexShrink = 0;
             header.style.flexDirection = FlexDirection.Row;
-            for (int c = 0; c < 3; c++)
+            var columnCount = Mathf.Clamp(DesignerComponentPropertyAccess.GetInt(ctx.Element, "table.columns", 3), 1, 8);
+            for (int c = 0; c < columnCount; c++)
             {
-                var cell = DesignerStockPreviewRenderers.Text(c == 0 ? "Name" : c == 1 ? "Value" : "Info", ctx, 10f, 0.8f);
+                var cell = DesignerStockPreviewRenderers.Text(c == 0 ? "Name" : c == 1 ? "Value" : "Column " + (c + 1), ctx, 10f, 0.8f);
                 cell.style.flexGrow = 1;
                 cell.style.marginLeft = 6;
                 header.Add(cell);
@@ -413,20 +454,40 @@ namespace emiteat.NexUI.Designer.Editor.Components.Preview
     {
         public void BuildPreview(VisualElement view, in DesignerPreviewContext ctx)
         {
-            var content = new VisualElement { style = { flexGrow = 1, paddingLeft = 6, paddingTop = 6, paddingRight = 14 } };
-            content.pickingMode = PickingMode.Ignore;
+            var vertical = DesignerComponentPropertyAccess.GetBool(ctx.Element, "scroll.vertical", true);
+            var horizontal = DesignerComponentPropertyAccess.GetBool(ctx.Element, "scroll.horizontal");
+            var showVerticalBar = vertical && DesignerComponentPropertyAccess.GetEnum(ctx.Element, "scroll.verticalBar") != "Hidden";
+            var content = new VisualElement
+            {
+                style =
+                {
+                    flexGrow = 1,
+                    flexDirection = horizontal && !vertical ? FlexDirection.Row : FlexDirection.Column,
+                    paddingLeft = 6,
+                    paddingTop = 6,
+                    paddingRight = showVerticalBar ? 14 : 6
+                }
+            };
+            DesignerPreviewPartUtility.Register(content, ctx, "content");
             for (int i = 0; i < 4; i++)
             {
                 var bar = DesignerStockPreviewRenderers.Box(DesignerPreviewColors.Lighten(ctx.Tint, 0.14f));
                 bar.style.height = 14; bar.style.marginBottom = 6;
-                bar.style.width = new Length(i % 2 == 0 ? 92 : 70, LengthUnit.Percent);
+                if (horizontal && !vertical)
+                {
+                    bar.style.width = 48; bar.style.marginRight = 6; bar.style.flexShrink = 0;
+                }
+                else
+                    bar.style.width = new Length(i % 2 == 0 ? 92 : 70, LengthUnit.Percent);
                 content.Add(bar);
             }
             view.Add(content);
 
+            if (!showVerticalBar) return;
             var scrollbar = DesignerStockPreviewRenderers.Box(DesignerPreviewColors.Darken(ctx.Tint, 0.2f), 999f);
             scrollbar.style.position = Position.Absolute;
             scrollbar.style.right = 3; scrollbar.style.top = 4; scrollbar.style.bottom = 4; scrollbar.style.width = 5;
+            DesignerPreviewPartUtility.Register(scrollbar, ctx, "vertical-scrollbar");
             var handle = DesignerStockPreviewRenderers.Box(DesignerPreviewColors.Lighten(ctx.Tint, 0.4f), 999f);
             handle.style.position = Position.Absolute;
             handle.style.left = 0; handle.style.right = 0; handle.style.top = 0;

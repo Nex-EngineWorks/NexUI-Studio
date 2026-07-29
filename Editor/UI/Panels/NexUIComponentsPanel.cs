@@ -314,6 +314,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
 
             if (node.Recipes.Count > 0)
             {
+                foldout.AddToClassList("nexui-component-builtin-leaf");
                 var grid = new VisualElement();
                 grid.AddToClassList("nexui-component-grid");
                 foldout.Add(grid);
@@ -327,11 +328,14 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
                     built = true;
                     foreach (var recipe in node.Recipes) grid.Add(CreateBuiltInCard(recipe));
                 }
+                foldout.userData = (Action)EnsureCards;
                 _lazyBuiltInCardBuilders.Add(EnsureCards);
-                foldout.RegisterValueChangedCallback(evt =>
+                var foldoutToggle = foldout.Q<Toggle>();
+                foldoutToggle?.RegisterValueChangedCallback(evt =>
                 {
-                    if (evt.target == foldout && evt.newValue) EnsureCards();
+                    if (evt.newValue) EnsureCards();
                 });
+                foldoutToggle?.RegisterCallback<PointerDownEvent>(_ => EnsureCards());
                 if (foldout.value) EnsureCards();
             }
             foreach (var child in node.Children.Values) BuildBuiltInFolder(foldout, child, depth + 1);

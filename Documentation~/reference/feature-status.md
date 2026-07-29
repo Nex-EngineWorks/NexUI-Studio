@@ -8,6 +8,7 @@
 | 이동·크기·정렬·Group | 지원 | 지원 | 지원 | Undo, Key Object 정렬 지원 |
 | Auto Layout/Constraints | 부분 지원 | 지원 | 지원 | Row/Column/Grid 저장 지원, Constraints 일부 Preview 중심 |
 | Component Registry | 지원 | 부분 지원 | 부분 지원 | Component별 Backend support 확인 |
+| Component Properties (typed schema) | Beta | 속성별 Full/Partial | 속성별 Full/Partial | Basic/Advanced, 검색, Reset, JSON round-trip, 속성별 Save Report |
 | 재사용 Component (Definition/Instance) | Beta | 지원 | 지원 | 참조 기반 전개. Definition 수정이 모든 Instance에 즉시 반영 |
 | Component Slot / Exposed Property Override | Beta | 지원 | 지원 | Typed Override. 적용 불가 Property는 Validation 보고 |
 | Component Variant | Beta | 지원 | 지원 | Bool/Enum/String, Rule 기반 Override와 표시 전환 |
@@ -42,7 +43,7 @@
 |---|---|---:|---:|---:|---|
 | 화면 생성 마법사 | Beta | Yes | Yes | Partial | 기존 파일 보호 및 실패 롤백 |
 | Transition Preset | Beta | Yes | Yes | Yes | 기존 Motion Clip 에셋 사용 |
-| Preview Scenario Sprite/List | Complete | Common | Common | Yes | 정적 Apply와 Timeline |
-| Auto Layout 감지/변환 | Complete | Yes | Yes | Yes | Row/Column/Grid |
+| Preview Scenario Sprite/List | Beta | Common | Common | Yes | 정적 Apply와 Timeline |
+| Auto Layout 감지/변환 | Beta | Yes | Yes | Yes | Row/Column/Grid; Backend별 제약은 Save Report 확인 |
 | Anchor 추천 | Beta | Common | Common | Yes | Rect 보존 |
 | Validation Auto Fix | Beta | Yes | Partial | Partial | 위험한 수정은 확인 필요 |

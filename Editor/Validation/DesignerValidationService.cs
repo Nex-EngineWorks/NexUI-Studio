@@ -142,7 +142,148 @@ namespace emiteat.NexUI.Designer.Editor.Validation
                             : "Save the screen to create the GameObject, or rename to match.", screenId, id));
 
                 ValidateElementDetails(element, screenId, issues);
+                ValidateComponentProperties(element, backend, screenId, issues);
+                ValidateComponentParts(element, backend, screenId, issues);
                 ValidatePropertyParity(element, backend, screenId, issues);
+            }
+        }
+
+        private static void ValidateComponentParts(DesignerElementMetadata element, UIRenderBackend backend,
+            string screenId, List<DesignerValidationIssue> issues)
+        {
+            if (element.componentPartOverrides == null || element.componentPartOverrides.Count == 0) return;
+            var descriptor = DesignerComponentRegistry.Get(element.elementType);
+            var seen = new HashSet<string>();
+            foreach (var value in element.componentPartOverrides)
+            {
+                if (value == null || string.IsNullOrWhiteSpace(value.partId))
+                {
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning,
+                        "component-part-empty-id", $"'{element.elementId}' contains an internal part override with no id.",
+                        "Reset the malformed part override.", screenId, element.elementId));
+                    continue;
+                }
+                if (!seen.Add(value.partId))
+                {
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error,
+                        "component-part-duplicate", $"'{element.elementId}' stores part '{value.partId}' more than once.",
+                        "Keep one override for this internal part.", screenId, element.elementId));
+                    continue;
+                }
+                var part = descriptor.GetPart(value.partId);
+                if (part == null)
+                {
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Info,
+                        "component-part-unknown", $"'{element.elementId}' preserves unknown part '{value.partId}'.",
+                        "Install the component library that declares this part, or leave it for forward compatibility.",
+                        screenId, element.elementId));
+                    continue;
+                }
+                if (value.hasScale && (Mathf.Abs(value.scale.x) < 0.001f || Mathf.Abs(value.scale.y) < 0.001f))
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning,
+                        "component-part-zero-scale", $"'{element.elementId}/{part.DisplayName}' has a near-zero scale.",
+                        "Use Visible to hide the part, or restore a non-zero scale.", screenId, element.elementId));
+
+                var supported = backend == UIRenderBackend.UGUI
+                    ? !part.PreviewOnly && part.UGUIPath != null
+                    : !part.PreviewOnly && !string.IsNullOrEmpty(part.UIToolkitSelector);
+                if (!supported && value.HasAnyOverride)
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Info,
+                        "component-part-backend-preview-only",
+                        $"'{element.elementId}/{part.DisplayName}' transform is preview/metadata-only on {backend}.",
+                        "Use a component part with a backend mapping or provide a custom adapter.", screenId, element.elementId));
+                else if (backend == UIRenderBackend.UIToolkit && value.hasSizeDelta)
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Info,
+                        "component-part-size-preview-only",
+                        $"'{element.elementId}/{part.DisplayName}' Size Delta cannot be emitted safely for UI Toolkit internals.",
+                        "Position, Rotation, Scale and Visibility are still emitted to generated USS.", screenId, element.elementId));
+            }
+        }
+
+        private static void ValidateComponentProperties(DesignerElementMetadata element, UIRenderBackend backend,
+            string screenId, List<DesignerValidationIssue> issues)
+        {
+            if (element.componentProperties == null || element.componentProperties.Count == 0) return;
+            var component = DesignerComponentRegistry.Get(element.elementType);
+            var seen = new HashSet<string>();
+
+            foreach (var entry in element.componentProperties)
+            {
+                if (entry == null || string.IsNullOrWhiteSpace(entry.key))
+                {
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning,
+                        "component-property-empty-key", $"'{element.elementId}' contains a component property with no key.",
+                        "Reset the malformed property entry.", screenId, element.elementId));
+                    continue;
+                }
+                if (!seen.Add(entry.key))
+                {
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error,
+                        "component-property-duplicate", $"'{element.elementId}' stores '{entry.key}' more than once.",
+                        "Keep one value for the property.", screenId, element.elementId));
+                    continue;
+                }
+
+                var property = DesignerComponentPropertyAccess.Find(element, entry.key);
+                if (property == null) continue; // forward-compatible/custom values are intentionally preserved
+                if (entry.value == null || entry.value.type != property.Type)
+                {
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning,
+                        "component-property-type-mismatch",
+                        $"'{element.elementId}' property '{entry.key}' does not match schema type {property.Type}.",
+                        "Reset the property and author it again in the Component Properties inspector.", screenId, element.elementId));
+                    continue;
+                }
+
+                if (property.Type == DesignerPropertyValueType.Enum &&
+                    (property.EnumOptions == null || entry.value.intValue < 0 || entry.value.intValue >= property.EnumOptions.Length))
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning,
+                        "component-property-enum-range", $"'{element.elementId}' property '{entry.key}' has an invalid option index.",
+                        "Pick one of the listed options.", screenId, element.elementId));
+                else if (property.HasRange)
+                {
+                    var numeric = property.Type == DesignerPropertyValueType.Integer
+                        ? entry.value.intValue
+                        : entry.value.floatValue;
+                    if (numeric < property.Min || numeric > property.Max)
+                        issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning,
+                            "component-property-out-of-range",
+                            $"'{element.elementId}' property '{entry.key}' is {numeric:0.###}; expected {property.Min:0.###}..{property.Max:0.###}.",
+                            "Clamp the value in the Component Properties inspector.", screenId, element.elementId));
+                }
+
+                var support = backend == UIRenderBackend.UGUI
+                    ? DesignerComponentPropertySupport.UGUI(component, property)
+                    : DesignerComponentPropertySupport.UIToolkit(component, property);
+                if (support == DesignerBackendSupport.Unsupported)
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning,
+                        "component-property-backend-unsupported",
+                        $"'{element.elementId}' property '{entry.key}' is unsupported on {backend}.",
+                        "Remove it or provide a custom backend adapter.", screenId, element.elementId));
+                else if (support == DesignerBackendSupport.PreviewOnly)
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Info,
+                        "component-property-backend-preview-only",
+                        $"'{element.elementId}' property '{entry.key}' is preview/metadata-only on {backend}.",
+                        "Add runtime behavior if this property must affect the built screen.", screenId, element.elementId));
+            }
+
+            var min = DesignerComponentPropertyAccess.GetFloat(element, "value.min", 0f);
+            var max = DesignerComponentPropertyAccess.GetFloat(element, "value.max", 0f);
+            if ((seen.Contains("value.min") || seen.Contains("value.max")) && max <= min)
+                issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error,
+                    "component-property-invalid-range",
+                    $"'{element.elementId}' maximum value ({max:0.###}) must be greater than minimum ({min:0.###}).",
+                    "Increase Max Value or decrease Min Value.", screenId, element.elementId));
+
+            if (seen.Contains("range.low") || seen.Contains("range.high"))
+            {
+                var low = DesignerComponentPropertyAccess.GetFloat(element, "range.low");
+                var high = DesignerComponentPropertyAccess.GetFloat(element, "range.high");
+                if (low > high)
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error,
+                        "component-property-invalid-range",
+                        $"'{element.elementId}' low value ({low:0.###}) exceeds high value ({high:0.###}).",
+                        "Lower the Low Value or increase the High Value.", screenId, element.elementId));
             }
         }
 

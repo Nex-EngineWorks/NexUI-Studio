@@ -256,8 +256,11 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _previewFrame.RegisterCallback<WheelEvent>(OnWheel);
             _previewCanvas.RegisterCallback<PointerDownEvent>(OnCanvasPointerDown);
             _previewCanvas.RegisterCallback<PointerMoveEvent>(OnCanvasPointerMove);
-            _previewCanvas.RegisterCallback<PointerUpEvent>(OnCanvasPointerUp);
-            _previewCanvas.RegisterCallback<ContextClickEvent>(OnCanvasContextClick);
+            // PointerUpEvent does not bubble from child elements on every supported UI Toolkit
+            // version. Capture on the canvas so box-select cleanup still runs and, critically,
+            // right-clicking an already-selected element can reach the context-menu path.
+            _previewCanvas.RegisterCallback<PointerUpEvent>(OnCanvasPointerUp, TrickleDown.TrickleDown);
+            _previewCanvas.RegisterCallback<ContextClickEvent>(OnCanvasContextClick, TrickleDown.TrickleDown);
             _previewCanvas.RegisterCallback<DragUpdatedEvent>(OnCanvasDragUpdated);
             _previewCanvas.RegisterCallback<DragPerformEvent>(OnCanvasDragPerform);
             _previewCanvas.RegisterCallback<DragLeaveEvent>(_ => HideDropHint());
@@ -463,6 +466,9 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
                 view.style.borderBottomColor = c; view.style.borderLeftColor = c;
             }
             var stateOpacity = DesignerPreviewColors.StateOpacity(previewState);
+            if (DesignerComponentPropertyAccess.Find(element, "interactable") != null &&
+                !DesignerComponentPropertyAccess.GetBool(element, "interactable", true))
+                stateOpacity *= 0.62f;
             view.style.opacity = stateOpacity * DesignerPropertyAdapter.Opacity(element);
 
             var visual = DesignerPropertyAdapter.Visual(element);
@@ -485,6 +491,10 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             var layout = DesignerPropertyAdapter.Layout(element);
             view.style.scale = new Scale(layout.scale);
             view.style.rotate = new Rotate(new Angle(layout.rotation, AngleUnit.Degree));
+            view.style.overflow = DesignerPropertyAdapter.Clip(element) ||
+                                  DesignerComponentPropertyAccess.GetBool(element, "clipContent")
+                ? Overflow.Hidden
+                : Overflow.Visible;
 
             AddTypeSpecificPreview(view, element);
 
@@ -515,6 +525,9 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
                     text.style.unityTextOutlineColor = typography.outlineColor;
                     if (typography.fontAsset is Font font) text.style.unityFont = font;
                 }
+                if (DesignerComponentRegistry.Get(element.elementType).GetPart("label") != null &&
+                    view.Q<VisualElement>("nexui-part-label") == null)
+                    DesignerPreviewPartUtility.Register(text, BuildPreviewContext(element), "label");
                 view.Add(text);
             }
 
@@ -678,9 +691,17 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         /// </summary>
         private void AddTypeSpecificPreview(VisualElement view, DesignerElementMetadata element)
         {
-            var ctx = new DesignerPreviewContext(element, EffectivePreviewState(element), _context.Zoom, _context.IsInteractive);
+            var ctx = BuildPreviewContext(element);
             DesignerComponentPreviewRegistry.Get(element.elementType).BuildPreview(view, ctx);
         }
+
+        private DesignerPreviewContext BuildPreviewContext(DesignerElementMetadata element)
+            => new DesignerPreviewContext(element, EffectivePreviewState(element), _context.Zoom, _context.IsInteractive,
+                _context.SelectedMetadata == element ? _context.SelectedComponentPartId : null,
+                partId => _context.SelectComponentPart(element, partId),
+                partId => _context.BeginComponentPartDrag(element, partId),
+                delta => _context.DragComponentPart(delta),
+                () => _context.EndComponentPartDrag());
 
         private static bool IsImagePreviewElement(DesignerElementMetadata element)
             => element.previewImage != null && (element.elementType == "Image" || element.elementType == "IconButton");
@@ -941,12 +962,14 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             // Right-click must keep bubbling so UI Toolkit can synthesize ContextClickEvent for
             // the canvas menu. BeginDrag only accepts the primary button, so ending a drag must
             // follow the same contract instead of consuming every PointerUp over an element.
-            if (evt.button != 0) return;
+            if (!ShouldConsumeElementPointerUp(evt.button)) return;
             if (view.HasPointerCapture(evt.pointerId))
                 view.ReleasePointer(evt.pointerId);
             CommitDrag();
             evt.StopPropagation();
         }
+
+        private static bool ShouldConsumeElementPointerUp(int button) => button == 0;
 
         private void CancelDrag(PointerCancelEvent evt, VisualElement view)
         {

@@ -3813,3 +3813,120 @@
     background-color: rgba(73, 145, 255, 0.12);
     -unity-font-style: bold;
 }
+
+.nexui-component-property-heading {
+    margin: 4px 4px 1px 4px;
+    color: rgb(226, 232, 241);
+    font-size: 12px;
+    -unity-font-style: bold;
+}
+
+.nexui-component-property-description {
+    margin: 0 4px 7px 4px;
+    color: rgba(200, 211, 225, 0.72);
+    font-size: 9px;
+    white-space: normal;
+}
+
+.nexui-component-part-description {
+    color: #9fb1ca;
+    white-space: normal;
+    margin-bottom: 8px;
+}
+
+.nexui-component-part-strip {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin: 4px 0 7px 0;
+}
+
+.nexui-component-part-chip {
+    min-height: 24px;
+    margin: 2px 4px 2px 0;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background-color: #202b3b;
+    color: #b8c7db;
+}
+
+.nexui-component-part-chip.is-selected {
+    background-color: #3277d5;
+    color: white;
+}
+
+.nexui-component-part-card {
+    margin: 4px 0 8px 0;
+    padding: 8px;
+    border-width: 1px;
+    border-color: #33445d;
+    border-radius: 5px;
+    background-color: #151d29;
+}
+
+.nexui-component-part-card-title {
+    -unity-font-style: bold;
+    color: #e5eefb;
+    margin-bottom: 3px;
+}
+
+.nexui-component-part-hint {
+    color: #8294ad;
+    white-space: normal;
+    margin: 4px 0;
+}
+
+.nexui-component-part-reset {
+    margin-top: 5px;
+}
+
+.nexui-component-content-row {
+    height: 26px;
+    -unity-text-align: middle-left;
+    margin: 2px 0;
+}
+
+.nexui-component-content-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 5px;
+}
+
+.nexui-component-content-actions > Button {
+    margin-right: 4px;
+}
+
+.nexui-inspector-advanced-toggle {
+    margin: 5px 4px 3px 4px;
+    padding: 4px 6px;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.035);
+}
+
+.nexui-property-group {
+    margin: 2px 2px 4px 2px;
+    padding: 2px 4px 5px 4px;
+    border-left-width: 2px;
+    border-left-color: rgba(73, 145, 255, 0.34);
+    border-radius: 5px;
+    background-color: rgba(0, 0, 0, 0.075);
+}
+
+.nexui-property-field {
+    min-height: 20px;
+    margin-top: 2px;
+}
+
+.nexui-property-field.is-overridden {
+    border-left-width: 2px;
+    border-left-color: rgba(89, 168, 255, 0.8);
+}
+
+.nexui-property-reset {
+    width: 22px;
+    height: 20px;
+    margin-left: 3px;
+    padding: 0;
+    border-width: 0;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.055);
+}

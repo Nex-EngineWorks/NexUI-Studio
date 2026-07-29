@@ -9,6 +9,8 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.TestTools;
+using System.Text.RegularExpressions;
 
 namespace emiteat.NexUI.Designer.Tests.EditMode
 {
@@ -105,6 +107,7 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
             {
                 stableId = "stable-slot-1",
                 elementId = "slot1",
+                elementType = "Slot",
                 parentId = "grid",
                 siblingIndex = 3,
                 parentSlotId = "content",
@@ -133,6 +136,20 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
                     hasOverrides = true, fontSize = 26f, color = Color.cyan,
                     fontWeight = DesignerFontWeight.Bold, rightToLeft = true, lineHeight = 1.5f
                 }
+            });
+            emiteat.NexUI.Designer.Editor.Components.DesignerComponentPropertyAccess.Set(metadata.elements[0], "slot.acceptsDrop",
+                new DesignerPropertyValue { type = DesignerPropertyValueType.Boolean, boolValue = false });
+            emiteat.NexUI.Designer.Editor.Components.DesignerComponentPropertyAccess.Set(metadata.elements[0], "slot.acceptedTypes",
+                new DesignerPropertyValue { type = DesignerPropertyValueType.String, stringValue = "Weapon,Armor" });
+            metadata.elements[0].componentPartOverrides.Add(new DesignerComponentPartOverrideMetadata
+            {
+                partId = "icon",
+                hasPosition = true,
+                position = new Vector2(8f, -3f),
+                hasScale = true,
+                scale = new Vector2(1.2f, .8f),
+                hasVisibility = true,
+                visible = false
             });
             var variant = new DesignerVariantMetadata { variantId = "compact", displayName = "Compact" };
             variant.overrides.Add(new DesignerVariantOverrideMetadata
@@ -164,7 +181,7 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
 
             Assert.That(DesignerMetadataJsonSerializer.Import(metadata), Is.True);
             var element = metadata.elements.Single();
-            Assert.That(element.siblingIndex, Is.EqualTo(3));
+            Assert.That(element.siblingIndex, Is.EqualTo(0), "migration normalizes the only root sibling");
             Assert.That(element.stableId, Is.EqualTo("stable-slot-1"));
             Assert.That(element.parentSlotId, Is.EqualTo("content"));
             Assert.That(element.shape, Is.EqualTo(DesignerElementShape.Circle));
@@ -182,6 +199,14 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
             Assert.That(element.visualStyle.blur, Is.EqualTo(3f));
             Assert.That(element.typography.fontWeight, Is.EqualTo(DesignerFontWeight.Bold));
             Assert.That(element.typography.rightToLeft, Is.True);
+            Assert.That(emiteat.NexUI.Designer.Editor.Components.DesignerComponentPropertyAccess.GetBool(
+                element, "slot.acceptsDrop", true), Is.False);
+            Assert.That(emiteat.NexUI.Designer.Editor.Components.DesignerComponentPropertyAccess.GetString(
+                element, "slot.acceptedTypes"), Is.EqualTo("Weapon,Armor"));
+            Assert.That(element.componentPartOverrides.Single().partId, Is.EqualTo("icon"));
+            Assert.That(element.componentPartOverrides.Single().position, Is.EqualTo(new Vector2(8f, -3f)));
+            Assert.That(element.componentPartOverrides.Single().scale, Is.EqualTo(new Vector2(1.2f, .8f)));
+            Assert.That(element.componentPartOverrides.Single().visible, Is.False);
             Assert.That(metadata.variants.Single().variantId, Is.EqualTo("compact"));
             Assert.That(metadata.variants.Single().overrides.Single().propertyId, Is.EqualTo(DesignerPropertyId.Opacity));
             Assert.That(metadata.variants.Single().overrides.Single().typedValue.floatValue, Is.EqualTo(.5f));
@@ -315,8 +340,8 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
             var saved = PrefabUtility.LoadPrefabContents(prefabPath);
             try
             {
-                var button = saved.transform.Find("play").gameObject;
                 Assert.That(report.HasErrors, Is.False, report.Details());
+                var button = saved.transform.Find("play").gameObject;
                 Assert.That(button.GetComponent<LayoutElement>().minWidth, Is.EqualTo(80f));
                 Assert.That(button.GetComponent<AspectRatioFitter>().aspectRatio, Is.EqualTo(2f));
                 Assert.That(button.GetComponent<RectMask2D>(), Is.Not.Null);
@@ -328,9 +353,20 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
                 Assert.That(button.GetComponent<RectTransform>().localScale.x, Is.EqualTo(1.2f));
                 var tmpType = System.Type.GetType("TMPro.TMP_Text, Unity.TextMeshPro", true);
                 var tmp = button.GetComponentInChildren(tmpType, true);
-                Assert.That((float)tmpType.GetProperty("fontSize").GetValue(tmp), Is.EqualTo(28f));
-                Assert.That((Color)tmpType.GetProperty("color").GetValue(tmp), Is.EqualTo(Color.cyan));
-                Assert.That(tmpType.GetProperty("textWrappingMode").GetValue(tmp).ToString(), Is.EqualTo("NoWrap"));
+                var legacy = button.GetComponentInChildren<Text>(true);
+                Assert.That(tmp != null || legacy != null, Is.True);
+                if (tmp != null)
+                {
+                    Assert.That((float)tmpType.GetProperty("fontSize").GetValue(tmp), Is.EqualTo(28f));
+                    Assert.That((Color)tmpType.GetProperty("color").GetValue(tmp), Is.EqualTo(Color.cyan));
+                    Assert.That(tmpType.GetProperty("textWrappingMode").GetValue(tmp).ToString(), Is.EqualTo("NoWrap"));
+                }
+                else
+                {
+                    Assert.That(legacy.fontSize, Is.EqualTo(28));
+                    Assert.That(legacy.color, Is.EqualTo(Color.cyan));
+                    Assert.That(legacy.horizontalOverflow, Is.EqualTo(HorizontalWrapMode.Overflow));
+                }
             }
             finally
             {
@@ -361,15 +397,24 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
                 {
                     new DesignerAttachedComponentMetadata
                     {
-                        typeName = typeof(CanvasGroup).FullName + ", " + typeof(CanvasGroup).Assembly.GetName().Name
+                        typeName = typeof(emiteat.NexUI.Integrations.UGUI.UGUIIntegrationBootstrap).AssemblyQualifiedName
                     }
                 }
             });
-            metadata.elements.Add(new DesignerElementMetadata
+            var sliderMetadata = new DesignerElementMetadata
             {
-                stableId = "slider-stable", elementId = "volume", elementType = "UGUI.Slider",
+                stableId = "slider-stable", elementId = "volume", elementType = "Slider",
                 previewValue = 75f, rect = new Rect(10, 40, 160, 20)
-            });
+            };
+            emiteat.NexUI.Designer.Editor.Components.DesignerComponentPropertyAccess.Set(sliderMetadata, "value.min",
+                new DesignerPropertyValue { type = DesignerPropertyValueType.Float, floatValue = 10f });
+            emiteat.NexUI.Designer.Editor.Components.DesignerComponentPropertyAccess.Set(sliderMetadata, "value.max",
+                new DesignerPropertyValue { type = DesignerPropertyValueType.Float, floatValue = 90f });
+            emiteat.NexUI.Designer.Editor.Components.DesignerComponentPropertyAccess.Set(sliderMetadata, "value.wholeNumbers",
+                new DesignerPropertyValue { type = DesignerPropertyValueType.Boolean, boolValue = true });
+            emiteat.NexUI.Designer.Editor.Components.DesignerComponentPropertyAccess.Set(sliderMetadata, "value.direction",
+                new DesignerPropertyValue { type = DesignerPropertyValueType.Enum, intValue = 1 });
+            metadata.elements.Add(sliderMetadata);
             metadata.elements.Add(new DesignerElementMetadata
             {
                 stableId = "scroll-stable", elementId = "items", elementType = "UGUI.ScrollView",
@@ -385,17 +430,192 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
                 Assert.That(toggle.GetComponent<Toggle>(), Is.Not.Null);
                 Assert.That(toggle.Find("Background/Checkmark"), Is.Not.Null);
                 Assert.That(toggle.GetComponent<Toggle>().isOn, Is.True);
-                Assert.That(toggle.GetComponent<CanvasGroup>(), Is.Not.Null);
+                Assert.That(toggle.GetComponent<emiteat.NexUI.Integrations.UGUI.UGUIIntegrationBootstrap>(), Is.Not.Null);
                 Assert.That(toggle.GetComponent<DesignerAttachedComponentTracker>(), Is.Not.Null);
 
                 var slider = saved.transform.Find("volume");
                 Assert.That(slider.GetComponent<Slider>(), Is.Not.Null);
                 Assert.That(slider.Find("Fill Area/Fill"), Is.Not.Null);
                 Assert.That(slider.GetComponent<Slider>().value, Is.EqualTo(75f));
+                Assert.That(slider.GetComponent<Slider>().minValue, Is.EqualTo(10f));
+                Assert.That(slider.GetComponent<Slider>().maxValue, Is.EqualTo(90f));
+                Assert.That(slider.GetComponent<Slider>().wholeNumbers, Is.True);
+                Assert.That(slider.GetComponent<Slider>().direction, Is.EqualTo(Slider.Direction.RightToLeft));
 
                 var scroll = saved.transform.Find("items");
                 Assert.That(scroll.GetComponent<ScrollRect>(), Is.Not.Null);
                 Assert.That(scroll.Find("Viewport/Content"), Is.Not.Null);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(saved);
+                Object.DestroyImmediate(metadata);
+                Object.DestroyImmediate(screen);
+            }
+        }
+
+        [Test]
+        public void UguiComponentPartOverride_IsIdempotentAndResetRestoresBaseline()
+        {
+            var root = new GameObject("Screen", typeof(RectTransform));
+            var prefabPath = TempFolder + "/PartOverride.prefab";
+            var prefab = PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
+            Object.DestroyImmediate(root);
+            var screen = ScriptableObject.CreateInstance<UIScreenDefinition>();
+            screen.identity = new UIScreenIdentity { screenId = "parts" };
+            screen.backendAsset = new UIScreenBackendAsset { backend = UIRenderBackend.UGUI, asset = prefab };
+            var metadata = ScriptableObject.CreateInstance<DesignerMetadataAsset>();
+            metadata.screenId = "parts";
+            var slider = new DesignerElementMetadata
+            {
+                stableId = "slider-parts", elementId = "volume", elementType = "UGUI.Slider",
+                rect = new Rect(20, 30, 240, 24)
+            };
+            slider.componentPartOverrides.Add(new DesignerComponentPartOverrideMetadata
+            {
+                partId = "handle", hasPosition = true, position = new Vector2(12, 4),
+                hasSizeDelta = true, sizeDelta = new Vector2(6, 2),
+                hasRotation = true, rotation = 10,
+                hasScale = true, scale = new Vector2(1.2f, .8f)
+            });
+            metadata.elements.Add(slider);
+            var serializer = new UGUIAssetSerializer();
+
+            Assert.That(serializer.Save(screen, metadata).HasErrors, Is.False);
+            Vector2 firstPosition;
+            Vector2 firstSize;
+            var saved = PrefabUtility.LoadPrefabContents(prefabPath);
+            try
+            {
+                var handle = saved.transform.Find("volume/Handle Slide Area/Handle").GetComponent<RectTransform>();
+                var baseline = handle.GetComponent<DesignerUGUIPartBaselineTag>();
+                Assert.That(baseline, Is.Not.Null);
+                Assert.That(handle.anchoredPosition, Is.EqualTo(baseline.anchoredPosition + new Vector2(12, -4)));
+                Assert.That(handle.sizeDelta, Is.EqualTo(baseline.sizeDelta + new Vector2(6, 2)));
+                firstPosition = handle.anchoredPosition;
+                firstSize = handle.sizeDelta;
+            }
+            finally { PrefabUtility.UnloadPrefabContents(saved); }
+
+            Assert.That(serializer.Save(screen, metadata).HasErrors, Is.False);
+            saved = PrefabUtility.LoadPrefabContents(prefabPath);
+            try
+            {
+                var handle = saved.transform.Find("volume/Handle Slide Area/Handle").GetComponent<RectTransform>();
+                Assert.That(handle.anchoredPosition, Is.EqualTo(firstPosition), "second save must not accumulate position");
+                Assert.That(handle.sizeDelta, Is.EqualTo(firstSize), "second save must not accumulate size");
+            }
+            finally { PrefabUtility.UnloadPrefabContents(saved); }
+
+            slider.componentPartOverrides.Clear();
+            Assert.That(serializer.Save(screen, metadata).HasErrors, Is.False);
+            saved = PrefabUtility.LoadPrefabContents(prefabPath);
+            try
+            {
+                var handle = saved.transform.Find("volume/Handle Slide Area/Handle").GetComponent<RectTransform>();
+                Assert.That(handle.GetComponent<DesignerUGUIPartBaselineTag>(), Is.Null);
+                Assert.That(handle.anchoredPosition, Is.EqualTo(firstPosition - new Vector2(12, -4)));
+                Assert.That(handle.sizeDelta, Is.EqualTo(firstSize - new Vector2(6, 2)));
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(saved);
+                Object.DestroyImmediate(metadata);
+                Object.DestroyImmediate(screen);
+            }
+        }
+
+        [Test]
+        public void UguiSave_UpgradesLegacyPlainElementToCompleteStockControl()
+        {
+            var root = new GameObject("Screen", typeof(RectTransform));
+            var legacy = new GameObject("volume", typeof(RectTransform));
+            legacy.transform.SetParent(root.transform, false);
+            AddBindingTag(legacy, "legacy-slider", "volume", "DesignerOwned");
+            var marker = legacy.AddComponent<CanvasGroup>();
+            marker.alpha = 0.8f;
+            var prefabPath = TempFolder + "/LegacySlider.prefab";
+            var prefab = PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
+            Object.DestroyImmediate(root);
+
+            var screen = ScriptableObject.CreateInstance<UIScreenDefinition>();
+            screen.identity = new UIScreenIdentity { screenId = "legacy-slider" };
+            screen.backendAsset = new UIScreenBackendAsset { backend = UIRenderBackend.UGUI, asset = prefab };
+            var metadata = ScriptableObject.CreateInstance<DesignerMetadataAsset>();
+            metadata.screenId = "legacy-slider";
+            metadata.elements.Add(new DesignerElementMetadata
+            {
+                stableId = "legacy-slider", elementId = "volume", elementType = "Slider",
+                previewValue = 40f, rect = new Rect(10, 10, 180, 24)
+            });
+
+            var report = new UGUIAssetSerializer().Save(screen, metadata);
+            var saved = PrefabUtility.LoadPrefabContents(prefabPath);
+            try
+            {
+                var upgraded = saved.transform.Find("volume");
+                Assert.That(report.HasErrors, Is.False, report.Details());
+                Assert.That(upgraded.GetComponent<Slider>(), Is.Not.Null);
+                Assert.That(upgraded.Find("Fill Area/Fill"), Is.Not.Null);
+                Assert.That(upgraded.Find("Handle Slide Area/Handle"), Is.Not.Null);
+                Assert.That(upgraded.GetComponent<Slider>().fillRect, Is.Not.Null);
+                Assert.That(upgraded.GetComponent<Slider>().handleRect, Is.Not.Null);
+                Assert.That(upgraded.GetComponent<CanvasGroup>(), Is.Not.Null,
+                    "unrelated components on the matched object must be preserved");
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(saved);
+                Object.DestroyImmediate(metadata);
+                Object.DestroyImmediate(screen);
+            }
+        }
+
+        [Test]
+        public void UguiSave_PreservesUserAuthoredOptionalComponents()
+        {
+            var root = new GameObject("Screen", typeof(RectTransform));
+            var panel = new GameObject("panel", typeof(RectTransform));
+            panel.transform.SetParent(root.transform, false);
+            AddBindingTag(panel, "stable-panel", "panel", "UserOwned");
+            panel.AddComponent<AspectRatioFitter>();
+            panel.AddComponent<RectMask2D>();
+            panel.AddComponent<UnityEngine.UI.Outline>();
+            panel.AddComponent<UnityEngine.UI.Shadow>();
+            panel.AddComponent<HorizontalLayoutGroup>();
+            var prefabPath = TempFolder + "/UserOwnedComponents.prefab";
+            var prefab = PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
+            Object.DestroyImmediate(root);
+
+            var screen = ScriptableObject.CreateInstance<UIScreenDefinition>();
+            screen.identity = new UIScreenIdentity { screenId = "user-owned-components" };
+            screen.backendAsset = new UIScreenBackendAsset { backend = UIRenderBackend.UGUI, asset = prefab };
+            var metadata = ScriptableObject.CreateInstance<DesignerMetadataAsset>();
+            metadata.screenId = "user-owned-components";
+            metadata.elements.Add(new DesignerElementMetadata
+            {
+                stableId = "stable-panel",
+                elementId = "panel",
+                elementType = "Panel",
+                layoutStyle = new DesignerLayoutStyleMetadata { hasOverrides = true, aspectRatio = 0f },
+                visualStyle = new DesignerVisualStyleMetadata { hasOverrides = true, borderWidth = 0f, dropShadow = false },
+                autoLayout = new DesignerAutoLayoutMetadata { enabled = true, direction = DesignerAutoLayoutDirection.Column }
+            });
+
+            var report = new UGUIAssetSerializer().Save(screen, metadata);
+            var saved = PrefabUtility.LoadPrefabContents(prefabPath);
+            try
+            {
+                var savedPanel = saved.transform.Find("panel").gameObject;
+                Assert.That(report.HasErrors, Is.False, report.Details());
+                Assert.That(savedPanel.GetComponent<AspectRatioFitter>(), Is.Not.Null);
+                Assert.That(savedPanel.GetComponent<RectMask2D>(), Is.Not.Null);
+                Assert.That(savedPanel.GetComponent<UnityEngine.UI.Outline>(), Is.Not.Null);
+                Assert.That(savedPanel.GetComponents<UnityEngine.UI.Shadow>().Any(item => !(item is UnityEngine.UI.Outline)), Is.True);
+                Assert.That(savedPanel.GetComponent<HorizontalLayoutGroup>(), Is.Not.Null);
+                Assert.That(savedPanel.GetComponent<VerticalLayoutGroup>(), Is.Null,
+                    "Unity permits only one LayoutGroup, so the user-authored group must win");
+                Assert.That(report.Count(DesignerSaveImpactKind.UserImpact), Is.GreaterThanOrEqualTo(1));
             }
             finally
             {
@@ -429,11 +649,85 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
             var after = GetBindingTags(prefab).Length;
             Assert.That(report.IsPreview, Is.True);
             Assert.That(report.Count(DesignerSaveImpactKind.Created), Is.EqualTo(1));
-            Assert.That(report.Count(DesignerSaveImpactKind.Unsupported), Is.GreaterThanOrEqualTo(2));
+            Assert.That(report.Count(DesignerSaveImpactKind.Unsupported), Is.GreaterThanOrEqualTo(1));
             Assert.That(report.Count(DesignerSaveImpactKind.UserImpact), Is.GreaterThanOrEqualTo(1));
             Assert.That(after, Is.EqualTo(before), "preview must not mutate the prefab asset");
             Object.DestroyImmediate(metadata);
             Object.DestroyImmediate(screen);
+        }
+
+        [Test]
+        public void SavePreview_MatchesSerializerNameFallbackWithoutMutatingPrefab()
+        {
+            var root = new GameObject("Screen", typeof(RectTransform));
+            var panel = new GameObject("panel", typeof(RectTransform));
+            panel.transform.SetParent(root.transform, false);
+            panel.AddComponent<UnityEngine.UI.Outline>();
+            var prefabPath = TempFolder + "/NameFallback.prefab";
+            var prefab = PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
+            Object.DestroyImmediate(root);
+            var screen = ScriptableObject.CreateInstance<UIScreenDefinition>();
+            screen.identity = new UIScreenIdentity { screenId = "name-fallback" };
+            screen.backendAsset = new UIScreenBackendAsset { backend = UIRenderBackend.UGUI, asset = prefab };
+            var metadata = ScriptableObject.CreateInstance<DesignerMetadataAsset>();
+            metadata.screenId = "name-fallback";
+            metadata.elements.Add(new DesignerElementMetadata
+            {
+                stableId = "stable-panel", elementId = "panel", elementType = "Panel"
+            });
+
+            var report = DesignerSavePreviewService.Preview(screen, metadata);
+
+            Assert.That(report.Count(DesignerSaveImpactKind.Created), Is.EqualTo(0));
+            Assert.That(report.Count(DesignerSaveImpactKind.Modified), Is.GreaterThanOrEqualTo(2));
+            Assert.That(report.Count(DesignerSaveImpactKind.UserImpact), Is.GreaterThanOrEqualTo(1));
+            var loaded = PrefabUtility.LoadPrefabContents(prefabPath);
+            try
+            {
+                Assert.That(GetBindingTags(loaded), Is.Empty, "save preview must not add the fallback identity tag");
+                Assert.That(loaded.transform.Find("panel").GetComponent<UnityEngine.UI.Outline>(), Is.Not.Null);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(loaded);
+                Object.DestroyImmediate(metadata);
+                Object.DestroyImmediate(screen);
+            }
+        }
+
+        [Test]
+        public void ContextSave_BlocksInvalidIdentityBeforeWritingBackendOrCompanionJson()
+        {
+            var root = new GameObject("Screen", typeof(RectTransform));
+            var prefabPath = TempFolder + "/Blocked.prefab";
+            var prefab = PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
+            Object.DestroyImmediate(root);
+            var screen = ScriptableObject.CreateInstance<UIScreenDefinition>();
+            screen.identity = new UIScreenIdentity { screenId = "blocked" };
+            screen.backendAsset = new UIScreenBackendAsset { backend = UIRenderBackend.UGUI, asset = prefab };
+            AssetDatabase.CreateAsset(screen, TempFolder + "/Blocked.asset");
+            var metadata = ScriptableObject.CreateInstance<DesignerMetadataAsset>();
+            metadata.screenId = "blocked";
+            metadata.elements.Add(new DesignerElementMetadata { stableId = "duplicate", elementId = "first", elementType = "Panel" });
+            metadata.elements.Add(new DesignerElementMetadata { stableId = "duplicate", elementId = "second", elementType = "Panel" });
+            AssetDatabase.CreateAsset(metadata, TempFolder + "/Blocked.Metadata.asset");
+            AssetDatabase.SaveAssets();
+            var context = new NexUIDesignerContext();
+            context.Open(screen);
+            context.SetMetadata(metadata);
+
+            LogAssert.Expect(LogType.Error, new Regex("Save blocked by validation"));
+            var report = context.Save();
+
+            Assert.That(report.HasErrors, Is.True);
+            Assert.That(System.IO.File.Exists(DesignerMetadataJsonSerializer.CompanionPathFor(metadata)), Is.False);
+            var saved = PrefabUtility.LoadPrefabContents(prefabPath);
+            try { Assert.That(GetBindingTags(saved), Is.Empty); }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(saved);
+                context.Dispose();
+            }
         }
 
         [Test]
@@ -497,7 +791,7 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
             AssetDatabase.CreateAsset(metadata, TempFolder + "/Legacy.Metadata.asset");
             AssetDatabase.SaveAssets();
             var path = DesignerMetadataJsonSerializer.Export(metadata);
-            var json = System.IO.File.ReadAllText(path).Replace("\"formatVersion\": 3", "\"formatVersion\": 0");
+            var json = System.IO.File.ReadAllText(path).Replace("\"formatVersion\": 6", "\"formatVersion\": 0");
             System.IO.File.WriteAllText(path, json);
 
             metadata.elements[0].text = "Local";

@@ -126,7 +126,48 @@ namespace emiteat.NexUI.Designer.Editor.AI
                 foreach (var issue in context.ValidationIssues)
                     if (issue != null) snapshot.validation.Add(issue.ToString());
 
-            return JsonUtility.ToJson(snapshot, true);
+            var json = JsonUtility.ToJson(snapshot, true);
+            return includeProjectManifest ? json : RemoveObjectProperty(json, "project");
+        }
+
+        private static string RemoveObjectProperty(string json, string propertyName)
+        {
+            if (string.IsNullOrEmpty(json) || string.IsNullOrEmpty(propertyName)) return json;
+            var marker = "\"" + propertyName + "\":";
+            var property = json.IndexOf(marker, StringComparison.Ordinal);
+            if (property < 0) return json;
+            var valueStart = property + marker.Length;
+            while (valueStart < json.Length && char.IsWhiteSpace(json[valueStart])) valueStart++;
+            if (valueStart >= json.Length || json[valueStart] != '{') return json;
+
+            var depth = 0;
+            var inString = false;
+            var escaped = false;
+            var valueEnd = valueStart;
+            for (; valueEnd < json.Length; valueEnd++)
+            {
+                var c = json[valueEnd];
+                if (inString)
+                {
+                    if (escaped) escaped = false;
+                    else if (c == '\\') escaped = true;
+                    else if (c == '"') inString = false;
+                    continue;
+                }
+                if (c == '"') { inString = true; continue; }
+                if (c == '{') depth++;
+                else if (c == '}' && --depth == 0) { valueEnd++; break; }
+            }
+
+            var removeStart = property;
+            while (removeStart > 0 && char.IsWhiteSpace(json[removeStart - 1])) removeStart--;
+            if (removeStart > 0 && json[removeStart - 1] == ',') removeStart--;
+            else
+            {
+                while (valueEnd < json.Length && char.IsWhiteSpace(json[valueEnd])) valueEnd++;
+                if (valueEnd < json.Length && json[valueEnd] == ',') valueEnd++;
+            }
+            return json.Remove(removeStart, valueEnd - removeStart);
         }
 
         private static List<string> VariantNames(DesignerComponentDefinitionAsset definition)

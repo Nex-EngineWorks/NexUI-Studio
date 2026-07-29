@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using emiteat.NexUI.Abstractions;
 using emiteat.NexUI.Core;
 using emiteat.NexUI.Designer.Editor.Backend;
+using emiteat.NexUI.Designer.Editor.Components;
 using emiteat.NexUI.Designer.Editor.Validation;
 using NUnit.Framework;
 using UnityEngine;
@@ -61,6 +62,34 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
 
             var issues = DesignerValidationService.Validate(screen, metadata);
             Assert.IsTrue(HasCode(issues, "duplicate-element-id"));
+            var duplicate = issues.Find(issue => issue.Code == "duplicate-element-id");
+            Assert.AreEqual(DesignerValidationCategory.Identity, duplicate.Category);
+            Assert.IsTrue(duplicate.CanAutoFix);
+            Assert.IsTrue(duplicate.IsSafeAutoFix);
+            Assert.IsFalse(duplicate.RequiresUserAction);
+        }
+
+        [Test]
+        public void ComponentPropertyRangeAndTypeErrorsAreActionable()
+        {
+            var screen = NewScreen("hud", UIRenderBackend.UGUI, null);
+            var metadata = ScriptableObject.CreateInstance<DesignerMetadataAsset>();
+            metadata.screenId = "hud";
+            var slider = new DesignerElementMetadata
+            {
+                elementId = "volume", elementType = "Slider", rect = new Rect(0, 0, 180, 40)
+            };
+            DesignerComponentPropertyAccess.Set(slider, "value.min",
+                new DesignerPropertyValue { type = DesignerPropertyValueType.Float, floatValue = 20f });
+            DesignerComponentPropertyAccess.Set(slider, "value.max",
+                new DesignerPropertyValue { type = DesignerPropertyValueType.Float, floatValue = 10f });
+            DesignerComponentPropertyAccess.Set(slider, "value.wholeNumbers",
+                new DesignerPropertyValue { type = DesignerPropertyValueType.String, stringValue = "bad" });
+            metadata.elements.Add(slider);
+
+            var issues = DesignerValidationService.Validate(screen, metadata);
+            Assert.IsTrue(HasCode(issues, "component-property-invalid-range"));
+            Assert.IsTrue(HasCode(issues, "component-property-type-mismatch"));
         }
 
         [Test]

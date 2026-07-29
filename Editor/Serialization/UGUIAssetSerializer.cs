@@ -25,10 +25,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             var report = new DesignerSaveReport();
 
             if (metadata != null)
-            {
                 DesignerMetadataUtility.MarkDirty(metadata);
-                report.MarkChanged("Designer metadata asset");
-            }
             if (definition != null)
                 DesignerMetadataUtility.MarkDirty(definition);
 
@@ -37,6 +34,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             {
                 report.MarkSkipped("No uGUI prefab assigned to the screen backend asset (metadata saved only).");
                 SaveDirtyAssets(metadata, definition);
+                MarkMetadataWritten(metadata, report);
                 return report;
             }
 
@@ -45,6 +43,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             {
                 report.Warn($"Backend asset '{prefab.name}' is not a prefab asset; prefab changes were skipped (metadata saved only).");
                 SaveDirtyAssets(metadata, definition);
+                MarkMetadataWritten(metadata, report);
                 return report;
             }
 
@@ -52,6 +51,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             {
                 report.MarkSkipped("No metadata elements to apply to prefab.");
                 SaveDirtyAssets(metadata, definition);
+                MarkMetadataWritten(metadata, report);
                 return report;
             }
 
@@ -72,7 +72,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             }
             catch (System.Exception e)
             {
-                report.Error($"Failed to write prefab: {e.Message}");
+                report.Error($"Failed to write prefab: {e}");
             }
             finally
             {
@@ -80,8 +80,17 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                     PrefabUtility.UnloadPrefabContents(root);
             }
 
-            SaveDirtyAssets(metadata, definition);
+            if (!report.HasErrors)
+            {
+                SaveDirtyAssets(metadata, definition);
+                MarkMetadataWritten(metadata, report);
+            }
             return report;
+        }
+
+        private static void MarkMetadataWritten(DesignerMetadataAsset metadata, DesignerSaveReport report)
+        {
+            if (metadata != null) report.MarkChanged("Designer metadata asset");
         }
 
         private static void SaveDirtyAssets(DesignerMetadataAsset metadata, UIScreenDefinition definition)
@@ -311,7 +320,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             if (!layout.hasOverrides) return;
             var layoutElement = go.GetComponent<LayoutElement>();
             if (layout.minSize != Vector2.zero || layout.maxSize != Vector2.zero)
-                layoutElement = layoutElement ?? go.AddComponent<LayoutElement>();
+                layoutElement = layoutElement ?? AddManagedComponent<LayoutElement>(go);
             if (layoutElement != null)
             {
                 layoutElement.minWidth = layout.minSize.x > 0f ? layout.minSize.x : -1f;
@@ -323,21 +332,21 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             var aspect = go.GetComponent<AspectRatioFitter>();
             if (layout.aspectRatio > 0f)
             {
-                aspect = aspect ?? go.AddComponent<AspectRatioFitter>();
+                aspect = aspect ?? AddManagedComponent<AspectRatioFitter>(go);
                 aspect.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
                 aspect.aspectRatio = layout.aspectRatio;
             }
             else if (aspect != null)
-                Object.DestroyImmediate(aspect);
+                RemoveManagedComponents<AspectRatioFitter>(go, report, element.elementId);
 
             if (DesignerPropertyAdapter.Clip(element))
             {
-                if (go.GetComponent<RectMask2D>() == null) go.AddComponent<RectMask2D>();
+                if (go.GetComponent<RectMask2D>() == null) AddManagedComponent<RectMask2D>(go);
             }
             else
             {
-                var mask = go.GetComponent<RectMask2D>();
-                if (mask != null) Object.DestroyImmediate(mask);
+                if (go.GetComponent<RectMask2D>() != null)
+                    RemoveManagedComponents<RectMask2D>(go, report, element.elementId);
             }
 
             if (layout.marginLeft != 0f || layout.marginTop != 0f || layout.marginRight != 0f || layout.marginBottom != 0f)
@@ -416,33 +425,38 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             var group = go.GetComponent<CanvasGroup>();
             if (visual.opacity < 0.999f || group != null)
             {
-                group = group ?? go.AddComponent<CanvasGroup>();
-                group.alpha = Mathf.Clamp01(visual.opacity);
+                // Use Unity's overloaded null check. A destroyed native component is non-null to
+                // C#'s ?? operator and throws MissingComponentException on the next property access.
+                if (group == null) group = go.AddComponent<CanvasGroup>();
+                if (group != null) group.alpha = Mathf.Clamp01(visual.opacity);
             }
             if (graphic != null && visual.material != null) graphic.material = visual.material;
 
             var outline = go.GetComponent<UnityEngine.UI.Outline>();
             if (visual.borderWidth > 0f || visual.outlineWidth > 0f)
             {
-                outline = outline ?? go.AddComponent<UnityEngine.UI.Outline>();
+                outline = outline ?? AddManagedComponent<UnityEngine.UI.Outline>(go);
                 var width = visual.outlineWidth > 0f ? visual.outlineWidth : visual.borderWidth;
                 outline.effectDistance = new Vector2(width, -width);
                 outline.effectColor = visual.outlineWidth > 0f ? visual.outlineColor : visual.borderColor;
                 if (visual.borderWidth > 0f)
                     report.MarkSkipped($"'{element.elementId}' border uses uGUI Outline fallback (outside edge, not inset border).");
             }
-            else if (outline != null) Object.DestroyImmediate(outline);
+            else if (outline != null)
+                RemoveManagedComponents<UnityEngine.UI.Outline>(go, report, element.elementId);
 
             UnityEngine.UI.Shadow shadow = null;
             foreach (var candidate in go.GetComponents<UnityEngine.UI.Shadow>())
                 if (!(candidate is UnityEngine.UI.Outline)) { shadow = candidate; break; }
             if (visual.dropShadow)
             {
-                shadow = shadow ?? go.AddComponent<UnityEngine.UI.Shadow>();
+                shadow = shadow ?? AddManagedComponent<UnityEngine.UI.Shadow>(go);
                 shadow.effectColor = visual.shadowColor;
                 shadow.effectDistance = visual.shadowOffset;
             }
-            else if (shadow != null) Object.DestroyImmediate(shadow);
+            else if (shadow != null)
+                RemoveManagedComponents<UnityEngine.UI.Shadow>(go, report, element.elementId,
+                    candidate => !(candidate is UnityEngine.UI.Outline));
 
             if (visual.cornerRadius > 0f && (!(graphic is Image image) || image.sprite == null || !visual.imageSlice))
                 report.MarkSkipped($"'{element.elementId}' numeric corner radius requires a rounded sliced Sprite on uGUI.");
@@ -458,7 +472,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             var layoutElement = go.GetComponent<LayoutElement>();
             if (layout.widthSizing == DesignerAutoLayoutSizing.Fill || layout.heightSizing == DesignerAutoLayoutSizing.Fill)
             {
-                if (layoutElement == null) layoutElement = go.AddComponent<LayoutElement>();
+                if (layoutElement == null) layoutElement = AddManagedComponent<LayoutElement>(go);
                 layoutElement.flexibleWidth = layout.widthSizing == DesignerAutoLayoutSizing.Fill ? 1f : 0f;
                 layoutElement.flexibleHeight = layout.heightSizing == DesignerAutoLayoutSizing.Fill ? 1f : 0f;
             }
@@ -467,13 +481,43 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             var horizontal = go.GetComponent<HorizontalLayoutGroup>();
             var vertical = go.GetComponent<VerticalLayoutGroup>();
             var grid = go.GetComponent<GridLayoutGroup>();
-            if (layout.direction != DesignerAutoLayoutDirection.Row && horizontal != null) Object.DestroyImmediate(horizontal);
-            if (layout.direction != DesignerAutoLayoutDirection.Column && vertical != null) Object.DestroyImmediate(vertical);
-            if (layout.direction != DesignerAutoLayoutDirection.Grid && grid != null) Object.DestroyImmediate(grid);
+            if (layout.direction != DesignerAutoLayoutDirection.Row && horizontal != null)
+                RemoveManagedComponents<HorizontalLayoutGroup>(go, report, element.elementId);
+            if (layout.direction != DesignerAutoLayoutDirection.Column && vertical != null)
+                RemoveManagedComponents<VerticalLayoutGroup>(go, report, element.elementId);
+            if (layout.direction != DesignerAutoLayoutDirection.Grid && grid != null)
+                RemoveManagedComponents<GridLayoutGroup>(go, report, element.elementId);
+
+            // Unity allows only one LayoutGroup subtype per GameObject. Removal above only removes
+            // serializer-owned helpers, so an incompatible user-authored group may intentionally
+            // remain. Do not call AddComponent in that case: Unity would emit an error and return
+            // null, and the save would both fail CI and risk hiding the ownership conflict.
+            var remainingLayout = go.GetComponent<LayoutGroup>();
+            var compatible = layout.direction switch
+            {
+                DesignerAutoLayoutDirection.Row => remainingLayout == null || remainingLayout is HorizontalLayoutGroup,
+                DesignerAutoLayoutDirection.Column => remainingLayout == null || remainingLayout is VerticalLayoutGroup,
+                DesignerAutoLayoutDirection.Grid => remainingLayout == null || remainingLayout is GridLayoutGroup,
+                _ => true
+            };
+            if (!compatible)
+            {
+                report.MarkUserImpact("LayoutGroup",
+                    $"Preserved user-authored {remainingLayout.GetType().Name} on '{element.elementId}'; the requested {layout.direction} layout was not added.",
+                    element.elementId);
+                return;
+            }
 
             if (layout.direction == DesignerAutoLayoutDirection.Grid)
             {
-                grid = go.GetComponent<GridLayoutGroup>() ?? go.AddComponent<GridLayoutGroup>();
+                grid = go.GetComponent<GridLayoutGroup>() ?? AddManagedComponent<GridLayoutGroup>(go);
+                if (grid == null)
+                {
+                    report.MarkUserImpact("LayoutGroup",
+                        $"Preserved an incompatible user-authored LayoutGroup on '{element.elementId}'; the requested Grid layout was not added.",
+                        element.elementId);
+                    return;
+                }
                 grid.padding = Padding(layout);
                 grid.spacing = new Vector2(layout.spacing, layout.spacing);
                 grid.cellSize = new Vector2(Mathf.Max(1f, layout.gridCellWidth), Mathf.Max(1f, layout.gridCellHeight));
@@ -483,8 +527,15 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             else
             {
                 HorizontalOrVerticalLayoutGroup group = layout.direction == DesignerAutoLayoutDirection.Row
-                    ? (HorizontalOrVerticalLayoutGroup)(go.GetComponent<HorizontalLayoutGroup>() ?? go.AddComponent<HorizontalLayoutGroup>())
-                    : go.GetComponent<VerticalLayoutGroup>() ?? go.AddComponent<VerticalLayoutGroup>();
+                    ? (HorizontalOrVerticalLayoutGroup)(go.GetComponent<HorizontalLayoutGroup>() ?? AddManagedComponent<HorizontalLayoutGroup>(go))
+                    : go.GetComponent<VerticalLayoutGroup>() ?? AddManagedComponent<VerticalLayoutGroup>(go);
+                if (group == null)
+                {
+                    report.MarkUserImpact("LayoutGroup",
+                        $"Preserved an incompatible user-authored LayoutGroup on '{element.elementId}'; the requested {layout.direction} layout was not added.",
+                        element.elementId);
+                    return;
+                }
                 group.padding = Padding(layout);
                 group.spacing = layout.spacing;
                 group.childControlWidth = false;
@@ -517,7 +568,13 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             img.color = element.tint;
             img.type = Image.Type.Filled;
 
-            var normalized = Mathf.Clamp01(Mathf.InverseLerp(element.fill.minValue, element.fill.maxValue, element.previewValue));
+            var minimum = DesignerComponentPropertyAccess.GetFloat(element, "value.min", element.fill.minValue);
+            var maximum = DesignerComponentPropertyAccess.GetFloat(element, "value.max", element.fill.maxValue);
+            if (maximum <= minimum) maximum = minimum + 1f;
+            var previewValue = DesignerComponentPropertyAccess.GetBool(element, "value.wholeNumbers")
+                ? Mathf.Round(element.previewValue)
+                : element.previewValue;
+            var normalized = Mathf.Clamp01(Mathf.InverseLerp(minimum, maximum, previewValue));
             img.fillAmount = normalized;
 
             if (Is(element.elementType ?? "", "RadialFill"))
@@ -528,7 +585,14 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             }
             else
             {
-                switch (element.fill.direction)
+                var direction = DesignerComponentPropertyAccess.GetEnum(element, "value.direction") switch
+                {
+                    "RightToLeft" => DesignerFillDirection.RightToLeft,
+                    "BottomToTop" => DesignerFillDirection.BottomToTop,
+                    "TopToBottom" => DesignerFillDirection.TopToBottom,
+                    _ => element.fill.direction
+                };
+                switch (direction)
                 {
                     case DesignerFillDirection.LeftToRight:
                         img.fillMethod = Image.FillMethod.Horizontal; img.fillOrigin = (int)Image.OriginHorizontal.Left; break;
@@ -548,7 +612,29 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             var tmp = go.GetComponentInChildren<TMP_Text>(true);
             var uiText = tmp == null ? go.GetComponentInChildren<Text>(true) : null;
 
-            if (tmp != null) { if (element.text != null) tmp.text = element.text; ApplyTextStyle(tmp, element); return; }
+            if (tmp != null)
+            {
+                if (tmp.font == null)
+                    tmp.font = element.typography?.fontAsset as TMP_FontAsset ?? DefaultTmpFont();
+                if (tmp.font != null)
+                {
+                    if (element.text != null) tmp.text = element.text;
+                    ApplyTextStyle(tmp, element);
+                    return;
+                }
+
+                // TMP stock controls can exist before TMP Essential Resources are imported. A
+                // null-font TMP component is invisible and material properties throw, so replace
+                // text-only/button captions with a working built-in Text fallback.
+                var fallbackHost = tmp.gameObject;
+                Object.DestroyImmediate(tmp);
+                uiText = fallbackHost.GetComponent<Text>() ?? fallbackHost.AddComponent<Text>();
+                uiText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                uiText.alignment = TextAnchor.MiddleCenter;
+                report.MarkUserImpact("Typography fallback",
+                    $"'{element.elementId}' used legacy uGUI Text because TMP Essential Resources are not installed.",
+                    element.elementId);
+            }
             if (uiText != null) { if (element.text != null) uiText.text = element.text; ApplyTextStyle(uiText, element); return; }
 
             if (string.IsNullOrEmpty(element.text)) return;
@@ -565,11 +651,43 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 crt.offsetMin = Vector2.zero; crt.offsetMax = Vector2.zero;
                 host = child;
             }
-            var newText = host.AddComponent<TextMeshProUGUI>();
-            newText.text = element.text;
-            newText.alignment = TextAlignmentOptions.Center;
-            ApplyTextStyle(newText, element);
+            var defaultTmpFont = DefaultTmpFont();
+            if (defaultTmpFont != null)
+            {
+                var newText = host.AddComponent<TextMeshProUGUI>();
+                newText.font = defaultTmpFont;
+                newText.text = element.text;
+                newText.alignment = TextAlignmentOptions.Center;
+                ApplyTextStyle(newText, element);
+            }
+            else
+            {
+                // Clean projects do not necessarily have TMP Essential Resources imported. Saving
+                // must still succeed; use Unity's built-in legacy font and report the fallback.
+                var legacyText = host.AddComponent<Text>();
+                legacyText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                legacyText.text = element.text;
+                legacyText.alignment = TextAnchor.MiddleCenter;
+                ApplyTextStyle(legacyText, element);
+                report.MarkUserImpact("Typography fallback",
+                    $"'{element.elementId}' used legacy uGUI Text because TMP Essential Resources are not installed.",
+                    element.elementId);
+            }
             report.MarkChanged($"Added text to '{element.elementId}'");
+        }
+
+        private static TMP_FontAsset DefaultTmpFont()
+        {
+            try
+            {
+                // TMP_Settings.defaultFontAsset throws NullReferenceException when a clean project
+                // has not imported TMP Essential Resources yet.
+                return TMP_Settings.defaultFontAsset;
+            }
+            catch (System.NullReferenceException)
+            {
+                return null;
+            }
         }
 
         private static void ApplyTextStyle(TMP_Text tmp, DesignerElementMetadata element)
@@ -591,8 +709,11 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             tmp.characterSpacing = typography.letterSpacing;
             tmp.paragraphSpacing = typography.paragraphSpacing;
             tmp.fontStyle = TmpFontStyle(typography);
-            tmp.outlineWidth = typography.outlineWidth;
-            tmp.outlineColor = typography.outlineColor;
+            if (tmp.fontSharedMaterial != null)
+            {
+                tmp.outlineWidth = typography.outlineWidth;
+                tmp.outlineColor = typography.outlineColor;
+            }
             ApplyTextShadow(tmp, typography);
         }
 
@@ -623,11 +744,54 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 if (!(candidate is UnityEngine.UI.Outline)) { shadow = candidate; break; }
             if (typography.textShadow)
             {
-                shadow = shadow ?? graphic.gameObject.AddComponent<UnityEngine.UI.Shadow>();
+                shadow = shadow ?? AddManagedComponent<UnityEngine.UI.Shadow>(graphic.gameObject);
                 shadow.effectColor = typography.shadowColor;
                 shadow.effectDistance = typography.shadowOffset;
             }
-            else if (shadow != null) Object.DestroyImmediate(shadow);
+            else if (shadow != null)
+                RemoveManagedComponents<UnityEngine.UI.Shadow>(graphic.gameObject, null, null,
+                    candidate => !(candidate is UnityEngine.UI.Outline));
+        }
+
+        private static T AddManagedComponent<T>(GameObject go) where T : Component
+        {
+            var component = go.AddComponent<T>();
+            if (component == null) return null;
+            var tracker = go.GetComponent<DesignerAttachedComponentTracker>() ?? go.AddComponent<DesignerAttachedComponentTracker>();
+            tracker.managedGeneratedComponents ??= new List<Component>();
+            tracker.managedGeneratedComponents.Add(component);
+            return component;
+        }
+
+        private static void RemoveManagedComponents<T>(GameObject go, DesignerSaveReport report, string elementId,
+            System.Predicate<T> predicate = null) where T : Component
+        {
+            var tracker = go.GetComponent<DesignerAttachedComponentTracker>();
+            var removed = false;
+            if (tracker?.managedGeneratedComponents != null)
+                for (var i = tracker.managedGeneratedComponents.Count - 1; i >= 0; i--)
+                {
+                    if (!(tracker.managedGeneratedComponents[i] is T component) || component.gameObject != go ||
+                        (predicate != null && !predicate(component))) continue;
+                    tracker.managedGeneratedComponents.RemoveAt(i);
+                    Object.DestroyImmediate(component);
+                    removed = true;
+                }
+
+            if (!removed && go.GetComponent<T>() != null && report != null)
+                report.MarkUserImpact(typeof(T).Name,
+                    $"Preserved user-authored {typeof(T).Name} on '{elementId}'.", elementId);
+            CleanupTracker(tracker);
+        }
+
+        private static void CleanupTracker(DesignerAttachedComponentTracker tracker)
+        {
+            if (tracker == null) return;
+            tracker.managedComponents?.RemoveAll(component => component == null);
+            tracker.managedGeneratedComponents?.RemoveAll(component => component == null);
+            if ((tracker.managedComponents == null || tracker.managedComponents.Count == 0) &&
+                (tracker.managedGeneratedComponents == null || tracker.managedGeneratedComponents.Count == 0))
+                Object.DestroyImmediate(tracker);
         }
 
         private static TextAnchor TextAnchorFor(DesignerLayoutAlignment align, DesignerJustifyContent justify)
@@ -754,8 +918,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 }
             }
 
-            if (tracker != null && (tracker.managedComponents == null || tracker.managedComponents.Count == 0))
-                Object.DestroyImmediate(tracker);
+            CleanupTracker(tracker);
         }
 
         private static System.Type ResolveComponentType(string typeName)

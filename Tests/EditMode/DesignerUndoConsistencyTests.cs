@@ -45,11 +45,12 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
         {
             var element = new DesignerElementMetadata { elementId = "item", rect = new Rect(10, 20, 30, 40) };
             _metadata.elements.Add(element);
+            Undo.ClearAll();
 
             _context.UpdateElementRect(element, new Rect(50, 60, 30, 40));
             Assert.That(element.rect.position, Is.EqualTo(new Vector2(50, 60)));
             Undo.PerformUndo();
-            Assert.That(element.rect.position, Is.EqualTo(new Vector2(10, 20)));
+            Assert.That(_metadata.Find("item").rect.position, Is.EqualTo(new Vector2(10, 20)));
         }
 
         [Test]
@@ -59,11 +60,12 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
             var child = new DesignerElementMetadata { elementId = "item" };
             _metadata.elements.Add(parent);
             _metadata.elements.Add(child);
+            Undo.ClearAll();
 
             _context.ReparentElement(child, parent, false);
             Assert.That(child.parentId, Is.EqualTo("panel"));
             Undo.PerformUndo();
-            Assert.That(child.parentId, Is.Empty);
+            Assert.That(_metadata.Find("item").parentId, Is.Empty);
         }
 
         [Test]
@@ -73,6 +75,27 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
             Assert.That(_metadata.screenMotion.bindings, Has.Count.EqualTo(1));
             Undo.PerformUndo();
             Assert.That(_metadata.screenMotion.bindings, Is.Empty);
+        }
+
+        [Test]
+        public void UndoBackToBaseline_ClearsDirty_AndRedoRestoresIt()
+        {
+            var element = new DesignerElementMetadata { elementId = "title", text = "Before" };
+            _metadata.elements.Add(element);
+            _context.SetMetadata(null);
+            _context.SetMetadata(_metadata);
+            Undo.ClearAll();
+
+            _context.UpdateElement(element, item => item.text = "After", "Change title");
+            Assert.That(_context.HasUnsavedChanges, Is.True);
+
+            Undo.PerformUndo();
+            Assert.That(_metadata.Find("title").text, Is.EqualTo("Before"));
+            Assert.That(_context.HasUnsavedChanges, Is.False);
+
+            Undo.PerformRedo();
+            Assert.That(_metadata.Find("title").text, Is.EqualTo("After"));
+            Assert.That(_context.HasUnsavedChanges, Is.True);
         }
     }
 }

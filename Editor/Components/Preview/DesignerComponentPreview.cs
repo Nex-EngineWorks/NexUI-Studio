@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -62,18 +63,113 @@ namespace emiteat.NexUI.Designer.Editor.Components.Preview
         public readonly DesignerComponentState State; // effective forced state for this element
         public readonly float Zoom;
         public readonly bool Interactive;
+        public readonly string SelectedPartId;
+        public readonly Action<string> SelectPart;
+        public readonly Action<string> BeginPartDrag;
+        public readonly Action<Vector2> DragPart;
+        public readonly Action EndPartDrag;
 
-        public DesignerPreviewContext(DesignerElementMetadata element, DesignerComponentState state, float zoom, bool interactive)
+        public DesignerPreviewContext(DesignerElementMetadata element, DesignerComponentState state, float zoom, bool interactive,
+            string selectedPartId = null, Action<string> selectPart = null, Action<string> beginPartDrag = null,
+            Action<Vector2> dragPart = null, Action endPartDrag = null)
         {
             Element = element;
             Descriptor = DesignerComponentRegistry.Get(element.elementType);
             State = state;
             Zoom = zoom;
             Interactive = interactive;
+            SelectedPartId = selectedPartId;
+            SelectPart = selectPart;
+            BeginPartDrag = beginPartDrag;
+            DragPart = dragPart;
+            EndPartDrag = endPartDrag;
         }
 
         public Color Tint => DesignerPreviewColors.Modulate(Element.tint, State);
         public Color FillColor => DesignerPreviewColors.Lighten(Tint, 0.4f);
+    }
+
+    /// <summary>Tags, styles and wires a virtual visual to its persistent component-part override.</summary>
+    public static class DesignerPreviewPartUtility
+    {
+        public static VisualElement Register(VisualElement visual, DesignerPreviewContext ctx, string partId)
+        {
+            if (visual == null || string.IsNullOrEmpty(partId)) return visual;
+            visual.name = "nexui-part-" + partId;
+            var value = DesignerComponentPartOverrideBag.Find(ctx.Element.componentPartOverrides, partId);
+            if (value != null)
+            {
+                if (value.hasPosition)
+                    visual.style.translate = new Translate(value.position.x * ctx.Zoom, value.position.y * ctx.Zoom);
+                if (value.hasRotation)
+                    visual.style.rotate = new Rotate(new Angle(value.rotation, AngleUnit.Degree));
+                if (value.hasScale)
+                    visual.style.scale = new Scale(new Vector3(value.scale.x, value.scale.y, 1f));
+                if (value.hasVisibility)
+                    visual.style.display = value.visible ? DisplayStyle.Flex : DisplayStyle.None;
+                if (value.hasSizeDelta && value.sizeDelta != Vector2.zero)
+                {
+                    var delta = value.sizeDelta * ctx.Zoom;
+                    visual.schedule.Execute(() =>
+                    {
+                        if (visual.panel == null) return;
+                        if (!float.IsNaN(visual.resolvedStyle.width))
+                            visual.style.width = Mathf.Max(1f, visual.resolvedStyle.width + delta.x);
+                        if (!float.IsNaN(visual.resolvedStyle.height))
+                            visual.style.height = Mathf.Max(1f, visual.resolvedStyle.height + delta.y);
+                    });
+                }
+            }
+
+            if (ctx.SelectedPartId == partId)
+            {
+                var accent = new StyleColor(new Color(0.25f, 0.65f, 1f, 1f));
+                visual.style.borderTopWidth = 1f; visual.style.borderRightWidth = 1f;
+                visual.style.borderBottomWidth = 1f; visual.style.borderLeftWidth = 1f;
+                visual.style.borderTopColor = accent; visual.style.borderRightColor = accent;
+                visual.style.borderBottomColor = accent; visual.style.borderLeftColor = accent;
+            }
+
+            if (ctx.SelectPart == null || ctx.Interactive) return visual;
+            visual.pickingMode = PickingMode.Position;
+            var dragging = false;
+            var last = Vector2.zero;
+            visual.RegisterCallback<PointerDownEvent>(evt =>
+            {
+                if (evt.button != 0) return;
+                dragging = true;
+                last = evt.position;
+                ctx.SelectPart(partId);
+                ctx.BeginPartDrag?.Invoke(partId);
+                visual.CapturePointer(evt.pointerId);
+                evt.StopPropagation();
+            });
+            visual.RegisterCallback<PointerMoveEvent>(evt =>
+            {
+                if (!dragging || !visual.HasPointerCapture(evt.pointerId)) return;
+                var current = (Vector2)evt.position;
+                ctx.DragPart?.Invoke((current - last) / Mathf.Max(0.01f, ctx.Zoom));
+                var live = DesignerComponentPartOverrideBag.Find(ctx.Element.componentPartOverrides, partId);
+                if (live != null && live.hasPosition)
+                    visual.style.translate = new Translate(live.position.x * ctx.Zoom, live.position.y * ctx.Zoom);
+                last = current;
+                evt.StopPropagation();
+            });
+            visual.RegisterCallback<PointerUpEvent>(evt =>
+            {
+                if (!dragging) return;
+                dragging = false;
+                if (visual.HasPointerCapture(evt.pointerId)) visual.ReleasePointer(evt.pointerId);
+                ctx.EndPartDrag?.Invoke();
+                evt.StopPropagation();
+            });
+            visual.RegisterCallback<PointerCancelEvent>(_ =>
+            {
+                dragging = false;
+                ctx.EndPartDrag?.Invoke();
+            });
+            return visual;
+        }
     }
 
     /// <summary>

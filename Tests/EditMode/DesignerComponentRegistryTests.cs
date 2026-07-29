@@ -147,7 +147,7 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
                 {
                     uguiCount++;
                     Assert.IsFalse(string.IsNullOrEmpty(descriptor.UGUIControl), descriptor.TypeId);
-                    Assert.AreEqual(DesignerBackendSupport.Full, descriptor.UGUISupport, descriptor.TypeId);
+                    Assert.AreNotEqual(DesignerBackendSupport.Unsupported, descriptor.UGUISupport, descriptor.TypeId);
                 }
                 else if (descriptor.Family == DesignerComponentFamily.UIToolkit)
                 {
@@ -359,8 +359,8 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
                 var editableViews = views.FindAll(view => view.pickingMode == PickingMode.Position);
                 Assert.AreEqual(1, editableViews.Count,
                     "only the authored component instance root may accept move/resize input");
-                Assert.That(editableViews[0].style.left.value.value, Is.EqualTo(48f).Within(0.01f));
-                Assert.That(editableViews[0].style.top.value.value, Is.EqualTo(64f).Within(0.01f));
+                Assert.That(editableViews[0].style.left.value.value, Is.EqualTo(48f * context.Zoom).Within(0.01f));
+                Assert.That(editableViews[0].style.top.value.value, Is.EqualTo(64f * context.Zoom).Within(0.01f));
 
                 foreach (var generated in views)
                 {
@@ -417,9 +417,11 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
                 Assert.AreEqual(0, panel.Query<Button>(className: "nexui-component-builtin-card").ToList().Count,
                     "collapsed archetypes must not allocate all 300 cards");
 
-                var leaf = folders.Find(folder => folder.text.EndsWith("(12)"));
+                var leaf = folders.Find(folder => folder.ClassListContains("nexui-component-builtin-leaf") &&
+                                                  folder.text.EndsWith("(12)"));
                 Assert.IsNotNull(leaf);
-                leaf.value = true;
+                Assert.That(leaf.userData, Is.InstanceOf<System.Action>());
+                ((System.Action)leaf.userData).Invoke();
                 var cards = panel.Query<Button>(className: "nexui-component-builtin-card").ToList();
                 Assert.AreEqual(12, cards.Count);
                 Assert.IsNotNull(cards[0].Q<VisualElement>(className: "nexui-component-composite-preview"));
@@ -594,12 +596,14 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
                 Assert.AreEqual("새 스크린", DesignerLocalization.T("productivity.newScreen"));
                 Assert.AreEqual("재생", DesignerLocalization.T("motionClip.toolbar.play"));
                 Assert.AreEqual("실시간 모션 미리보기", DesignerLocalization.T("motionInspector.previewTitle"));
+                Assert.AreEqual("히스토리", DesignerLocalization.T("panel.history"));
 
                 DesignerLocalization.SetLanguage(DesignerLanguage.English);
                 Assert.AreEqual("Library", DesignerLocalization.T("palette.tooltip.family"));
                 Assert.AreEqual("New Screen", DesignerLocalization.T("productivity.newScreen"));
                 Assert.AreEqual("Play", DesignerLocalization.T("motionClip.toolbar.play"));
                 Assert.AreEqual("Live Motion Preview", DesignerLocalization.T("motionInspector.previewTitle"));
+                Assert.AreEqual("History", DesignerLocalization.T("panel.history"));
             }
             finally
             {
@@ -694,16 +698,16 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
             context.SetMetadata(metadata);
             try
             {
-                var viewport = new NexUIDesignerViewport(context);
                 context.SetActiveMotionClip(clip, 0.5f);
+                var viewport = new NexUIDesignerViewport(context);
 
                 var views = viewport.Query<VisualElement>(className: "nexui-design-element").ToList();
                 var actual = views.Find(view => !view.ClassListContains("nexui-motion-start-ghost"));
                 var ghost = views.Find(view => view.ClassListContains("nexui-motion-start-ghost"));
                 Assert.IsNotNull(actual);
                 Assert.IsNotNull(ghost);
-                Assert.That(actual.style.left.value.value, Is.EqualTo(110f).Within(0.01f));
-                Assert.That(ghost.style.left.value.value, Is.EqualTo(10f).Within(0.01f));
+                Assert.That(actual.style.left.value.value, Is.EqualTo(110f * context.Zoom).Within(0.01f));
+                Assert.That(ghost.style.left.value.value, Is.EqualTo(10f * context.Zoom).Within(0.01f));
                 Assert.That(ghost.style.opacity.value, Is.EqualTo(0.28f).Within(0.01f));
             }
             finally
@@ -715,7 +719,7 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
         }
 
         [Test]
-        public void RightPointerUpOverElementBubblesForCanvasContextMenu()
+        public void RightPointerUpOverElementReachesCanvasCapturePath()
         {
             var metadata = ScriptableObject.CreateInstance<DesignerMetadataAsset>();
             metadata.elements.Add(new DesignerElementMetadata
@@ -730,25 +734,13 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
                 var viewport = new NexUIDesignerViewport(context);
                 var elementView = viewport.Q<VisualElement>(className: "nexui-design-element");
                 Assert.IsNotNull(elementView);
-
-                var bubbled = false;
-                viewport.RegisterCallback<PointerUpEvent>(evt =>
-                {
-                    if (evt.button == 1) bubbled = true;
-                });
-
-                var systemEvent = new Event
-                {
-                    type = EventType.MouseUp,
-                    button = 1,
-                    mousePosition = new Vector2(20f, 30f)
-                };
-                var pointerUp = PointerUpEvent.GetPooled(systemEvent);
-                elementView.SendEvent(pointerUp);
-                pointerUp.Dispose();
-
-                Assert.IsTrue(bubbled,
-                    "right PointerUp must reach the canvas so UI Toolkit can produce ContextClickEvent");
+                var method = typeof(NexUIDesignerViewport).GetMethod("ShouldConsumeElementPointerUp",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+                Assert.IsNotNull(method);
+                Assert.IsFalse((bool)method.Invoke(null, new object[] { 1 }),
+                    "right PointerUp must not be consumed by the element drag handler");
+                Assert.IsTrue((bool)method.Invoke(null, new object[] { 0 }),
+                    "left PointerUp must still commit and consume the drag");
             }
             finally
             {

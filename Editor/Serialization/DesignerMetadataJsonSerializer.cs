@@ -149,6 +149,8 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             public int previewItemCount;
             public List<string> previewOptions = new();
             public List<DesignerAttachedComponentMetadata> attachedComponents = new();
+            public List<ComponentPropertyDto> componentProperties = new();
+            public List<ComponentPartOverrideDto> componentPartOverrides = new();
             public DesignerFillMetadata fill = new();
             public string previewImageGuid = "";
             public long previewImageLocalId;
@@ -231,6 +233,41 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             public float r, g, b, a;
         }
 
+        /// <summary>
+        /// One component-property value. Asset references are written as persistent GUIDs, like every
+        /// other asset reference in this file, so the JSON stays valid across machines.
+        /// </summary>
+        [Serializable]
+        private sealed class ComponentPropertyDto
+        {
+            public string key;
+            public string type;
+            public float floatValue;
+            public int intValue;
+            public bool boolValue;
+            public string stringValue = "";
+            public ColorDto colorValue = new();
+            public Vector2 vector2Value;
+            public string assetGuid = "";
+            public long assetLocalId;
+        }
+
+        [Serializable]
+        private sealed class ComponentPartOverrideDto
+        {
+            public string partId;
+            public bool hasPosition;
+            public Vector2 position;
+            public bool hasSizeDelta;
+            public Vector2 sizeDelta;
+            public bool hasRotation;
+            public float rotation;
+            public bool hasScale;
+            public Vector2 scale = Vector2.one;
+            public bool hasVisibility;
+            public bool visible = true;
+        }
+
         [Serializable]
         private sealed class RectOffsetDto
         {
@@ -281,7 +318,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             var screenMotion = asset.screenMotion ?? new DesignerScreenMotionMetadata();
             var dto = new MetadataFileDto
             {
-                formatVersion = 4,
+                formatVersion = 6,
                 schemaVersion = asset.schemaVersion,
                 screenId = asset.screenId,
                 variants = ToVariantDtos(asset.variants),
@@ -332,6 +369,8 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                     previewItemCount = e.previewItemCount,
                     previewOptions = e.previewOptions != null ? new List<string>(e.previewOptions) : new List<string>(),
                     attachedComponents = CloneAttachedComponents(e.attachedComponents),
+                    componentProperties = ToComponentPropertyDtos(e.componentProperties),
+                    componentPartOverrides = ToComponentPartOverrideDtos(e.componentPartOverrides),
                     fill = e.fill ?? new DesignerFillMetadata(),
                     previewImageGuid = AssetGuid(e.previewImage),
                     previewImageLocalId = AssetLocalId(e.previewImage),
@@ -389,6 +428,10 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             var hasFullSchema = dto.formatVersion >= 2;
             var hasTypedSchema = dto.formatVersion >= 3;
             var hasAttachedComponentSchema = dto.formatVersion >= 4;
+            // Older files predate component properties; importing their (absent) list would wipe
+            // values the asset already holds, so only a file that can carry them may overwrite them.
+            var hasComponentPropertySchema = dto.formatVersion >= 5;
+            var hasComponentPartSchema = dto.formatVersion >= 6;
             if (hasFullSchema)
                 asset.schemaVersion = dto.schemaVersion;
             asset.screenId = dto.screenId;
@@ -461,6 +504,10 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                     e.previewOptions.AddRange(d.previewOptions ?? new List<string>());
                     if (hasAttachedComponentSchema)
                         e.attachedComponents = CloneAttachedComponents(d.attachedComponents);
+                    if (hasComponentPropertySchema)
+                        e.componentProperties = FromComponentPropertyDtos(d.componentProperties);
+                    if (hasComponentPartSchema)
+                        e.componentPartOverrides = FromComponentPartOverrideDtos(d.componentPartOverrides);
                     e.fill = d.fill ?? new DesignerFillMetadata();
                     e.previewImage = ResolveAsset<Sprite>(d.previewImageGuid, d.previewImageLocalId);
                     e.autoLayout = d.autoLayout ?? new DesignerAutoLayoutMetadata();
@@ -522,6 +569,108 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             }
             asset.elements = importedElements;
             DesignerHierarchyMigration.Migrate(asset, recordUndo: false);
+        }
+
+        private static List<ComponentPropertyDto> ToComponentPropertyDtos(List<DesignerComponentPropertyEntry> source)
+        {
+            var result = new List<ComponentPropertyDto>();
+            if (source == null) return result;
+            foreach (var entry in source)
+            {
+                if (entry == null || string.IsNullOrEmpty(entry.key) || entry.value == null) continue;
+                var value = entry.value;
+                result.Add(new ComponentPropertyDto
+                {
+                    key = entry.key,
+                    type = value.type.ToString(),
+                    floatValue = value.floatValue,
+                    intValue = value.intValue,
+                    boolValue = value.boolValue,
+                    stringValue = value.stringValue ?? "",
+                    colorValue = new ColorDto { r = value.colorValue.r, g = value.colorValue.g, b = value.colorValue.b, a = value.colorValue.a },
+                    vector2Value = value.vector2Value,
+                    assetGuid = AssetGuid(value.assetValue),
+                    assetLocalId = AssetLocalId(value.assetValue)
+                });
+            }
+            return result;
+        }
+
+        private static List<ComponentPartOverrideDto> ToComponentPartOverrideDtos(
+            List<DesignerComponentPartOverrideMetadata> source)
+        {
+            var result = new List<ComponentPartOverrideDto>();
+            if (source == null) return result;
+            foreach (var item in source)
+            {
+                if (item == null || string.IsNullOrEmpty(item.partId) || !item.HasAnyOverride) continue;
+                result.Add(new ComponentPartOverrideDto
+                {
+                    partId = item.partId,
+                    hasPosition = item.hasPosition,
+                    position = item.position,
+                    hasSizeDelta = item.hasSizeDelta,
+                    sizeDelta = item.sizeDelta,
+                    hasRotation = item.hasRotation,
+                    rotation = item.rotation,
+                    hasScale = item.hasScale,
+                    scale = item.scale,
+                    hasVisibility = item.hasVisibility,
+                    visible = item.visible
+                });
+            }
+            return result;
+        }
+
+        private static List<DesignerComponentPartOverrideMetadata> FromComponentPartOverrideDtos(
+            List<ComponentPartOverrideDto> source)
+        {
+            var result = new List<DesignerComponentPartOverrideMetadata>();
+            if (source == null) return result;
+            foreach (var item in source)
+            {
+                if (item == null || string.IsNullOrEmpty(item.partId)) continue;
+                result.Add(new DesignerComponentPartOverrideMetadata
+                {
+                    partId = item.partId,
+                    hasPosition = item.hasPosition,
+                    position = item.position,
+                    hasSizeDelta = item.hasSizeDelta,
+                    sizeDelta = item.sizeDelta,
+                    hasRotation = item.hasRotation,
+                    rotation = item.rotation,
+                    hasScale = item.hasScale,
+                    scale = item.scale,
+                    hasVisibility = item.hasVisibility,
+                    visible = item.visible
+                });
+            }
+            return result;
+        }
+
+        private static List<DesignerComponentPropertyEntry> FromComponentPropertyDtos(List<ComponentPropertyDto> source)
+        {
+            var result = new List<DesignerComponentPropertyEntry>();
+            if (source == null) return result;
+            foreach (var dto in source)
+            {
+                if (dto == null || string.IsNullOrEmpty(dto.key)) continue;
+                var value = new DesignerPropertyValue
+                {
+                    type = ParseEnum(dto.type, DesignerPropertyValueType.None),
+                    floatValue = dto.floatValue,
+                    intValue = dto.intValue,
+                    boolValue = dto.boolValue,
+                    stringValue = dto.stringValue,
+                    colorValue = dto.colorValue != null
+                        ? new Color(dto.colorValue.r, dto.colorValue.g, dto.colorValue.b, dto.colorValue.a)
+                        : Color.white,
+                    vector2Value = dto.vector2Value,
+                    assetValue = ResolveAsset<UnityEngine.Object>(dto.assetGuid, dto.assetLocalId)
+                };
+                result.Add(new DesignerComponentPropertyEntry(dto.key, value));
+            }
+            return result;
         }
 
         private static List<DesignerAttachedComponentMetadata> CloneAttachedComponents(

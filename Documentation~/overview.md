@@ -55,9 +55,9 @@ Unity의 UI 제작은 그렇지 않았습니다.
 | 축 | 내용 |
 |---|---|
 | 패키지 | 런타임 프레임워크 `com.emiteat.nexui`, 에디터 저작 도구 `com.emiteat.nexui.designer` |
-| 규모 | 런타임 209개 · 에디터 292개 C# 파일, EditMode/PlayMode 테스트 47개 파일 |
+| 규모 | Runtime/Editor 어셈블리와 EditMode/PlayMode 자동 테스트 포함(정확한 개수는 현재 Test Runner XML 기준) |
 | 대상 | Unity 6000.4 (6.x), uGUI 2.0 / UI Toolkit 동시 지원 |
-| 컴포넌트 | 팔레트 529종(NexUI 448 · Unity uGUI 22 · UI Toolkit 59) + 내장 레시피 300종 + 프로젝트 커스텀 컴포넌트 |
+| 컴포넌트 | Descriptor 529종(NexUI 448 · Unity uGUI 22 · UI Toolkit 59) + 복합 레시피 300종 + 프로젝트 커스텀 정의. Runtime Widget 구현 개수와는 다름 |
 | 언어 | 에디터 UI 한국어/영어 (`ko-KR`, `en-US` 번역 테이블 · 컴포넌트 529종 이름 포함) |
 | 출력 | uGUI 프리팹 저장, `.g.uxml` / `.g.uss` 생성, 3-way Sync & Publish |
 
@@ -113,7 +113,7 @@ Unity 에디터 확장입니다. 런타임 패키지에 의존하고, 그 반대
 - **Backend** — 출력 대상(uGUI 프리팹 또는 UI Toolkit UXML/USS). 미리보기 서피스도 백엔드가 제공합니다.
 - **Binding** — 요소와 런타임 상태 키의 연결. 채널은 Text / Value / Visibility / Class / Command / Interactable.
 - **Component Definition · Instance** — 재사용 컴포넌트. Instance는 복사본이 아니라 **참조 + 오버라이드**라서 Definition을 고치면 전 인스턴스가 즉시 따라옵니다.
-- **Virtual Preview Part** — 캔버스에만 그려지는 시각 요소(슬라이더 핸들, 표 헤더 등). 저장 데이터에 남지 않습니다.
+- **Component Part** — 컴포넌트 라이브러리가 소유하는 내부 시각 요소(슬라이더 트랙/핸들, 토글 체크마크 등). 요소 자체는 Hierarchy에 복제하지 않지만 Position/Size Delta/Rotation/Scale/Visibility 오버라이드는 메타데이터에 저장됩니다. 목록/그룹의 실제 내용은 Component Part가 아니라 일반 자식 요소로 저장합니다.
 
 자세한 정의는 [개념](reference/concepts.md), [용어](reference/terminology.md), [Metadata Schema](developer/metadata-schema.md)를 보세요.
 
@@ -151,6 +151,8 @@ Unity 에디터 확장입니다. 런타임 패키지에 의존하고, 그 반대
 
 ### 6.3 Inspector
 
+`Component Properties`는 선택한 타입의 스키마에서 필드를 자동으로 만듭니다. 자주 쓰는 값은 기본 그룹에, 세부 동작은 Advanced에 표시하며, 속성이 많은 컴포넌트는 검색할 수 있습니다. 파란 표시가 있는 값은 기본값을 덮어쓴 값이며 Reset으로 되돌릴 수 있습니다. 각 툴팁에는 설명과 uGUI/UI Toolkit 지원 수준이 함께 표시됩니다.
+
 섹션은 `DesignerInspectorRegistry`에 등록되며, 검색·워크플로 필터(Build/Connect/Animate/Verify/Advanced)·노출 수준(Essential/Common/Advanced/Diagnostic)으로 걸러집니다. 주요 섹션: Component, Component Instance, Layout, Auto Layout, Constraints, Style, Typography, Accessibility, Binding, State, Command, Focus, Motion, Theme, **Attached Components**, Validation, Capabilities.
 
 ### 6.4 고급 도구 (`Editor/Advanced`)
@@ -174,8 +176,8 @@ Motion Clip Editor(전문 타임라인: 재생·마커·자동 키·복사/반�
 | 계열 | 개수 | 성격 | 백엔드 출력 |
 |---|---:|---|---|
 | **NexUI** | 448 + 내장 레시피 300 | 백엔드 독립 컴포넌트. 어느 백엔드로든 나감 | uGUI/UI Toolkit 모두 Partial(구조·텍스트·스타일 기록, 동작은 런타임 담당) |
-| **Unity uGUI** | 22 | Unity `GameObject > UI` 메뉴의 스톡 컨트롤 | uGUI에서 **Full** — 실제 Unity 컨트롤 계층 생성 |
-| **Unity UI Toolkit** | 59 | UI Builder Library의 표준 컨트롤 | UI Toolkit에서 **Full** — 실제 UXML 태그 생성 |
+| **Unity uGUI** | 22 | Unity `GameObject > UI` 메뉴의 스톡 컨트롤 Descriptor | **Beta/Partial** — 기본 계층은 생성하지만 타입별 속성·상호작용 범위가 다름 |
+| **Unity UI Toolkit** | 59 | UI Builder Library의 표준 컨트롤 Descriptor | Generated Asset은 **Beta/Partial**, 사용자 작성 UXML은 Metadata-only |
 | **Custom** | 프로젝트마다 | 팀이 만든 재사용 Component Definition | Instance로 전개 후 백엔드 저장 |
 
 팔레트에 노출되는 529종은 모두 한국어·영어 이름을 가집니다(`component.*` 키). 번역이 빠지면 팔레트가 조용히 영문 이름으로 되돌아가므로, 누락을 잡는 테스트를 함께 둡니다.
@@ -225,7 +227,7 @@ Motion Clip Editor(전문 타임라인: 재생·마커·자동 키·복사/반�
 
 ### 7.4 내장 레시피 300종
 
-아키타입(헤더/내비게이션/지표/카드/빈 상태/폼/툴바/행/그리드/오버레이) × 테마 조합으로 만든 **완성형 컴포넌트**입니다. ScriptableObject 파일 수백 개를 패키지에 넣는 대신 결정론적 인메모리 정의로 생성하고, 인스턴스는 `builtin:` 안정 식별자를 저장하므로 다른 머신에서도 그대로 열립니다. NexUI 계열 폴더 안에서 카테고리 폴더 트리로 탐색하며, 카드는 펼친 폴더에서만 생성되어 300종을 열어도 패널이 무거워지지 않습니다.
+아키타입과 테마 조합으로 만든 **복합 레이아웃 레시피**이며 Runtime Widget 300개를 뜻하지 않습니다. 결정론적 인메모리 정의와 `builtin:` 식별자를 사용하고, 카드는 펼친 폴더에서만 생성됩니다.
 
 ### 7.5 Add Component (임의 MonoBehaviour 부착)
 
@@ -270,7 +272,7 @@ Unity Inspector의 Add Component와 같은 흐름을 Designer 요소에 제공�
 - **Validation** — 75개 코드의 규칙과 각각의 원인·해결법([Validation Catalog](reference/validation-catalog.md)), 일부는 Auto Fix 제공.
 - **접근성 감사** — WCAG 명도 대비 4.5:1, 44px 터치 타깃, 라벨/역할 누락 검사.
 - **Setup Doctor** — 의존성·레지스트리·씬 백엔드·출력 경로 점검.
-- **테스트** — EditMode/PlayMode 47개 파일. 컴포넌트 레지스트리 완전성, 팔레트 계열 구성, 레시피 300종 안정성, 코드 생성기 매핑, 계층/좌표 마이그레이션, Undo 일관성 등.
+- **테스트** — 레지스트리, 팔레트, 레시피, 코드 생성기, 계층/좌표, Undo, 직렬화와 Runtime smoke를 검증합니다. 통과 개수는 CI의 XML 결과를 기준으로 판단합니다.
 - **Git 친화 직렬화** — `.asset` 옆에 결정론적 동반 `.json`을 써서 PR에서 실제로 diff를 읽을 수 있게 합니다. 충돌 해결 후 JSON을 다시 에셋으로 되돌리는 경로도 있습니다.
 - **현지화** — 에디터 UI 문자열을 하드코딩하지 않고 `ko-KR` / `en-US` 테이블에서 읽습니다.
 
@@ -282,8 +284,8 @@ Unity Inspector의 Add Component와 같은 흐름을 Designer 요소에 제공�
 |---|---|
 | 화면 편집(선택·이동·정렬·계층·Undo) | 지원 |
 | 컴포넌트 레지스트리 · 팔레트 3계열 | 지원 |
-| Unity 스톡 컨트롤 생성(uGUI) | 지원 — 해당 백엔드에서 Full |
-| Unity 스톡 컨트롤 태그 생성(UI Toolkit) | 지원 — 해당 백엔드에서 Full |
+| Unity 스톡 컨트롤 생성(uGUI) | Beta/Partial — 타입별 Save Report 확인 필요 |
+| Unity 스톡 컨트롤 태그 생성(UI Toolkit) | Generated Asset Beta/Partial; 사용자 UXML은 Metadata-only |
 | 내장 레시피 300종 | 지원 |
 | Add Component | 지원 — 값 편집은 프리팹 Inspector 담당 |
 | 재사용 컴포넌트(Definition/Instance/Slot/Variant) | Beta |

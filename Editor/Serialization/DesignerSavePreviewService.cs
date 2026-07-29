@@ -71,9 +71,13 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 var tags = root.GetComponentsInChildren<NxUGuiBindingTag>(true);
                 var byStableId = new Dictionary<string, NxUGuiBindingTag>(StringComparer.Ordinal);
                 var byElementId = new Dictionary<string, NxUGuiBindingTag>(StringComparer.Ordinal);
+                var byName = new Dictionary<string, GameObject>(StringComparer.Ordinal);
                 var ambiguousStableIds = new HashSet<string>(StringComparer.Ordinal);
                 var ambiguousElementIds = new HashSet<string>(StringComparer.Ordinal);
+                var ambiguousNames = new HashSet<string>(StringComparer.Ordinal);
                 var referenced = new HashSet<NxUGuiBindingTag>();
+                foreach (var transform in root.GetComponentsInChildren<Transform>(true))
+                    AddUnique(byName, ambiguousNames, transform.name, transform.gameObject, report, "GameObject name");
                 foreach (var tag in tags)
                 {
                     AddUnique(byStableId, ambiguousStableIds, tag.stableId, tag, report, "stableId");
@@ -96,16 +100,21 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                         continue;
                     }
 
-                    NxUGuiBindingTag match = null;
-                    if (!byStableId.TryGetValue(element.stableId, out match)) byElementId.TryGetValue(element.elementId, out match);
-                    if (match == null)
+                    GameObject matchObject = null;
+                    NxUGuiBindingTag matchTag = null;
+                    if (byStableId.TryGetValue(element.stableId, out matchTag) ||
+                        byElementId.TryGetValue(element.elementId, out matchTag))
+                        matchObject = matchTag.gameObject;
+                    else if (!ambiguousNames.Contains(element.elementId))
+                        byName.TryGetValue(element.elementId, out matchObject);
+                    if (matchObject == null)
                         report.MarkCreated("Prefab element", $"Create '{element.elementId}' and apply Designer-owned layout/style.", element.elementId, path);
                     else
                     {
-                        referenced.Add(match);
+                        if (matchTag != null) referenced.Add(matchTag);
                         report.MarkModified("Prefab element", $"Update '{element.elementId}' layout, visual, typography, hierarchy and visibility.", element.elementId, path);
-                        if (match.ownership == NexUIElementOwnership.UserOwned)
-                            report.MarkUserImpact("User-owned object", $"Designer properties will be applied to user-owned '{match.name}', while unrelated components remain intact.", element.elementId);
+                        if (matchTag == null || matchTag.ownership != NexUIElementOwnership.DesignerOwned)
+                            report.MarkUserImpact("User-owned object", $"Designer properties will be applied to user-owned '{matchObject.name}', while unrelated components remain intact. A stable identity tag will be added when needed.", element.elementId);
                     }
                     ReportPropertyParity(element, UIRenderBackend.UGUI, report);
                 }
@@ -133,6 +142,20 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 index.Remove(key);
                 ambiguous.Add(key);
                 report.MarkConflict("Prefab identity", $"Duplicate prefab {identityKind} '{key}' prevents deterministic matching.");
+                return;
+            }
+            index.Add(key, value);
+        }
+
+        private static void AddUnique(Dictionary<string, GameObject> index, HashSet<string> ambiguous,
+            string key, GameObject value, DesignerSaveReport report, string identityKind)
+        {
+            if (string.IsNullOrEmpty(key) || ambiguous.Contains(key)) return;
+            if (index.ContainsKey(key))
+            {
+                index.Remove(key);
+                ambiguous.Add(key);
+                report.Warn($"Duplicate prefab {identityKind} '{key}'; name fallback matching is disabled for it.");
                 return;
             }
             index.Add(key, value);
@@ -198,6 +221,33 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 else
                     report.MarkPreviewOnly("Attached components",
                         $"'{element.elementId}' MonoBehaviour attachments are uGUI-only and remain in metadata.", element.elementId);
+            }
+
+            foreach (var entry in element.componentProperties ?? new List<DesignerComponentPropertyEntry>())
+            {
+                if (entry == null || string.IsNullOrEmpty(entry.key)) continue;
+                var property = Components.DesignerComponentPropertyAccess.Find(element, entry.key);
+                if (property == null)
+                {
+                    report.MarkUserImpact("Unknown component property",
+                        $"'{element.elementId}' keeps newer/custom property '{entry.key}' in metadata, but this Designer cannot write it to {backend}.",
+                        element.elementId);
+                    continue;
+                }
+
+                var support = backend == UIRenderBackend.UGUI
+                    ? Components.DesignerComponentPropertySupport.UGUI(component, property)
+                    : Components.DesignerComponentPropertySupport.UIToolkit(component, property);
+                if (support == Components.DesignerBackendSupport.Unsupported)
+                    report.MarkUnsupported(property.DisplayName,
+                        $"'{element.elementId}' property '{property.Key}' is unsupported on {backend}.", element.elementId);
+                else if (support == Components.DesignerBackendSupport.PreviewOnly)
+                    report.MarkPreviewOnly(property.DisplayName,
+                        $"'{element.elementId}' property '{property.Key}' remains preview/metadata-only on {backend}.", element.elementId);
+                else if (support == Components.DesignerBackendSupport.Partial)
+                    report.MarkUserImpact(property.DisplayName,
+                        $"'{element.elementId}' property '{property.Key}' needs NexUI runtime behavior or a backend-specific adapter on {backend}.",
+                        element.elementId);
             }
 
             foreach (var property in ActiveLimitedProperties(element))

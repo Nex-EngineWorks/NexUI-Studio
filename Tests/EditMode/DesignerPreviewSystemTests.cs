@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using emiteat.NexUI.Designer.Editor;
 using emiteat.NexUI.Designer.Editor.Backend;
 using emiteat.NexUI.Designer.Editor.Components;
@@ -121,6 +122,27 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
             context.SetInteractionMode(DesignerInteractionMode.Design);
             Assert.IsFalse(context.IsInteractive);
             Assert.AreEqual(DesignerComponentState.Normal, context.ForcedPreviewState, "returning to Design clears forced state");
+        }
+
+        [Test]
+        public void RebuildPreview_PreservesMultiSelectionAndKeyObject()
+        {
+            var context = new NexUIDesignerContext();
+            var metadata = UnityEngine.ScriptableObject.CreateInstance<DesignerMetadataAsset>();
+            var first = new DesignerElementMetadata { elementId = "first" };
+            var second = new DesignerElementMetadata { elementId = "second" };
+            metadata.elements.Add(first);
+            metadata.elements.Add(second);
+            context.SetMetadata(metadata);
+            context.SelectMany(new[] { first, second });
+            context.SetKeyObject(first);
+
+            context.RebuildPreview();
+
+            CollectionAssert.AreEqual(new[] { "first", "second" }, context.SelectedElements.Select(item => item.elementId));
+            Assert.That(context.KeyObject, Is.SameAs(first));
+            context.Dispose();
+            UnityEngine.Object.DestroyImmediate(metadata);
         }
     }
 }

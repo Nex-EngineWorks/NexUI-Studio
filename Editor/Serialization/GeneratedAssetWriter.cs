@@ -65,13 +65,24 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
 
                 if (dryRun || pending.Count == 0) { result.Success = true; return result; }
                 StageAndCommit(pending);
-                foreach (var file in pending) AssetDatabase.ImportAsset(file.Path, ImportAssetOptions.ForceUpdate);
+                // Import dependencies before UXML documents. A newly-created UXML may reference a
+                // sibling USS from the same transaction; importing the UXML first records an invalid
+                // zero-GUID dependency in Unity 6 and turns an otherwise successful write into an
+                // editor error.
+                foreach (var file in pending)
+                    if (!string.Equals(Path.GetExtension(file.Path), ".uxml", StringComparison.OrdinalIgnoreCase))
+                        AssetDatabase.ImportAsset(file.Path, ImportAssetOptions.ForceUpdate);
+                foreach (var file in pending)
+                    if (string.Equals(Path.GetExtension(file.Path), ".uxml", StringComparison.OrdinalIgnoreCase))
+                        AssetDatabase.ImportAsset(file.Path, ImportAssetOptions.ForceUpdate);
                 result.Success = true;
             }
             catch (Exception ex)
             {
                 result.Errors.Add(ex.Message);
-                Debug.LogError("[NexUI] Generated asset write failed: " + ex);
+                // Expected validation failures are returned to the caller as structured errors.
+                // Logging them as Unity errors makes tests and batch CI fail a second time even
+                // when the caller intentionally exercises the refusal path.
             }
             return result;
         }
@@ -136,8 +147,19 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         {
             if (string.IsNullOrWhiteSpace(path)) throw new ArgumentException("Generated asset path is empty.");
             var normalized = path.Replace('\\', '/');
+            if (Path.IsPathRooted(path))
+                throw new UnauthorizedAccessException("Generated asset paths must be project-relative: " + path);
             if (!normalized.StartsWith("Assets/", StringComparison.Ordinal) && normalized != "Assets")
                 throw new UnauthorizedAccessException("Generated assets must be written under the project Assets folder: " + path);
+            var segments = normalized.Split('/');
+            foreach (var segment in segments)
+                if (segment == "." || segment == "..")
+                    throw new UnauthorizedAccessException("Generated asset paths cannot traverse directories: " + path);
+            var projectRoot = Directory.GetParent(Application.dataPath)?.FullName;
+            var assetsRoot = Path.GetFullPath(Application.dataPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            var fullPath = Path.GetFullPath(Path.Combine(projectRoot ?? string.Empty, normalized));
+            if (!fullPath.StartsWith(assetsRoot, StringComparison.OrdinalIgnoreCase))
+                throw new UnauthorizedAccessException("Generated asset resolved outside the project Assets folder: " + path);
             if (Path.GetFileName(path).IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
                 throw new ArgumentException("Generated asset has an invalid file name: " + path);
         }
