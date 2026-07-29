@@ -1,5 +1,6 @@
 using System.Linq;
 using emiteat.NexUI.Designer.Editor;
+using emiteat.NexUI.Designer.Editor.Properties;
 using emiteat.NexUI.MotionClip;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -41,10 +42,11 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _subscriptions.Add(h => context.PreviewSettingsChanged += h, h => context.PreviewSettingsChanged -= h, MarkDirtyRepaint);
         }
 
-        private UIMotionClipPropertyTrack FindPositionTrack(
-            out DesignerElementMetadata element)
+        private UIMotionClipTrack FindMotionTrack(
+            out DesignerElementMetadata element, out UIMotionClipPropertyTrack positionTrack)
         {
             element = _context.SelectedMetadata;
+            positionTrack = null;
 
             if (!_context.ShowMotionPath ||
                 _context.ActiveMotionClip == null ||
@@ -58,50 +60,114 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             var track = _context.ActiveMotionClip.tracks?
                 .FirstOrDefault(track => track.targetElementId == elementId);
 
-            return track?.propertyTracks?
+            positionTrack = track?.propertyTracks?
                 .FirstOrDefault(propertyTrack =>
                     propertyTrack.propertyType ==
                     UIMotionClipPropertyType.AnchoredPosition);
+            return positionTrack != null ? track : null;
         }
 
         private void OnGenerateVisualContent(MeshGenerationContext ctx)
         {
-            var propertyTrack = FindPositionTrack(out var element);
+            var track = FindMotionTrack(out var element, out var propertyTrack);
             if (propertyTrack?.keyframes == null || propertyTrack.keyframes.Length < 2) return;
 
             var zoom = _context.Zoom;
-            var halfSize = element.rect.size * 0.5f;
             var painter = ctx.painter2D;
 
             painter.strokeColor = LineColor;
             painter.lineWidth = 1.5f;
             painter.BeginPath();
+            var startPose = MotionPreviewPoseUtility.Evaluate(element, track, 0f);
+            painter.MoveTo(startPose.Rect.center * zoom);
             for (var i = 0; i < propertyTrack.keyframes.Length; i++)
             {
-                var point = (propertyTrack.keyframes[i].value.vector2Value + halfSize) * zoom;
-                if (i == 0) painter.MoveTo(point);
-                else painter.LineTo(point);
+                var pose = MotionPreviewPoseUtility.Evaluate(element, track, propertyTrack.keyframes[i].time);
+                painter.LineTo(pose.Rect.center * zoom);
             }
             painter.Stroke();
 
             for (var i = 0; i < propertyTrack.keyframes.Length; i++)
             {
-                var point = (propertyTrack.keyframes[i].value.vector2Value + halfSize) * zoom;
+                var pose = MotionPreviewPoseUtility.Evaluate(element, track, propertyTrack.keyframes[i].time);
+                var point = pose.Rect.center * zoom;
                 painter.BeginPath();
                 painter.Arc(point, 3f, Angle.Degrees(0f), Angle.Degrees(360f));
                 painter.fillColor = KeyframeColor;
                 painter.Fill();
             }
 
-            var currentValue = UIMotionClipEvaluator.Evaluate(propertyTrack, _context.ActiveMotionClipTime);
-            if (currentValue.HasValue)
+            var currentPose = MotionPreviewPoseUtility.Evaluate(element, track, _context.ActiveMotionClipTime);
+            painter.BeginPath();
+            painter.Arc(currentPose.Rect.center * zoom, 5f, Angle.Degrees(0f), Angle.Degrees(360f));
+            painter.fillColor = CurrentColor;
+            painter.Fill();
+        }
+    }
+
+    /// <summary>
+    /// Evaluates the same five properties as <c>UIMotionClipPlayer</c>, but into a Designer canvas
+    /// pose. This keeps the visible metadata preview synchronized with the real backend preview
+    /// surface while scrubbing/playing without mutating authored metadata.
+    /// </summary>
+    internal readonly struct MotionPreviewPose
+    {
+        public readonly Rect Rect;
+        public readonly Vector2 Scale;
+        public readonly float Rotation;
+        public readonly float Opacity;
+
+        public MotionPreviewPose(Rect rect, Vector2 scale, float rotation, float opacity)
+        {
+            Rect = rect;
+            Scale = scale;
+            Rotation = rotation;
+            Opacity = opacity;
+        }
+    }
+
+    internal static class MotionPreviewPoseUtility
+    {
+        public static MotionPreviewPose Evaluate(DesignerElementMetadata element, UIMotionClipTrack track, float time)
+        {
+            var rect = element.rect;
+            var layout = DesignerPropertyAdapter.Layout(element);
+            var scale = layout.scale;
+            var rotation = layout.rotation;
+            var opacity = DesignerPropertyAdapter.Opacity(element);
+            if (track?.propertyTracks == null)
+                return new MotionPreviewPose(rect, scale, rotation, opacity);
+
+            foreach (var propertyTrack in track.propertyTracks)
             {
-                var point = (currentValue.Value.vector2Value + halfSize) * zoom;
-                painter.BeginPath();
-                painter.Arc(point, 5f, Angle.Degrees(0f), Angle.Degrees(360f));
-                painter.fillColor = CurrentColor;
-                painter.Fill();
+                if (propertyTrack == null) continue;
+                var value = UIMotionClipEvaluator.Evaluate(propertyTrack, time);
+                if (!value.HasValue) continue;
+                switch (propertyTrack.propertyType)
+                {
+                    case UIMotionClipPropertyType.AnchoredPosition:
+                        rect.position = value.Value.vector2Value;
+                        break;
+                    case UIMotionClipPropertyType.LocalPosition:
+                        rect.position = value.Value.valueType == UIMotionClipValueType.Vector3
+                            ? new Vector2(value.Value.vector3Value.x, value.Value.vector3Value.y)
+                            : value.Value.vector2Value;
+                        break;
+                    case UIMotionClipPropertyType.SizeDelta:
+                        rect.size = value.Value.vector2Value;
+                        break;
+                    case UIMotionClipPropertyType.LocalScale:
+                        scale = new Vector2(value.Value.vector3Value.x, value.Value.vector3Value.y);
+                        break;
+                    case UIMotionClipPropertyType.LocalRotationZ:
+                        rotation = value.Value.floatValue;
+                        break;
+                    case UIMotionClipPropertyType.CanvasGroupAlpha:
+                        opacity = Mathf.Clamp01(value.Value.floatValue);
+                        break;
+                }
             }
+            return new MotionPreviewPose(rect, scale, rotation, opacity);
         }
     }
 }

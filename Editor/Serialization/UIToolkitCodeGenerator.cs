@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text;
 using UnityEngine;
 using Unity.Profiling;
+using emiteat.NexUI.Designer.Editor.Components;
 using emiteat.NexUI.Designer.Editor.Properties;
 
 namespace emiteat.NexUI.Designer.Editor.Serialization
@@ -59,8 +60,14 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             if (!string.IsNullOrEmpty(classAttr))
                 sb.Append(" class=\"").Append(EscapeAttr(classAttr)).Append('"');
 
-            if (HasText(element.elementType) && !string.IsNullOrEmpty(element.text))
-                sb.Append(" text=\"").Append(EscapeAttr(element.text)).Append('"');
+            var descriptor = DesignerComponentRegistry.Get(element.elementType);
+            if (descriptor.UxmlHasText && !string.IsNullOrEmpty(element.text))
+            {
+                var attribute = string.IsNullOrEmpty(descriptor.UxmlTextAttribute)
+                    ? "text"
+                    : descriptor.UxmlTextAttribute;
+                sb.Append(' ').Append(attribute).Append("=\"").Append(EscapeAttr(element.text)).Append('"');
+            }
 
             if (children.Count == 0)
             {
@@ -103,7 +110,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             else
                 AppendAbsoluteLayout(sb, metadata, element);
 
-            if (HasText(element.elementType))
+            if (DesignerComponentRegistry.Get(element.elementType).UxmlHasText)
             {
                 AppendTypography(sb, element);
             }
@@ -322,21 +329,11 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
 
         // ---- Mapping helpers ----------------------------------------------------
 
-        private static readonly Dictionary<string, string> TagMap = new Dictionary<string, string>
-        {
-            { "Label", "ui:Label" },
-            { "Button", "ui:Button" },
-            { "IconButton", "ui:Button" },
-            { "Toggle", "ui:Toggle" },
-        };
-
-        private static readonly HashSet<string> TextTypes = new HashSet<string> { "Label", "Button", "IconButton" };
-
         private static string TagFor(string elementType)
-            => !string.IsNullOrEmpty(elementType) && TagMap.TryGetValue(elementType, out var tag) ? tag : "ui:VisualElement";
-
-        private static bool HasText(string elementType)
-            => !string.IsNullOrEmpty(elementType) && TextTypes.Contains(elementType);
+        {
+            var descriptor = DesignerComponentRegistry.Get(elementType);
+            return string.IsNullOrEmpty(descriptor.UxmlTag) ? "ui:VisualElement" : descriptor.UxmlTag;
+        }
 
         private static string ClassAttr(DesignerElementMetadata element)
         {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using emiteat.NexUI.Designer.Editor.Components;
 using emiteat.NexUI.Designer.Editor.Backend;
 using emiteat.NexUI.Designer.Editor.Commands;
 using emiteat.NexUI.Designer.Editor.Localization;
@@ -70,11 +71,14 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
                 _entries.Add(new Entry(captured.DisplayName, captured.Id, () => captured.Execute(_context), () => captured.CanExecute(_context)));
             }
 
-            foreach (DesignerElementType type in Enum.GetValues(typeof(DesignerElementType)))
+            foreach (var descriptor in DesignerComponentRegistry.All)
             {
-                if (type == DesignerElementType.Custom) continue;
-                var captured = type;
-                _entries.Add(new Entry(DesignerLocalization.T("shell.palette.add", captured), "component " + captured, () => _context.CreateMetadataElement(captured), () => _context.Metadata != null));
+                if (descriptor == null || descriptor.IsGeneric || string.IsNullOrEmpty(descriptor.PaletteGroup)) continue;
+                var captured = descriptor;
+                var name = DesignerComponentPalette.DisplayName(captured);
+                _entries.Add(new Entry(DesignerLocalization.T("shell.palette.add", name),
+                    "component " + name + " " + captured.TypeId + " " + captured.Family,
+                    () => _context.CreateMetadataElement(captured.TypeId), () => _context.Metadata != null));
             }
 
             _entries.Add(new Entry(DesignerLocalization.T("toolbar.validate"), "screen validation 검사", _context.Validate, () => true));

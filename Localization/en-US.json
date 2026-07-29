@@ -776,8 +776,8 @@
 
   "viewport.motionPath": "Motion Path",
   "viewport.onionSkin": "Onion Skin",
-  "tooltip.viewport.motionPath": "Shows the selected element's AnchoredPosition track (if any, from the clip open in the Motion Clip Editor) as a path with a dot per keyframe and a marker at the current scrub time.",
-  "tooltip.viewport.onionSkin": "Ghosts the selected element's rect at the nearest keyframe times before/after the current scrub position, so you can judge its motion without scrubbing back and forth.",
+  "tooltip.viewport.motionPath": "Shows the selected element's travel path and keyframes. The original UI remains at the start with reduced opacity while the live UI moves to the evaluated destination.",
+  "tooltip.viewport.onionSkin": "Adds nearby before/after keyframe ghosts in addition to the persistent start pose, so motion spacing can be judged without scrubbing back and forth.",
 
   "motionClip.toolbar.useWorkArea": "Loop Work Area",
   "motionClip.toolbar.workAreaStart": "Start",
@@ -995,4 +995,51 @@
   ,"productivity.tooltip.newScreen": "Create a connected Screen, Metadata and backend asset bundle."
   ,"productivity.tooltip.layout": "Convert the selection to Auto Layout or recommend anchors."
   ,"productivity.tooltip.transition": "Generate Open and Close Motion Clips from the selection."
+  ,"palette.family": "Library"
+  ,"palette.family.all": "All"
+  ,"palette.family.nexui": "NexUI"
+  ,"palette.family.ugui": "Unity uGUI"
+  ,"palette.family.uitk": "UI Toolkit"
+  ,"tooltip.palette.family": "Filter the component library by UI family."
+  ,"palette.group.containers": "NexUI / Containers"
+  ,"palette.group.textMedia": "NexUI / Text & Media"
+  ,"palette.group.controls": "NexUI / Controls"
+  ,"palette.group.selection": "NexUI / Selection & Input"
+  ,"palette.group.navigation": "NexUI / Navigation"
+  ,"palette.group.feedback": "NexUI / Feedback"
+  ,"palette.group.overlay": "NexUI / Overlay"
+  ,"palette.group.data": "NexUI / Data & Collections"
+  ,"palette.group.game": "NexUI / Game HUD"
+  ,"palette.group.ugui.basic": "Unity uGUI / Basic"
+  ,"palette.group.ugui.controls": "Unity uGUI / Controls"
+  ,"palette.group.ugui.containers": "Unity uGUI / Containers & Layout"
+  ,"palette.group.uitk.basic": "UI Toolkit / Basic"
+  ,"palette.group.uitk.controls": "UI Toolkit / Controls"
+  ,"palette.group.uitk.fields": "UI Toolkit / Fields"
+  ,"palette.group.uitk.containers": "UI Toolkit / Containers & Collections"
+  ,"inspector.section.attachedComponents": "Attached Components"
+  ,"attachedComponents.help": "MonoBehaviours are applied to the generated uGUI GameObject. UI Toolkit screens keep them in metadata but cannot attach them to a VisualElement."
+  ,"attachedComponents.add": "Add Component"
+  ,"attachedComponents.addTooltip": "Choose a runtime MonoBehaviour to attach when the uGUI prefab is saved."
+  ,"attachedComponents.remove": "Remove this Designer-managed component."
+  ,"attachedComponents.missing": "This type is not currently available; its reference is preserved."
+  ,"attachedComponents.pickerTitle": "Add Component"
+  ,"palette.tooltip.family": "Library"
+  ,"palette.tooltip.backends": "Backend support"
+  ,"palette.tooltip.size": "Default size"
+  ,"palette.tooltip.states": "Preview states"
+  ,"palette.tooltip.bindings": "Bindings"
+  ,"palette.tooltip.events": "Events"
+  ,"palette.tooltip.hint": "Hover to inspect · Click to add · Right-click for placement options"
+  ,"palette.support.full": "Full"
+  ,"palette.support.partial": "Partial"
+  ,"palette.support.previewOnly": "Preview only"
+  ,"palette.support.unsupported": "Unsupported"
+  ,"palette.capability.children": "Accepts children"
+  ,"palette.capability.interactive": "Interactive"
+  ,"palette.capability.value": "Value-driven"
+  ,"palette.capability.collection": "Collection"
+  ,"palette.capability.overlay": "Overlay"
+  ,"palette.capability.display": "Display element"
+  ,"palette.value.none": "None"
 }

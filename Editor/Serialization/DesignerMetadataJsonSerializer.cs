@@ -148,6 +148,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             public float previewValue;
             public int previewItemCount;
             public List<string> previewOptions = new();
+            public List<DesignerAttachedComponentMetadata> attachedComponents = new();
             public DesignerFillMetadata fill = new();
             public string previewImageGuid = "";
             public long previewImageLocalId;
@@ -280,7 +281,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             var screenMotion = asset.screenMotion ?? new DesignerScreenMotionMetadata();
             var dto = new MetadataFileDto
             {
-                formatVersion = 3,
+                formatVersion = 4,
                 schemaVersion = asset.schemaVersion,
                 screenId = asset.screenId,
                 variants = ToVariantDtos(asset.variants),
@@ -330,6 +331,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                     previewValue = e.previewValue,
                     previewItemCount = e.previewItemCount,
                     previewOptions = e.previewOptions != null ? new List<string>(e.previewOptions) : new List<string>(),
+                    attachedComponents = CloneAttachedComponents(e.attachedComponents),
                     fill = e.fill ?? new DesignerFillMetadata(),
                     previewImageGuid = AssetGuid(e.previewImage),
                     previewImageLocalId = AssetLocalId(e.previewImage),
@@ -386,6 +388,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         {
             var hasFullSchema = dto.formatVersion >= 2;
             var hasTypedSchema = dto.formatVersion >= 3;
+            var hasAttachedComponentSchema = dto.formatVersion >= 4;
             if (hasFullSchema)
                 asset.schemaVersion = dto.schemaVersion;
             asset.screenId = dto.screenId;
@@ -456,6 +459,8 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                     e.previewValue = d.previewValue;
                     e.previewItemCount = d.previewItemCount;
                     e.previewOptions.AddRange(d.previewOptions ?? new List<string>());
+                    if (hasAttachedComponentSchema)
+                        e.attachedComponents = CloneAttachedComponents(d.attachedComponents);
                     e.fill = d.fill ?? new DesignerFillMetadata();
                     e.previewImage = ResolveAsset<Sprite>(d.previewImageGuid, d.previewImageLocalId);
                     e.autoLayout = d.autoLayout ?? new DesignerAutoLayoutMetadata();
@@ -517,6 +522,17 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             }
             asset.elements = importedElements;
             DesignerHierarchyMigration.Migrate(asset, recordUndo: false);
+        }
+
+        private static List<DesignerAttachedComponentMetadata> CloneAttachedComponents(
+            List<DesignerAttachedComponentMetadata> source)
+        {
+            var result = new List<DesignerAttachedComponentMetadata>();
+            if (source == null) return result;
+            foreach (var item in source)
+                if (item != null)
+                    result.Add(new DesignerAttachedComponentMetadata { typeName = item.typeName });
+            return result;
         }
 
         private static List<TokenOverrideDto> ToTokenDtos(List<DesignerTokenOverride> overrides)

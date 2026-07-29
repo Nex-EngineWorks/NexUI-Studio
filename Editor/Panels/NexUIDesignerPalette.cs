@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using emiteat.NexUI.Designer.Editor.Backend;
+using emiteat.NexUI.Designer.Editor.Components;
 using emiteat.NexUI.Designer.Editor.Localization;
 using UnityEditor;
 using UnityEditor.UIElements;
@@ -10,48 +10,6 @@ namespace emiteat.NexUI.Designer.Editor.Panels
 {
     public sealed class NexUIDesignerPalette : VisualElement
     {
-        // Every DesignerElementType except Custom (which has no sensible one-click default and
-        // is created via other flows, e.g. "Sync Metadata From Backend"), grouped into
-        // folder-like categories (UI Toolkit Foldout) instead of one long flat list.
-        private static readonly (string category, (DesignerElementType type, string label)[] items)[] Categories =
-        {
-            ("Containers", new[]
-            {
-                (DesignerElementType.Panel, "Panel"),
-                (DesignerElementType.Card, "Card"),
-                (DesignerElementType.Container, "Container"),
-                (DesignerElementType.Modal, "Modal"),
-            }),
-            ("Text & Media", new[]
-            {
-                (DesignerElementType.Label, "Text"),
-                (DesignerElementType.Image, "Image"),
-            }),
-            ("Actions & Input", new[]
-            {
-                (DesignerElementType.Button, "Button"),
-                (DesignerElementType.IconButton, "Icon Button"),
-                (DesignerElementType.ChoiceList, "Choice List"),
-            }),
-            ("Feedback & Status", new[]
-            {
-                (DesignerElementType.Toast, "Toast"),
-                (DesignerElementType.Tooltip, "Tooltip"),
-                (DesignerElementType.Popover, "Popover"),
-                (DesignerElementType.ProgressBar, "Progress Bar"),
-                (DesignerElementType.StatBar, "Stat Bar"),
-                (DesignerElementType.RadialFill, "Radial Fill"),
-                (DesignerElementType.Spinner, "Spinner"),
-                (DesignerElementType.Skeleton, "Skeleton"),
-            }),
-            ("Data & Lists", new[]
-            {
-                (DesignerElementType.List, "List"),
-                (DesignerElementType.Grid, "Grid"),
-                (DesignerElementType.Slot, "Slot"),
-            }),
-        };
-
         private readonly VisualElement _grid;
         private readonly Dictionary<Button, string> _buttonLabels = new();
         private readonly List<Foldout> _categoryFoldouts = new();
@@ -70,19 +28,27 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             _grid.AddToClassList("nexui-palette-grid");
             Add(_grid);
 
-            foreach (var (category, items) in Categories)
+            // Folders and entries come from the component registry (see DesignerComponentPalette),
+            // so NexUI components and Unity's own uGUI / UI Toolkit controls all appear here without
+            // this panel keeping its own list.
+            foreach (var group in DesignerComponentPalette.BuildGroups())
             {
-                var prefsKey = "NexUI.Designer.Palette.Category." + category;
-                var foldout = new Foldout { text = category, value = EditorPrefs.GetBool(prefsKey, true) };
+                var prefsKey = "NexUI.Designer.Palette.Category." + group.GroupId;
+                var defaultOpen = group.Family == DesignerComponentFamily.NexUI;
+                var foldout = new Foldout { text = group.Title, value = EditorPrefs.GetBool(prefsKey, defaultOpen) };
                 foldout.AddToClassList("nexui-palette-category");
-                foldout.RegisterValueChangedCallback(evt => EditorPrefs.SetBool(prefsKey, evt.newValue));
+                foldout.RegisterValueChangedCallback(evt =>
+                {
+                    if (evt.target == foldout) EditorPrefs.SetBool(prefsKey, evt.newValue);
+                });
                 _grid.Add(foldout);
                 _categoryFoldouts.Add(foldout);
 
-                foreach (var (type, label) in items)
+                foreach (var descriptor in group.Items)
                 {
-                    var button = AddButton(foldout, context, type, label);
-                    _buttonLabels[button] = label;
+                    var label = DesignerComponentPalette.DisplayName(descriptor);
+                    var button = AddButton(foldout, context, descriptor, label);
+                    _buttonLabels[button] = label + " " + descriptor.TypeId;
                 }
             }
 
@@ -113,11 +79,13 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             foreach (var foldout in _categoryFoldouts)
             {
                 var anyVisible = false;
-                foreach (var child in foldout.Children())
+                // Entries live in the Foldout's content container, not directly under it, so match
+                // against the tracked buttons rather than the Foldout's immediate children.
+                foreach (var pair in _buttonLabels)
                 {
-                    if (child is not Button button || !_buttonLabels.TryGetValue(button, out var label)) continue;
-                    var visible = !hasFilter || label.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
-                    button.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+                    if (!foldout.Contains(pair.Key)) continue;
+                    var visible = !hasFilter || pair.Value.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
+                    pair.Key.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
                     if (visible) anyVisible = true;
                 }
 
@@ -126,12 +94,14 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             }
         }
 
-        private static Button AddButton(VisualElement parent, NexUIDesignerContext context, DesignerElementType type, string label)
+        private static Button AddButton(VisualElement parent, NexUIDesignerContext context,
+            DesignerComponentDescriptor descriptor, string label)
         {
-            var button = new Button(() => context.CreateMetadataElement(type))
+            var button = new Button(() => context.CreateMetadataElement(descriptor.TypeId))
             {
                 text = label,
                 tooltip = string.Format(DesignerLocalization.T("tooltip.palette.addComponent"), label)
+                          + (string.IsNullOrEmpty(descriptor.Description) ? "" : "\n" + descriptor.Description)
             };
             button.AddToClassList("nexui-palette-button");
             parent.Add(button);

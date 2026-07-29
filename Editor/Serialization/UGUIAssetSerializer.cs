@@ -139,8 +139,9 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 }
                 if (go == null)
                 {
-                    go = new GameObject(element.elementId, typeof(RectTransform));
+                    go = UGUIControlFactory.Create(element);
                     go.transform.SetParent(root.transform, false);
+                    UGUIControlFactory.MatchLayer(go, root);
                     created = true;
                     report.MarkCreated("Prefab element", $"Created element '{element.elementId}'", element.elementId);
                 }
@@ -181,7 +182,8 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                     objects.TryGetValue(element.parentId, out var parent) && parent != null &&
                     go.transform.parent != parent.transform)
                 {
-                    go.transform.SetParent(parent.transform, false);
+                    go.transform.SetParent(UGUIControlFactory.ContentParent(parent,
+                        metadata.Find(element.parentId)?.elementType), false);
                 }
 
                 // Element rects are stored in absolute canvas space; convert to the parent-relative
@@ -193,6 +195,8 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 ApplyAutoLayout(go, element, report);
                 go.SetActive(element.runtimeVisible);
                 ApplyVisualAndText(go, element, report);
+                UGUIControlFactory.EnsureAndApply(go, element, report);
+                ApplyAttachedComponents(go, element, report);
             }
 
             // Pass 3: reflect Designer sibling order onto the transform (SetSiblingIndex), so the
@@ -343,9 +347,10 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         private static void ApplyVisualAndText(GameObject go, DesignerElementMetadata element, DesignerSaveReport report)
         {
             var type = element.elementType ?? "Panel";
-            bool isButton = Is(type, "Button") || Is(type, "IconButton");
-            bool isText = Is(type, "Label") || Is(type, "Toast") || Is(type, "Tooltip");
-            bool isImage = Is(type, "Image");
+            var control = DesignerComponentRegistry.Get(type).UGUIControl;
+            bool isButton = Is(type, "Button") || Is(type, "IconButton") || control == "Button" || control == "ButtonTMP";
+            bool isText = Is(type, "Label") || Is(type, "Toast") || Is(type, "Tooltip") || control == "Text" || control == "TextTMP";
+            bool isImage = Is(type, "Image") || control == "Image";
             bool isValueFill = Is(type, "ProgressBar") || Is(type, "StatBar") || Is(type, "RadialFill");
 
             // Value components map to an Image with a fill method + fillAmount (uGUI: Partial - the
@@ -668,5 +673,103 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
 
         private static bool Is(string type, string other)
             => string.Equals(type, other, System.StringComparison.OrdinalIgnoreCase);
+
+        private static void ApplyAttachedComponents(GameObject go, DesignerElementMetadata element, DesignerSaveReport report)
+        {
+            var requested = element.attachedComponents ?? new List<DesignerAttachedComponentMetadata>();
+            var desired = new Dictionary<System.Type, int>();
+            foreach (var item in requested)
+            {
+                if (item == null || string.IsNullOrWhiteSpace(item.typeName)) continue;
+                var type = ResolveComponentType(item.typeName);
+                if (type == null || !typeof(MonoBehaviour).IsAssignableFrom(type) || type.IsAbstract || type.ContainsGenericParameters)
+                {
+                    report.MarkUnsupported("Attached component",
+                        $"'{element.elementId}' references unavailable MonoBehaviour '{item.typeName}'. Metadata was preserved.", element.elementId);
+                    continue;
+                }
+                desired.TryGetValue(type, out var count);
+                desired[type] = count + 1;
+            }
+
+            var tracker = go.GetComponent<DesignerAttachedComponentTracker>();
+            if (tracker != null)
+            {
+                tracker.managedComponents ??= new List<Component>();
+                var trackedCounts = new Dictionary<System.Type, int>();
+                foreach (var tracked in tracker.managedComponents)
+                {
+                    if (tracked == null || tracked.gameObject != go) continue;
+                    trackedCounts.TryGetValue(tracked.GetType(), out var trackedCount);
+                    trackedCounts[tracked.GetType()] = trackedCount + 1;
+                }
+                var allowedTrackedCounts = new Dictionary<System.Type, int>();
+                foreach (var pair in trackedCounts)
+                {
+                    desired.TryGetValue(pair.Key, out var wanted);
+                    var userOwnedCount = Mathf.Max(0, go.GetComponents(pair.Key).Length - pair.Value);
+                    allowedTrackedCounts[pair.Key] = Mathf.Max(0, wanted - userOwnedCount);
+                }
+                for (var i = tracker.managedComponents.Count - 1; i >= 0; i--)
+                {
+                    var component = tracker.managedComponents[i];
+                    if (component == null || component.gameObject != go)
+                    {
+                        tracker.managedComponents.RemoveAt(i);
+                        continue;
+                    }
+                    allowedTrackedCounts.TryGetValue(component.GetType(), out var wanted);
+                    var sameTypeBefore = 0;
+                    for (var j = 0; j < i; j++)
+                        if (tracker.managedComponents[j] != null && tracker.managedComponents[j].GetType() == component.GetType())
+                            sameTypeBefore++;
+                    if (sameTypeBefore >= wanted)
+                    {
+                        var componentName = component.GetType().Name;
+                        tracker.managedComponents.RemoveAt(i);
+                        Object.DestroyImmediate(component);
+                        report.MarkChanged($"Removed Designer-managed {componentName} from '{element.elementId}'");
+                    }
+                }
+            }
+
+            foreach (var pair in desired)
+            {
+                var existing = go.GetComponents(pair.Key).Length;
+                for (var i = existing; i < pair.Value; i++)
+                {
+                    try
+                    {
+                        var added = go.AddComponent(pair.Key);
+                        tracker ??= go.AddComponent<DesignerAttachedComponentTracker>();
+                        tracker.managedComponents ??= new List<Component>();
+                        tracker.managedComponents.Add(added);
+                        report.MarkChanged($"Added {pair.Key.Name} to '{element.elementId}'");
+                    }
+                    catch (System.Exception ex)
+                    {
+                        report.Warn($"Could not attach {pair.Key.FullName} to '{element.elementId}': {ex.Message}");
+                        break;
+                    }
+                }
+            }
+
+            if (tracker != null && (tracker.managedComponents == null || tracker.managedComponents.Count == 0))
+                Object.DestroyImmediate(tracker);
+        }
+
+        private static System.Type ResolveComponentType(string typeName)
+        {
+            var type = System.Type.GetType(typeName, false);
+            if (type != null) return type;
+            var comma = typeName.IndexOf(',');
+            var fullName = comma >= 0 ? typeName.Substring(0, comma).Trim() : typeName.Trim();
+            foreach (var assembly in System.AppDomain.CurrentDomain.GetAssemblies())
+            {
+                type = assembly.GetType(fullName, false);
+                if (type != null) return type;
+            }
+            return null;
+        }
     }
 }

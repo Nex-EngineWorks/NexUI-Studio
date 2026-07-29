@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using System;
@@ -114,6 +115,14 @@ namespace emiteat.NexUI.Designer.Editor
                     }
                 }
                 asset.schemaVersion = 4;
+            }
+
+            if (asset.schemaVersion < 5)
+            {
+                foreach (var element in asset.elements)
+                    if (element != null && element.attachedComponents == null)
+                        element.attachedComponents = new List<DesignerAttachedComponentMetadata>();
+                asset.schemaVersion = 5;
             }
 
             DesignerHierarchyUtility.NormalizeSiblingIndices(asset);

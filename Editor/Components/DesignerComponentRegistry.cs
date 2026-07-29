@@ -80,13 +80,38 @@ namespace emiteat.NexUI.Designer.Editor.Components
             UIToolkitSupport = DesignerBackendSupport.Partial
         };
 
+        /// <summary>Descriptors belonging to one component library (NexUI / uGUI / UI Toolkit).</summary>
+        public static IEnumerable<DesignerComponentDescriptor> InFamily(DesignerComponentFamily family)
+        {
+            EnsureBuilt();
+            foreach (var d in _byId.Values)
+                if (d.Family == family) yield return d;
+        }
+
         private static void EnsureBuilt()
         {
             if (_built) return;
             _built = true;
+            // NexUI's own library first, then Unity's stock control catalogs. Later entries never
+            // overwrite earlier ones silently - the catalogs use their own dotted id namespaces
+            // ("UGUI.Button", "UITK.Button"), so a stock control can never shadow a NexUI type.
             foreach (var d in Build())
                 _byId[d.TypeId] = d;
+            foreach (var d in NexUIComponentCatalog.Build())
+                _byId[d.TypeId] = d;
+            foreach (var d in UGUIComponentCatalog.Build())
+                _byId[d.TypeId] = d;
+            foreach (var d in UIToolkitComponentCatalog.Build())
+                _byId[d.TypeId] = d;
         }
+
+        /// <summary>
+        /// Shared slot helper for the catalog files, so every catalog produces slots with the same
+        /// localization-key convention as the core registry.
+        /// </summary>
+        internal static DesignerComponentSlot MakeSlot(string id, string name, int min = 0, int max = int.MaxValue,
+            bool template = false, bool generated = false, string[] accepted = null)
+            => Slot(id, name, min, max, template, generated, accepted);
 
         private static DesignerComponentSlot Slot(string id, string name, int min = 0, int max = int.MaxValue,
             bool template = false, bool generated = false, string[] accepted = null) => new DesignerComponentSlot
@@ -103,6 +128,8 @@ namespace emiteat.NexUI.Designer.Editor.Components
             {
                 TypeId = "Panel", DisplayName = "Panel", LocalizationKey = "component.panel",
                 Category = DesignerComponentCategory.Container, Icon = "▭",
+                PaletteGroup = DesignerPaletteGroup.Containers, PaletteOrder = 0,
+                UxmlTag = "ui:VisualElement",
                 Description = "General-purpose visual container.",
                 DefaultSize = new Vector2(280, 120), DefaultColor = new Color(0.13f, 0.18f, 0.26f, 1f),
                 CanHaveChildren = true, IsContainer = true,
@@ -115,6 +142,8 @@ namespace emiteat.NexUI.Designer.Editor.Components
             {
                 TypeId = "Container", DisplayName = "Container", LocalizationKey = "component.container",
                 Category = DesignerComponentCategory.Container, Icon = "⧉",
+                PaletteGroup = DesignerPaletteGroup.Containers, PaletteOrder = 2,
+                UxmlTag = "ui:VisualElement",
                 Description = "Layout-only parent with no default visuals.",
                 DefaultSize = new Vector2(280, 120), DefaultColor = new Color(0f, 0f, 0f, 0f),
                 CanHaveChildren = true, IsContainer = true,
@@ -127,6 +156,8 @@ namespace emiteat.NexUI.Designer.Editor.Components
             {
                 TypeId = "Card", DisplayName = "Card", LocalizationKey = "component.card",
                 Category = DesignerComponentCategory.Container, Icon = "🂠",
+                PaletteGroup = DesignerPaletteGroup.Containers, PaletteOrder = 1,
+                UxmlTag = "ui:VisualElement",
                 Description = "Grouped content surface with header/content/footer slots; optionally interactive.",
                 DefaultSize = new Vector2(320, 200), DefaultColor = new Color(0.15f, 0.2f, 0.29f, 1f),
                 CanHaveChildren = true, IsContainer = true, IsInteractive = true,
@@ -140,6 +171,8 @@ namespace emiteat.NexUI.Designer.Editor.Components
             {
                 TypeId = "Modal", DisplayName = "Modal", LocalizationKey = "component.modal",
                 Category = DesignerComponentCategory.Overlay, Icon = "▢",
+                PaletteGroup = DesignerPaletteGroup.Overlay, PaletteOrder = 0,
+                UxmlTag = "ui:VisualElement",
                 Description = "Screen overlay with backdrop and header/content/footer.",
                 DefaultSize = new Vector2(640, 360), DefaultColor = new Color(0.08f, 0.1f, 0.14f, 0.96f),
                 CanHaveChildren = true, IsContainer = true, IsOverlayComponent = true,
@@ -154,6 +187,8 @@ namespace emiteat.NexUI.Designer.Editor.Components
             {
                 TypeId = "Popover", DisplayName = "Popover", LocalizationKey = "component.popover",
                 Category = DesignerComponentCategory.Overlay, Icon = "◱",
+                PaletteGroup = DesignerPaletteGroup.Overlay, PaletteOrder = 1,
+                UxmlTag = "ui:VisualElement",
                 Description = "Anchored overlay that allows interactive content.",
                 DefaultSize = new Vector2(280, 200), DefaultShape = DesignerElementShape.Rounded,
                 CanHaveChildren = true, IsContainer = true, IsOverlayComponent = true,
@@ -168,6 +203,8 @@ namespace emiteat.NexUI.Designer.Editor.Components
             {
                 TypeId = "Label", DisplayName = "Text / Label", LocalizationKey = "component.label",
                 Category = DesignerComponentCategory.Text, Icon = "T",
+                PaletteGroup = DesignerPaletteGroup.TextMedia, PaletteOrder = 0,
+                UxmlTag = "ui:Label", UxmlHasText = true,
                 Description = "Rich/plain text with typography, wrapping and localization.",
                 DefaultSize = new Vector2(260, 44), DefaultText = "Label",
                 DefaultColor = new Color(0.12f, 0.15f, 0.2f, 0.65f),
@@ -178,6 +215,8 @@ namespace emiteat.NexUI.Designer.Editor.Components
             {
                 TypeId = "Image", DisplayName = "Image", LocalizationKey = "component.image",
                 Category = DesignerComponentCategory.Media, Icon = "🖼",
+                PaletteGroup = DesignerPaletteGroup.TextMedia, PaletteOrder = 1,
+                UxmlTag = "ui:VisualElement",
                 Description = "Sprite/texture with scale mode, nine-slice and fill.",
                 DefaultSize = new Vector2(160, 120), DefaultColor = new Color(0.19f, 0.25f, 0.34f, 1f),
                 CanHaveChildren = false, DefaultAccessibilityRole = AccessibilityRole.Image,
@@ -190,6 +229,8 @@ namespace emiteat.NexUI.Designer.Editor.Components
             {
                 TypeId = "Button", DisplayName = "Button", LocalizationKey = "component.button",
                 Category = DesignerComponentCategory.Input, Icon = "⬚",
+                PaletteGroup = DesignerPaletteGroup.Controls, PaletteOrder = 0,
+                UxmlTag = "ui:Button", UxmlHasText = true,
                 Description = "Command-driven button with icon/content slots and interaction states.",
                 DefaultSize = new Vector2(220, 56), DefaultText = "Button",
                 DefaultColor = new Color(0.12f, 0.36f, 0.85f, 1f),
@@ -204,6 +245,8 @@ namespace emiteat.NexUI.Designer.Editor.Components
             {
                 TypeId = "IconButton", DisplayName = "Icon Button", LocalizationKey = "component.iconButton",
                 Category = DesignerComponentCategory.Input, Icon = "◉", DefaultShape = DesignerElementShape.Pill,
+                PaletteGroup = DesignerPaletteGroup.Controls, PaletteOrder = 1,
+                UxmlTag = "ui:Button", UxmlHasText = true,
                 Description = "Icon-only button (accessible label required).",
                 DefaultSize = new Vector2(56, 56), DefaultColor = new Color(0.12f, 0.36f, 0.85f, 1f),
                 CanHaveChildren = true, IsInteractive = true,
@@ -217,6 +260,7 @@ namespace emiteat.NexUI.Designer.Editor.Components
             {
                 TypeId = "ChoiceList", DisplayName = "Choice List", LocalizationKey = "component.choiceList",
                 Category = DesignerComponentCategory.Input, Icon = "☰",
+                PaletteGroup = DesignerPaletteGroup.Selection, PaletteOrder = 9,
                 Description = "Single/multi-select option list bound to a collection.",
                 DefaultSize = new Vector2(320, 240), DefaultColor = new Color(0.13f, 0.18f, 0.26f, 1f),
                 CanHaveChildren = true, IsContainer = true, IsInteractive = true, IsCollectionComponent = true,
@@ -232,6 +276,8 @@ namespace emiteat.NexUI.Designer.Editor.Components
             {
                 TypeId = "ProgressBar", DisplayName = "Progress Bar", LocalizationKey = "component.progressBar",
                 Category = DesignerComponentCategory.Feedback, Icon = "▬",
+                PaletteGroup = DesignerPaletteGroup.Feedback, PaletteOrder = 0,
+                UxmlTag = "ui:ProgressBar",
                 Description = "Linear value indicator (Track/Fill/Label are virtual preview parts).",
                 DefaultSize = new Vector2(280, 24), DefaultColor = new Color(0.13f, 0.18f, 0.26f, 1f),
                 CanHaveChildren = false, IsValueComponent = true,
@@ -244,6 +290,7 @@ namespace emiteat.NexUI.Designer.Editor.Components
             {
                 TypeId = "StatBar", DisplayName = "Stat Bar", LocalizationKey = "component.statBar",
                 Category = DesignerComponentCategory.Feedback, Icon = "▮",
+                PaletteGroup = DesignerPaletteGroup.Feedback, PaletteOrder = 1,
                 Description = "Game stat value bar (HP/Stamina...) built on the value component base.",
                 DefaultSize = new Vector2(280, 28), DefaultColor = new Color(0.13f, 0.18f, 0.26f, 1f),
                 CanHaveChildren = true, IsValueComponent = true,
@@ -259,6 +306,7 @@ namespace emiteat.NexUI.Designer.Editor.Components
             {
                 TypeId = "RadialFill", DisplayName = "Radial Fill", LocalizationKey = "component.radialFill",
                 Category = DesignerComponentCategory.Feedback, Icon = "◐", DefaultShape = DesignerElementShape.Circle,
+                PaletteGroup = DesignerPaletteGroup.Feedback, PaletteOrder = 2,
                 Description = "Radial value ring (background ring / fill arc are virtual parts).",
                 DefaultSize = new Vector2(120, 120), DefaultColor = new Color(0.13f, 0.18f, 0.26f, 1f),
                 CanHaveChildren = true, IsValueComponent = true,
@@ -272,6 +320,7 @@ namespace emiteat.NexUI.Designer.Editor.Components
             {
                 TypeId = "Spinner", DisplayName = "Spinner", LocalizationKey = "component.spinner",
                 Category = DesignerComponentCategory.Feedback, Icon = "◌", DefaultShape = DesignerElementShape.Circle,
+                PaletteGroup = DesignerPaletteGroup.Feedback, PaletteOrder = 3,
                 Description = "Indeterminate loading indicator.",
                 DefaultSize = new Vector2(48, 48), DefaultColor = new Color(0.13f, 0.18f, 0.26f, 1f),
                 CanHaveChildren = false, IsValueComponent = true,
@@ -284,6 +333,7 @@ namespace emiteat.NexUI.Designer.Editor.Components
             {
                 TypeId = "Skeleton", DisplayName = "Skeleton", LocalizationKey = "component.skeleton",
                 Category = DesignerComponentCategory.Feedback, Icon = "░",
+                PaletteGroup = DesignerPaletteGroup.Feedback, PaletteOrder = 4,
                 Description = "Loading placeholder with configurable rows/shapes and shimmer.",
                 DefaultSize = new Vector2(280, 120), DefaultColor = new Color(0.2f, 0.24f, 0.3f, 1f),
                 CanHaveChildren = false,
@@ -295,6 +345,7 @@ namespace emiteat.NexUI.Designer.Editor.Components
             {
                 TypeId = "Toast", DisplayName = "Toast", LocalizationKey = "component.toast",
                 Category = DesignerComponentCategory.Feedback, Icon = "🔔", DefaultShape = DesignerElementShape.Pill,
+                PaletteGroup = DesignerPaletteGroup.Overlay, PaletteOrder = 3,
                 Description = "Transient message with severity, placement and auto-dismiss.",
                 DefaultSize = new Vector2(320, 64), DefaultText = "Toast message",
                 DefaultColor = new Color(0.13f, 0.18f, 0.26f, 1f),
@@ -310,6 +361,7 @@ namespace emiteat.NexUI.Designer.Editor.Components
             {
                 TypeId = "Tooltip", DisplayName = "Tooltip", LocalizationKey = "component.tooltip",
                 Category = DesignerComponentCategory.Overlay, Icon = "▛", DefaultShape = DesignerElementShape.Pill,
+                PaletteGroup = DesignerPaletteGroup.Overlay, PaletteOrder = 2,
                 Description = "Anchored, non-interactive hint text.",
                 DefaultSize = new Vector2(200, 40), DefaultColor = new Color(0.1f, 0.12f, 0.16f, 0.98f),
                 CanHaveChildren = true, IsOverlayComponent = true,
@@ -324,6 +376,8 @@ namespace emiteat.NexUI.Designer.Editor.Components
             {
                 TypeId = "List", DisplayName = "List", LocalizationKey = "component.list",
                 Category = DesignerComponentCategory.Data, Icon = "≡",
+                PaletteGroup = DesignerPaletteGroup.Data, PaletteOrder = 0,
+                UxmlTag = "ui:ListView",
                 Description = "Collection-bound list with item template and empty/loading/error states.",
                 DefaultSize = new Vector2(360, 420), DefaultColor = new Color(0.11f, 0.15f, 0.22f, 1f),
                 CanHaveChildren = true, IsContainer = true, IsCollectionComponent = true,
@@ -342,6 +396,7 @@ namespace emiteat.NexUI.Designer.Editor.Components
             {
                 TypeId = "Grid", DisplayName = "Grid", LocalizationKey = "component.grid",
                 Category = DesignerComponentCategory.Data, Icon = "▦",
+                PaletteGroup = DesignerPaletteGroup.Data, PaletteOrder = 1,
                 Description = "Collection-bound grid sharing List's template/state system.",
                 DefaultSize = new Vector2(420, 420), DefaultColor = new Color(0.11f, 0.15f, 0.22f, 1f),
                 CanHaveChildren = true, IsContainer = true, IsCollectionComponent = true,
@@ -359,6 +414,7 @@ namespace emiteat.NexUI.Designer.Editor.Components
             {
                 TypeId = "Slot", DisplayName = "Slot", LocalizationKey = "component.slot",
                 Category = DesignerComponentCategory.Data, Icon = "▣",
+                PaletteGroup = DesignerPaletteGroup.Game, PaletteOrder = 0,
                 Description = "Single inventory/equipment/hotbar cell with item/count/overlay bindings.",
                 DefaultSize = new Vector2(88, 88), DefaultColor = new Color(0.13f, 0.18f, 0.26f, 1f),
                 CanHaveChildren = true, IsInteractive = true,
@@ -376,6 +432,7 @@ namespace emiteat.NexUI.Designer.Editor.Components
             {
                 TypeId = "Hotbar", DisplayName = "Hotbar", LocalizationKey = "component.hotbar",
                 Category = DesignerComponentCategory.Data, Icon = "⬓",
+                PaletteGroup = DesignerPaletteGroup.Game, PaletteOrder = 1,
                 Description = "Row/column of generated slots with an active index (slots are generated preview items).",
                 DefaultSize = new Vector2(480, 88), DefaultColor = new Color(0.11f, 0.15f, 0.22f, 1f),
                 CanHaveChildren = true, IsContainer = true, IsCollectionComponent = true, IsInteractive = true,

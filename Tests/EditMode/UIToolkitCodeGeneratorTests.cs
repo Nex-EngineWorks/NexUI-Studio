@@ -1,4 +1,5 @@
 using emiteat.NexUI.Designer.Editor.Serialization;
+using emiteat.NexUI.Designer.Editor.Components;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -72,6 +73,37 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
 
             StringAssert.Contains("text=\"Play\"", uxml);
             StringAssert.DoesNotContain("text=\"ignored\"", uxml);
+        }
+
+        [Test]
+        public void Uxml_UsesDescriptorTagsAndTextAttributeForEveryToolkitControl()
+        {
+            foreach (var descriptor in DesignerComponentRegistry.InFamily(DesignerComponentFamily.UIToolkit))
+            {
+                var element = El("control", descriptor.TypeId, new Rect(0, 0, 100, 24));
+                element.text = "Caption";
+                var uxml = UIToolkitCodeGenerator.GenerateUxml(Metadata(element));
+                StringAssert.Contains("<" + descriptor.UxmlTag + " name=\"control\"", uxml, descriptor.TypeId);
+                if (descriptor.UxmlHasText)
+                {
+                    var attribute = string.IsNullOrEmpty(descriptor.UxmlTextAttribute)
+                        ? "text"
+                        : descriptor.UxmlTextAttribute;
+                    StringAssert.Contains(attribute + "=\"Caption\"", uxml, descriptor.TypeId);
+                }
+            }
+        }
+
+        [Test]
+        public void Uxml_UsesLabelAttributeForToolkitToggleAndTab()
+        {
+            var toggle = El("toggle", "UITK.Toggle", new Rect(0, 0, 100, 24));
+            toggle.text = "Enabled";
+            var tab = El("tab", "UITK.Tab", new Rect(0, 30, 100, 80));
+            tab.text = "Inventory";
+            var uxml = UIToolkitCodeGenerator.GenerateUxml(Metadata(toggle, tab));
+            StringAssert.Contains("<ui:Toggle name=\"toggle\" label=\"Enabled\"", uxml);
+            StringAssert.Contains("<ui:Tab name=\"tab\" label=\"Inventory\"", uxml);
         }
 
         [Test]

@@ -714,21 +714,32 @@ namespace emiteat.NexUI.Designer.Editor
         }
 
         public DesignerElementMetadata CreateMetadataElement(DesignerElementType type)
+            => CreateMetadataElement(type.ToString());
+
+        /// <summary>
+        /// Creates an element of any registered component type, including Unity's stock uGUI /
+        /// UI Toolkit controls, whose ids are namespaced strings ("UGUI.Button") with no
+        /// <see cref="DesignerElementType"/> member. Every creation default comes from the type's
+        /// registry descriptor, so a new component type never needs a change here.
+        /// </summary>
+        public DesignerElementMetadata CreateMetadataElement(string typeId)
         {
             if (Metadata == null) return null;
+            if (string.IsNullOrEmpty(typeId)) typeId = DesignerElementType.Panel.ToString();
+            var descriptor = DesignerComponentRegistry.Get(typeId);
             RecordMetadata("Create NexUI Element");
             var element = new DesignerElementMetadata
             {
-                elementId = NextElementId(type),
-                displayName = type.ToString(),
-                elementType = type.ToString(),
-                rect = DefaultRectFor(type),
-                text = DefaultTextFor(type),
-                tint = DefaultTintFor(type),
-                shape = DefaultShapeFor(type),
+                elementId = NextElementId(descriptor),
+                displayName = descriptor.DisplayName,
+                elementType = typeId,
+                rect = new Rect(96, 96, descriptor.DefaultSize.x, descriptor.DefaultSize.y),
+                text = descriptor.DefaultText ?? string.Empty,
+                tint = descriptor.DefaultColor,
+                shape = descriptor.DefaultShape,
                 textColor = Color.white,
-                fontSize = type == DesignerElementType.Label ? 18 : 14,
-                accessibilityRole = DesignerComponentRegistry.Get(type).DefaultAccessibilityRole
+                fontSize = descriptor.Category == DesignerComponentCategory.Text ? 18 : 14,
+                accessibilityRole = descriptor.DefaultAccessibilityRole
             };
             DesignerPropertyAdapter.SetBackgroundColor(element, element.tint);
             DesignerPropertyAdapter.SetTextColor(element, element.textColor);
@@ -1404,14 +1415,32 @@ namespace emiteat.NexUI.Designer.Editor
             if (element != null) SelectMetadata(element);
         }
 
-        private string NextElementId(DesignerElementType type)
+        private string NextElementId(DesignerElementType type) => NextElementId(DesignerComponentRegistry.Get(type));
+
+        /// <summary>
+        /// Element ids double as GameObject names and USS <c>#id</c> selectors, so they must stay
+        /// dot-free. Namespaced stock-control types ("UGUI.Button") therefore generate ids from the
+        /// descriptor's <see cref="DesignerComponentDescriptor.ElementIdPrefix"/> ("button0").
+        /// </summary>
+        private string NextElementId(DesignerComponentDescriptor descriptor)
         {
+            var prefix = descriptor != null && !string.IsNullOrEmpty(descriptor.ElementIdPrefix)
+                ? descriptor.ElementIdPrefix
+                : SanitizeIdPrefix(descriptor?.TypeId);
             while (true)
             {
-                var id = char.ToLowerInvariant(type.ToString()[0]) + type.ToString().Substring(1) + _elementCounter++;
+                var id = prefix + _elementCounter++;
                 if (Metadata == null || Metadata.Find(id) == null)
                     return id;
             }
+        }
+
+        private static string SanitizeIdPrefix(string typeId)
+        {
+            if (string.IsNullOrEmpty(typeId)) return "element";
+            var dot = typeId.LastIndexOf('.');
+            if (dot >= 0 && dot < typeId.Length - 1) typeId = typeId.Substring(dot + 1);
+            return char.ToLowerInvariant(typeId[0]) + typeId.Substring(1);
         }
 
         private string UniqueElementId(string baseId)
@@ -1423,24 +1452,6 @@ namespace emiteat.NexUI.Designer.Editor
                 candidate = id + index++;
             return candidate;
         }
-
-        // Creation defaults now come from the component registry (single source of truth) rather
-        // than duplicated type switch statements. Spawn position stays at the historical (96,96);
-        // only size/text/tint/shape are per-type.
-        private static Rect DefaultRectFor(DesignerElementType type)
-        {
-            var size = DesignerComponentRegistry.Get(type).DefaultSize;
-            return new Rect(96, 96, size.x, size.y);
-        }
-
-        private static string DefaultTextFor(DesignerElementType type)
-            => DesignerComponentRegistry.Get(type).DefaultText ?? string.Empty;
-
-        private static Color DefaultTintFor(DesignerElementType type)
-            => DesignerComponentRegistry.Get(type).DefaultColor;
-
-        private static DesignerElementShape DefaultShapeFor(DesignerElementType type)
-            => DesignerComponentRegistry.Get(type).DefaultShape;
 
         public void Dispose()
         {

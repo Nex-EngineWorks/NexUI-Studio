@@ -112,6 +112,8 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
                 DesignerInspectorExposure.Essential, DesignerInspectorTarget.MultiElement, c => new MultiSelectionInspector(c));
             Register("component", "inspector.section.component", "type states events slots backend support", DesignerInspectorWorkflow.Build,
                 DesignerInspectorExposure.Common, DesignerInspectorTarget.SingleElement, c => new ComponentInspector(c));
+            Register("attached-components", "inspector.section.attachedComponents", "add component monobehaviour script ugui", DesignerInspectorWorkflow.Build,
+                DesignerInspectorExposure.Common, DesignerInspectorTarget.SingleElement, c => new AttachedComponentsInspector(c));
             Register("component-instance", "inspector.section.componentInstance", "reusable definition override variant slot detach swap instance", DesignerInspectorWorkflow.Build,
                 DesignerInspectorExposure.Common, DesignerInspectorTarget.SingleElement, c => new ComponentInstanceInspector(c));
             Register("layout", "inspector.section.layout", "position size anchor locked transform", DesignerInspectorWorkflow.Build,

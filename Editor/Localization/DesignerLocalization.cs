@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
 
@@ -53,26 +54,103 @@ namespace emiteat.NexUI.Designer.Editor.Localization
         private static void LoadFile(string path, Dictionary<string, string> target)
         {
             if (!File.Exists(path)) return;
-            var lines = File.ReadAllLines(path);
-            for (int i = 0; i < lines.Length; i++)
+            try
             {
-                var line = lines[i].Trim().TrimEnd(',');
-                if (!line.StartsWith("\"", StringComparison.Ordinal)) continue;
-                var colon = line.IndexOf(':');
-                if (colon <= 0) continue;
-
-                var key = Unquote(line.Substring(0, colon).Trim());
-                var value = Unquote(line.Substring(colon + 1).Trim());
-                if (!string.IsNullOrEmpty(key))
-                    target[key] = value;
+                // Localization files are ordinary UTF-8 JSON objects. The old line parser only
+                // recognized lines beginning with a quote, so the equally valid comma-first style
+                // used by appended sections ( ,"key": "value" ) was silently ignored. Parse the
+                // JSON token stream instead; this also handles escaped quotes/newlines/unicode and
+                // keeps English fallback available if one file is malformed.
+                ParseFlatStringObject(File.ReadAllText(path, Encoding.UTF8), target);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[NexUI Designer] Failed to load localization file '{path}': {ex.Message}");
             }
         }
 
-        private static string Unquote(string value)
+        internal static void ParseFlatStringObject(string json, Dictionary<string, string> target)
         {
-            if (value.Length >= 2 && value[0] == '"' && value[value.Length - 1] == '"')
-                value = value.Substring(1, value.Length - 2);
-            return value.Replace("\\\"", "\"").Replace("\\n", "\n");
+            if (target == null) throw new ArgumentNullException(nameof(target));
+            if (string.IsNullOrWhiteSpace(json)) return;
+
+            var index = 0;
+            SkipWhitespace(json, ref index);
+            if (index < json.Length && json[index] == '\uFEFF') index++;
+            SkipWhitespace(json, ref index);
+            if (index >= json.Length || json[index] != '{')
+                throw new FormatException("Expected a JSON object.");
+            index++;
+
+            while (index < json.Length)
+            {
+                SkipWhitespaceAndCommas(json, ref index);
+                if (index < json.Length && json[index] == '}') return;
+                var key = ReadJsonString(json, ref index);
+                SkipWhitespace(json, ref index);
+                if (index >= json.Length || json[index] != ':')
+                    throw new FormatException($"Expected ':' after localization key '{key}'.");
+                index++;
+                SkipWhitespace(json, ref index);
+                var value = ReadJsonString(json, ref index);
+                if (!string.IsNullOrEmpty(key)) target[key] = value;
+                SkipWhitespace(json, ref index);
+                if (index < json.Length && json[index] == ',') index++;
+            }
+
+            throw new FormatException("Localization JSON object was not closed.");
+        }
+
+        private static string ReadJsonString(string json, ref int index)
+        {
+            if (index >= json.Length || json[index] != '"')
+                throw new FormatException($"Expected a JSON string at character {index}.");
+            index++;
+            var value = new StringBuilder();
+            while (index < json.Length)
+            {
+                var c = json[index++];
+                if (c == '"') return value.ToString();
+                if (c != '\\')
+                {
+                    value.Append(c);
+                    continue;
+                }
+
+                if (index >= json.Length) throw new FormatException("Unterminated JSON escape.");
+                var escape = json[index++];
+                switch (escape)
+                {
+                    case '"': value.Append('"'); break;
+                    case '\\': value.Append('\\'); break;
+                    case '/': value.Append('/'); break;
+                    case 'b': value.Append('\b'); break;
+                    case 'f': value.Append('\f'); break;
+                    case 'n': value.Append('\n'); break;
+                    case 'r': value.Append('\r'); break;
+                    case 't': value.Append('\t'); break;
+                    case 'u':
+                        if (index + 4 > json.Length) throw new FormatException("Incomplete unicode escape.");
+                        if (!ushort.TryParse(json.Substring(index, 4), System.Globalization.NumberStyles.HexNumber,
+                                System.Globalization.CultureInfo.InvariantCulture, out var code))
+                            throw new FormatException("Invalid unicode escape.");
+                        value.Append((char)code);
+                        index += 4;
+                        break;
+                    default: throw new FormatException($"Unsupported JSON escape '\\{escape}'.");
+                }
+            }
+            throw new FormatException("Unterminated JSON string.");
+        }
+
+        private static void SkipWhitespace(string json, ref int index)
+        {
+            while (index < json.Length && char.IsWhiteSpace(json[index])) index++;
+        }
+
+        private static void SkipWhitespaceAndCommas(string json, ref int index)
+        {
+            while (index < json.Length && (char.IsWhiteSpace(json[index]) || json[index] == ',')) index++;
         }
     }
 }

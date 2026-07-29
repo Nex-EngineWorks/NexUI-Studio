@@ -265,11 +265,15 @@
 
 .nexui-component-card {
     width: 48%;
-    height: 30px;
+    height: 78px;
     margin-right: 4px;
     margin-bottom: 4px;
+    padding: 4px;
+    flex-direction: column;
+    align-items: stretch;
     border-radius: 6px;
-    border-width: 0;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.05);
     background-color: var(--nexui-bg-raised);
     color: var(--nexui-text-primary);
     font-size: 10px;
@@ -277,6 +281,190 @@
 
 .nexui-component-card:hover {
     background-color: var(--nexui-bg-hover);
+    border-color: rgba(84, 151, 255, 0.55);
+}
+
+.nexui-component-card-preview {
+    height: 48px;
+    min-height: 48px;
+    padding: 4px;
+    justify-content: center;
+    align-items: stretch;
+    overflow: hidden;
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 0.18);
+}
+
+.nexui-component-preview-surface {
+    flex-grow: 1;
+    min-width: 0;
+    min-height: 0;
+    justify-content: center;
+    align-items: stretch;
+    overflow: hidden;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.nexui-component-preview-fallback {
+    flex-grow: 1;
+    padding-left: 4px;
+    padding-right: 4px;
+    color: rgba(255, 255, 255, 0.90);
+    font-size: 9px;
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+.nexui-component-card-caption {
+    height: 20px;
+    min-height: 20px;
+    margin-top: 3px;
+    flex-direction: row;
+    align-items: center;
+}
+
+.nexui-component-card-title {
+    flex-grow: 1;
+    min-width: 0;
+    color: var(--nexui-text-primary);
+    font-size: 10px;
+    -unity-text-align: middle-left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nexui-component-family-badge {
+    height: 15px;
+    min-width: 31px;
+    margin-left: 3px;
+    padding-left: 4px;
+    padding-right: 4px;
+    border-radius: 7px;
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 8px;
+    -unity-text-align: middle-center;
+}
+
+.family-nexui.nexui-component-family-badge {
+    background-color: rgba(80, 116, 213, 0.85);
+}
+
+.family-ugui.nexui-component-family-badge {
+    background-color: rgba(71, 142, 103, 0.88);
+}
+
+.family-uitk.nexui-component-family-badge {
+    background-color: rgba(154, 98, 191, 0.88);
+}
+
+.nexui-component-details {
+    height: 142px;
+    min-height: 142px;
+    margin-top: 6px;
+    margin-bottom: 6px;
+    padding: 7px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.08);
+    border-radius: 7px;
+    background-color: rgba(0, 0, 0, 0.17);
+}
+
+.nexui-component-details-body {
+    height: 86px;
+    min-height: 86px;
+    flex-direction: row;
+}
+
+.nexui-component-detail-preview {
+    width: 96px;
+    min-width: 96px;
+    height: 80px;
+    padding: 7px;
+    justify-content: center;
+    align-items: stretch;
+    overflow: hidden;
+    border-radius: 5px;
+    background-color: rgba(0, 0, 0, 0.22);
+}
+
+.nexui-component-details-copy {
+    flex-grow: 1;
+    min-width: 0;
+    margin-left: 8px;
+}
+
+.nexui-component-details-title {
+    color: var(--nexui-text-primary);
+    font-size: 13px;
+    -unity-font-style: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nexui-component-details-type {
+    margin-top: 1px;
+    color: var(--nexui-text-secondary);
+    font-size: 9px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nexui-component-details-description {
+    margin-top: 4px;
+    max-height: 43px;
+    color: var(--nexui-text-secondary);
+    font-size: 9px;
+    white-space: normal;
+    overflow: hidden;
+}
+
+.nexui-component-support-row {
+    height: 20px;
+    min-height: 20px;
+    margin-top: 3px;
+    flex-direction: row;
+    align-items: center;
+}
+
+.nexui-component-support-badge {
+    height: 17px;
+    margin-right: 4px;
+    padding-left: 6px;
+    padding-right: 6px;
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 8px;
+    -unity-text-align: middle-center;
+}
+
+.nexui-component-support-badge.support-full {
+    background-color: rgba(52, 139, 87, 0.85);
+}
+
+.nexui-component-support-badge.support-partial {
+    background-color: rgba(179, 126, 43, 0.88);
+}
+
+.nexui-component-support-badge.support-previewonly {
+    background-color: rgba(70, 112, 180, 0.88);
+}
+
+.nexui-component-support-badge.support-unsupported {
+    background-color: rgba(150, 66, 66, 0.88);
+}
+
+.nexui-component-details-capabilities {
+    height: 17px;
+    color: var(--nexui-text-secondary);
+    font-size: 8px;
+    -unity-text-align: middle-left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .nexui-layers-panel {
@@ -1440,6 +1628,7 @@
 }
 
 .nexui-grid-layer,
+.nexui-motion-ghost-layer,
 .nexui-element-layer,
 .nexui-guide-layer {
     position: absolute;
@@ -1447,6 +1636,17 @@
     top: 0;
     right: 0;
     bottom: 0;
+}
+
+.nexui-motion-start-ghost {
+    border-top-color: rgba(94, 223, 188, 0.9);
+    border-right-color: rgba(94, 223, 188, 0.9);
+    border-bottom-color: rgba(94, 223, 188, 0.9);
+    border-left-color: rgba(94, 223, 188, 0.9);
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
 }
 
 .nexui-grid-layer {

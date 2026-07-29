@@ -28,6 +28,7 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         private readonly ScrollView _previewFrame;
         private readonly VisualElement _previewCanvas;
         private readonly VisualElement _gridLayer;
+        private readonly VisualElement _motionGhostLayer;
         private readonly VisualElement _elementLayer;
         private readonly VisualElement _guideLayer;
         private readonly VisualElement _selectionRectOverlay;
@@ -65,6 +66,9 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         private DesignerElementMetadata _dropTarget;
         private bool _dropTargetResolved;
         private readonly Dictionary<DesignerElementMetadata, VisualElement> _views = new Dictionary<DesignerElementMetadata, VisualElement>();
+        private readonly Dictionary<string, VisualElement> _motionGhostViews = new Dictionary<string, VisualElement>();
+        private emiteat.NexUI.MotionClip.UIMotionClip _motionGhostClip;
+        private int _motionGhostTrackSignature;
 
         // Single element drag/resize state (also used as the "grabbed" element during a group move).
         private DesignerElementMetadata _dragElement;
@@ -155,6 +159,9 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
 
             _gridLayer = new VisualElement();
             _gridLayer.AddToClassList("nexui-grid-layer");
+            _motionGhostLayer = new VisualElement();
+            _motionGhostLayer.AddToClassList("nexui-motion-ghost-layer");
+            _motionGhostLayer.pickingMode = PickingMode.Ignore;
             _elementLayer = new VisualElement();
             _elementLayer.AddToClassList("nexui-element-layer");
             _guideLayer = new VisualElement();
@@ -184,6 +191,7 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _dropHint.pickingMode = PickingMode.Ignore;
 
             _previewCanvas.Add(_gridLayer);
+            _previewCanvas.Add(_motionGhostLayer);
             _previewCanvas.Add(_elementLayer);
             _previewCanvas.Add(_onionSkinOverlay);
             _previewCanvas.Add(_motionPathOverlay);
@@ -264,6 +272,7 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             subscriptions.Add<DesignerMetadataAsset>(h => context.MetadataChanged += h, h => context.MetadataChanged -= h, _ => RefreshAll());
             subscriptions.Add<DesignerElementMetadata>(h => context.MetadataSelectionChanged += h, h => context.MetadataSelectionChanged -= h, _ => RefreshSelection());
             subscriptions.Add<System.Collections.Generic.IReadOnlyList<DesignerElementMetadata>>(h => context.MultiSelectionChanged += h, h => context.MultiSelectionChanged -= h, _ => RefreshSelection());
+            subscriptions.Add(h => context.ActiveMotionClipChanged += h, h => context.ActiveMotionClipChanged -= h, RefreshMotionPreview);
             subscriptions.Add(h => context.CanvasChanged += h, h => context.CanvasChanged -= h, RefreshAll);
             subscriptions.Add<DesignerElementMetadata>(h => context.ElementChanged += h, h => context.ElementChanged -= h, FlashElement);
             RefreshAll();
@@ -324,6 +333,7 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         {
             _elementLayer.Clear();
             _views.Clear();
+            ClearMotionGhosts();
 
             if (_context.Metadata == null || _context.Metadata.elements.Count == 0)
             {
@@ -349,6 +359,8 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
                     _views[authored] = view;
                 _elementLayer.Add(view);
             }
+
+            RefreshMotionPreview();
         }
 
         private void BuildGrid(float width, float height)
@@ -388,10 +400,11 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             return _context.Backend + " / " + _context.Resolution.x + "x" + _context.Resolution.y + " / " + _context.PreviewState + " / " + _context.InputMode;
         }
 
-        private VisualElement CreateElementView(DesignerElementMetadata element)
+        private VisualElement CreateElementView(DesignerElementMetadata element, bool motionGhost = false)
         {
             var view = new VisualElement();
             view.AddToClassList("nexui-design-element");
+            if (motionGhost) view.AddToClassList("nexui-motion-start-ghost");
             view.AddToClassList("type-" + element.elementType.ToLowerInvariant());
             view.AddToClassList("shape-" + element.shape.ToString().ToLowerInvariant());
             var hasPreviewImage = IsImagePreviewElement(element);
@@ -457,7 +470,7 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
 
             AddTypeSpecificPreview(view, element);
 
-            if (!hasPreviewImage)
+            if (!hasPreviewImage && !motionGhost)
             {
                 var name = new Label(string.IsNullOrEmpty(element.displayName) ? element.elementId : element.displayName);
                 name.AddToClassList("nexui-element-name");
@@ -487,24 +500,127 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
                 view.Add(text);
             }
 
-            if (!hasPreviewImage)
+            if (!hasPreviewImage && !motionGhost)
             {
                 var meta = new Label(element.elementId);
                 meta.AddToClassList("nexui-element-meta");
                 view.Add(meta);
             }
 
-            var handle = new VisualElement();
-            handle.AddToClassList("nexui-resize-handle");
-            view.Add(handle);
+            if (motionGhost)
+            {
+                view.pickingMode = PickingMode.Ignore;
+            }
+            else
+            {
+                var handle = new VisualElement();
+                handle.AddToClassList("nexui-resize-handle");
+                view.Add(handle);
 
-            AddSelectionHandles(view);
+                AddSelectionHandles(view);
 
-            view.RegisterCallback<PointerDownEvent>(evt => BeginDrag(evt, element, view));
-            view.RegisterCallback<PointerMoveEvent>(evt => ContinueDrag(evt, view));
-            view.RegisterCallback<PointerUpEvent>(evt => EndDrag(evt, view));
-            view.RegisterCallback<PointerCancelEvent>(evt => CancelDrag(evt, view));
+                view.RegisterCallback<PointerDownEvent>(evt => BeginDrag(evt, element, view));
+                view.RegisterCallback<PointerMoveEvent>(evt => ContinueDrag(evt, view));
+                view.RegisterCallback<PointerUpEvent>(evt => EndDrag(evt, view));
+                view.RegisterCallback<PointerCancelEvent>(evt => CancelDrag(evt, view));
+            }
             return view;
+        }
+
+        /// <summary>
+        /// Mirrors the Motion Clip Editor's current time onto the visible Designer elements. The
+        /// backend preview surface is still evaluated by UIMotionClipPlayer; this second, read-only
+        /// application is what makes the element the user is actually looking at travel along the
+        /// path. A persistent low-opacity copy stays at time zero as the start pose.
+        /// </summary>
+        private void RefreshMotionPreview()
+        {
+            // Always restore the authored base first so changing/closing clips cannot leave a stale
+            // rotation, scale, alpha or position on the metadata canvas.
+            foreach (var pair in _views)
+            {
+                var element = pair.Key;
+                if (element == null || pair.Value == null) continue;
+                var layout = DesignerPropertyAdapter.Layout(element);
+                ApplyMotionPose(pair.Value, new MotionPreviewPose(element.rect, layout.scale, layout.rotation,
+                    DesignerPropertyAdapter.Opacity(element)), ghost: false);
+            }
+
+            var clip = _context.ActiveMotionClip;
+            if (clip?.tracks == null)
+            {
+                ClearMotionGhosts();
+                return;
+            }
+
+            var signature = MotionTrackSignature(clip);
+            if (_motionGhostClip != clip || _motionGhostTrackSignature != signature)
+            {
+                ClearMotionGhosts();
+                _motionGhostClip = clip;
+                _motionGhostTrackSignature = signature;
+            }
+
+            foreach (var track in clip.tracks)
+            {
+                if (track == null || string.IsNullOrEmpty(track.targetElementId)) continue;
+                var element = _context.Metadata?.Find(track.targetElementId);
+                if (element == null || !_views.TryGetValue(element, out var view) || view == null) continue;
+
+                var currentPose = MotionPreviewPoseUtility.Evaluate(element, track, _context.ActiveMotionClipTime);
+                ApplyMotionPose(view, currentPose, ghost: false);
+
+                if (!_motionGhostViews.TryGetValue(track.targetElementId, out var ghost) || ghost == null)
+                {
+                    ghost = CreateElementView(element, motionGhost: true);
+                    _motionGhostViews[track.targetElementId] = ghost;
+                    _motionGhostLayer.Add(ghost);
+                }
+                var startPose = MotionPreviewPoseUtility.Evaluate(element, track, 0f);
+                ApplyMotionPose(ghost, startPose, ghost: true);
+            }
+        }
+
+        private void ApplyMotionPose(VisualElement view, MotionPreviewPose pose, bool ghost)
+        {
+            ApplyRect(view, pose.Rect);
+            view.style.scale = new Scale(pose.Scale);
+            view.style.rotate = new Rotate(new Angle(pose.Rotation, AngleUnit.Degree));
+            view.style.opacity = Mathf.Clamp01(pose.Opacity) * (ghost ? 0.28f : 1f);
+            if (ghost)
+            {
+                var start = new StyleColor(new Color(0.37f, 0.87f, 0.74f, 0.9f));
+                view.style.borderTopColor = start;
+                view.style.borderRightColor = start;
+                view.style.borderBottomColor = start;
+                view.style.borderLeftColor = start;
+                view.style.borderTopWidth = 1f;
+                view.style.borderRightWidth = 1f;
+                view.style.borderBottomWidth = 1f;
+                view.style.borderLeftWidth = 1f;
+            }
+        }
+
+        private void ClearMotionGhosts()
+        {
+            _motionGhostLayer.Clear();
+            _motionGhostViews.Clear();
+            _motionGhostClip = null;
+            _motionGhostTrackSignature = 0;
+        }
+
+        private static int MotionTrackSignature(emiteat.NexUI.MotionClip.UIMotionClip clip)
+        {
+            unchecked
+            {
+                var hash = 17;
+                foreach (var track in clip.tracks ?? System.Array.Empty<emiteat.NexUI.MotionClip.UIMotionClipTrack>())
+                {
+                    hash = hash * 31 + (track?.targetElementId?.GetHashCode() ?? 0);
+                    hash = hash * 31 + (track?.propertyTracks?.Length ?? 0);
+                }
+                return hash;
+            }
         }
 
         private static void AddSelectionHandles(VisualElement view)

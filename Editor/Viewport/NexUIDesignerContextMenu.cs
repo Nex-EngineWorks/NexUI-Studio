@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using emiteat.NexUI.Designer.Editor.Backend;
+using emiteat.NexUI.Designer.Editor.Components;
 using emiteat.NexUI.Designer.Editor.Localization;
 using emiteat.NexUI.Designer.Editor.MotionClipEditor;
 using UnityEditor;
@@ -30,16 +31,6 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
     /// </summary>
     public static class NexUIDesignerContextMenu
     {
-        /// <summary>The Library, grouped as it is in the Library panel, for the Create submenu.</summary>
-        private static readonly (string categoryKey, (DesignerElementType type, string labelKey)[] items)[] CreateCategories =
-        {
-            ("shell.library.category.containers", new[] { (DesignerElementType.Panel, "component.panel"), (DesignerElementType.Card, "component.card"), (DesignerElementType.Container, "component.container"), (DesignerElementType.Modal, "component.modal") }),
-            ("shell.library.category.textMedia", new[] { (DesignerElementType.Label, "component.label"), (DesignerElementType.Image, "component.image") }),
-            ("shell.library.category.controls", new[] { (DesignerElementType.Button, "component.button"), (DesignerElementType.IconButton, "component.iconButton"), (DesignerElementType.ChoiceList, "component.choiceList") }),
-            ("shell.library.category.feedback", new[] { (DesignerElementType.Toast, "component.toast"), (DesignerElementType.Tooltip, "component.tooltip"), (DesignerElementType.ProgressBar, "component.progressBar"), (DesignerElementType.Spinner, "component.spinner") }),
-            ("shell.library.category.data", new[] { (DesignerElementType.List, "component.list"), (DesignerElementType.Grid, "component.grid"), (DesignerElementType.Slot, "component.slot"), (DesignerElementType.Skeleton, "component.skeleton") }),
-        };
-
         private static readonly (DesignerAnchorPreset preset, string labelKey)[] AnchorPresets =
         {
             (DesignerAnchorPreset.TopLeft, "ctx.anchor.topLeft"),
@@ -349,13 +340,14 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         private static void AddCreateSubmenu(GenericMenu menu, NexUIDesignerContext context, Vector2? canvasPoint)
         {
             var enabled = context.Metadata != null;
-            foreach (var (categoryKey, items) in CreateCategories)
+            foreach (var group in DesignerComponentPalette.BuildGroups())
             {
-                foreach (var (type, labelKey) in items)
+                foreach (var descriptor in group.Items)
                 {
-                    var capturedType = type;
-                    Item(menu, Path("ctx.create", categoryKey, labelKey), enabled,
-                        () => CreateAt(context, capturedType, canvasPoint));
+                    var capturedTypeId = descriptor.TypeId;
+                    var path = Path("ctx.create") + "/" + Leaf(group.Title) + "/" +
+                               Leaf(DesignerComponentPalette.DisplayName(descriptor));
+                    Item(menu, path, enabled, () => CreateAt(context, capturedTypeId, canvasPoint));
                 }
             }
         }
@@ -368,9 +360,9 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
 
         // ---- actions --------------------------------------------------------------------------
 
-        private static void CreateAt(NexUIDesignerContext context, DesignerElementType type, Vector2? canvasPoint)
+        private static void CreateAt(NexUIDesignerContext context, string typeId, Vector2? canvasPoint)
         {
-            var element = context.CreateMetadataElement(type);
+            var element = context.CreateMetadataElement(typeId);
             if (element == null || !canvasPoint.HasValue) return;
             var rect = element.rect;
             rect.position = canvasPoint.Value;

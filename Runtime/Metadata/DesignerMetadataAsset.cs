@@ -11,7 +11,7 @@ namespace emiteat.NexUI.Designer
         /// canvas rects). Bumped by <see cref="Editor.DesignerHierarchyMigration"/> once sibling
         /// indices have been assigned so migration never runs twice on the same asset.
         /// </summary>
-        public const int CurrentSchemaVersion = 4;
+        public const int CurrentSchemaVersion = 5;
         public int schemaVersion;
 
         public string screenId;

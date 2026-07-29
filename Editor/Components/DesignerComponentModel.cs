@@ -15,7 +15,23 @@ namespace emiteat.NexUI.Designer.Editor.Components
         Feedback,
         Overlay,
         Data,
+        Navigation,
+        Game,
         Generic
+    }
+
+    /// <summary>
+    /// Which component library a type belongs to. <see cref="NexUI"/> types are backend-agnostic and
+    /// are written to whichever backend the screen targets; <see cref="UGUI"/> and
+    /// <see cref="UIToolkit"/> types are Unity's own stock controls and are only fully written on
+    /// their own backend (the other backend reports them as preview-only in the Save Report rather
+    /// than silently dropping them).
+    /// </summary>
+    public enum DesignerComponentFamily
+    {
+        NexUI,
+        UGUI,
+        UIToolkit
     }
 
     /// <summary>
@@ -105,8 +121,36 @@ namespace emiteat.NexUI.Designer.Editor.Components
         public string DisplayName;
         public string LocalizationKey;
         public DesignerComponentCategory Category = DesignerComponentCategory.Generic;
+        public DesignerComponentFamily Family = DesignerComponentFamily.NexUI;
         public string Icon;            // DesignerIcons key or unicode glyph
         public string Description;
+
+        // Palette placement. Group is a localization key from DesignerPaletteGroup; Order sorts
+        // entries inside the group (equal values fall back to registration order).
+        public string PaletteGroup;
+        public int PaletteOrder;
+
+        /// <summary>
+        /// Base name for generated element ids ("button" ⇒ button0, button1...). Null falls back to
+        /// the camel-cased <see cref="TypeId"/>, which is only safe for dot-free ids - stock Unity
+        /// controls use dotted ids ("UGUI.Button") and therefore always set this.
+        /// </summary>
+        public string ElementIdPrefix;
+
+        /// <summary>UXML tag emitted by the UI Toolkit code generator. Null ⇒ <c>ui:VisualElement</c>.</summary>
+        public string UxmlTag;
+
+        /// <summary>True when the UXML tag accepts a text attribute (Label/Button/Toggle/Foldout...).</summary>
+        public bool UxmlHasText;
+
+        /// <summary>Name of that text attribute. Null ⇒ <c>text</c>; controls like Tab use <c>label</c>.</summary>
+        public string UxmlTextAttribute;
+
+        /// <summary>
+        /// Key understood by <c>UGUIControlFactory</c> when writing a uGUI prefab. Non-empty means
+        /// "build Unity's stock control hierarchy for this element instead of a bare RectTransform".
+        /// </summary>
+        public string UGUIControl;
 
         // Defaults (Palette creation)
         public Vector2 DefaultSize = new Vector2(240, 96);

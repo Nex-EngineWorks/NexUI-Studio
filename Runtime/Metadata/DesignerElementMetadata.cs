@@ -5,6 +5,16 @@ using UnityEngine;
 
 namespace emiteat.NexUI.Designer
 {
+    [Serializable]
+    public sealed class DesignerAttachedComponentMetadata
+    {
+        /// <summary>
+        /// Assembly-qualified MonoBehaviour type name. The Designer resolves this lazily so screen
+        /// metadata can still load when an optional gameplay assembly or package is unavailable.
+        /// </summary>
+        public string typeName;
+    }
+
     /// <summary>
     /// uGUI anchor preset for a Designer element. Runtime-safe (no UnityEditor dependency)
     /// so it can live on <see cref="DesignerElementMetadata"/> and be shared by the editor
@@ -116,6 +126,12 @@ namespace emiteat.NexUI.Designer
         /// Always non-null so schema-v3 metadata (authored before components existed) loads unchanged.
         /// </summary>
         public DesignerComponentInstanceMetadata componentInstance = new DesignerComponentInstanceMetadata();
+
+        /// <summary>
+        /// MonoBehaviours requested through Add Component. They are materialized on the matching
+        /// generated uGUI GameObject; UI Toolkit keeps the entries and reports them as uGUI-only.
+        /// </summary>
+        public List<DesignerAttachedComponentMetadata> attachedComponents = new List<DesignerAttachedComponentMetadata>();
 
         public bool locked;
         /// <summary>Editor-only canvas visibility. Never changes generated/runtime visibility.</summary>

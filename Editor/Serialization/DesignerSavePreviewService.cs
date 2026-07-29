@@ -181,6 +181,25 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
 
         private static void ReportPropertyParity(DesignerElementMetadata element, UIRenderBackend backend, DesignerSaveReport report)
         {
+            var component = Components.DesignerComponentRegistry.Get(element.elementType);
+            var componentSupport = backend == UIRenderBackend.UGUI ? component.UGUISupport : component.UIToolkitSupport;
+            if (componentSupport == Components.DesignerBackendSupport.PreviewOnly)
+                report.MarkPreviewOnly(component.DisplayName,
+                    $"'{element.elementId}' ({component.TypeId}) is preview-only on {backend}.", element.elementId);
+            else if (componentSupport == Components.DesignerBackendSupport.Unsupported)
+                report.MarkUnsupported(component.DisplayName,
+                    $"'{element.elementId}' ({component.TypeId}) is unsupported on {backend}.", element.elementId);
+
+            if (element.attachedComponents != null && element.attachedComponents.Count > 0)
+            {
+                if (backend == UIRenderBackend.UGUI)
+                    report.MarkModified("Attached components",
+                        $"Synchronize {element.attachedComponents.Count} MonoBehaviour attachment(s) on '{element.elementId}'.", element.elementId);
+                else
+                    report.MarkPreviewOnly("Attached components",
+                        $"'{element.elementId}' MonoBehaviour attachments are uGUI-only and remain in metadata.", element.elementId);
+            }
+
             foreach (var property in ActiveLimitedProperties(element))
             {
                 var descriptor = DesignerPropertyRegistry.Get(property);

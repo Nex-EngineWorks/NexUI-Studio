@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using emiteat.NexUI.Designer.Editor.Backend;
+using emiteat.NexUI.Designer.Editor.Components;
 using emiteat.NexUI.Designer.Editor.Localization;
 using emiteat.NexUI.Designer.Editor.Properties;
 using UnityEditor.UIElements;
@@ -11,7 +13,7 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
     {
         private readonly TextField _id;
         private readonly TextField _displayName;
-        private readonly EnumField _type;
+        private readonly PopupField<string> _type;
         private readonly TextField _text;
         private readonly TextField _classes;
         private readonly EnumField _shape;
@@ -92,7 +94,11 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
         {
             _id = new TextField("Element Id") { tooltip = DesignerLocalization.T("tooltip.style.id") };
             _displayName = new TextField("Name") { tooltip = DesignerLocalization.T("tooltip.style.displayName") };
-            _type = new EnumField("Type", DesignerElementType.Panel) { tooltip = DesignerLocalization.T("tooltip.style.type") };
+            var typeChoices = new List<string>();
+            foreach (var descriptor in DesignerComponentRegistry.All)
+                if (descriptor != null && !descriptor.IsGeneric) typeChoices.Add(descriptor.TypeId);
+            _type = new PopupField<string>("Type", typeChoices, "Panel", TypeLabel, TypeLabel)
+                { tooltip = DesignerLocalization.T("tooltip.style.type") };
             _text = new TextField("Text") { tooltip = DesignerLocalization.T("tooltip.style.text") };
             _classes = new TextField("Classes") { tooltip = DesignerLocalization.T("tooltip.style.classes") };
             _shape = new EnumField("Shape", DesignerElementShape.Rounded) { tooltip = DesignerLocalization.T("tooltip.style.shape") };
@@ -213,7 +219,7 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
                 Refresh();
             });
             _displayName.RegisterValueChangedCallback(evt => Change(e => e.displayName = evt.newValue, "Rename NexUI Element Display"));
-            _type.RegisterValueChangedCallback(evt => Change(e => e.elementType = evt.newValue.ToString(), "Change NexUI Element Type"));
+            _type.RegisterValueChangedCallback(evt => Change(e => e.elementType = evt.newValue, "Change NexUI Element Type"));
             _text.RegisterValueChangedCallback(evt => Change(e => e.text = evt.newValue, "Edit NexUI Element Text"));
             _classes.RegisterValueChangedCallback(evt => Change(e =>
             {
@@ -301,8 +307,8 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
             {
                 _id.SetValueWithoutNotify(selected.elementId);
                 _displayName.SetValueWithoutNotify(selected.displayName);
-                if (System.Enum.TryParse(selected.elementType, out DesignerElementType parsed))
-                    _type.SetValueWithoutNotify(parsed);
+                if (!_type.choices.Contains(selected.elementType)) _type.choices.Add(selected.elementType);
+                _type.SetValueWithoutNotify(selected.elementType);
                 _text.SetValueWithoutNotify(selected.text);
                 _classes.SetValueWithoutNotify(string.Join(" ", selected.classes));
                 _shape.SetValueWithoutNotify(selected.shape);
@@ -372,6 +378,15 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
                 _textOutlineColor.SetValueWithoutNotify(typography.outlineColor);
             }
             _refreshing = false;
+        }
+
+        private static string TypeLabel(string typeId)
+        {
+            var descriptor = DesignerComponentRegistry.Get(typeId);
+            var name = DesignerComponentPalette.DisplayName(descriptor);
+            return descriptor.Family == DesignerComponentFamily.NexUI
+                ? name
+                : $"{name} ({descriptor.Family})";
         }
     }
 }

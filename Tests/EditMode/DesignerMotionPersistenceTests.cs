@@ -341,6 +341,71 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
         }
 
         [Test]
+        public void UguiSave_CreatesStockControlHierarchiesAndSynchronizesAttachedComponents()
+        {
+            var root = new GameObject("Screen", typeof(RectTransform));
+            var prefabPath = TempFolder + "/StockControls.prefab";
+            var prefab = PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
+            Object.DestroyImmediate(root);
+            var screen = ScriptableObject.CreateInstance<UIScreenDefinition>();
+            screen.identity = new UIScreenIdentity { screenId = "stock-controls" };
+            screen.backendAsset = new UIScreenBackendAsset { backend = UIRenderBackend.UGUI, asset = prefab };
+            var metadata = ScriptableObject.CreateInstance<DesignerMetadataAsset>();
+            metadata.schemaVersion = DesignerMetadataAsset.CurrentSchemaVersion;
+            metadata.screenId = "stock-controls";
+            metadata.elements.Add(new DesignerElementMetadata
+            {
+                stableId = "toggle-stable", elementId = "sound", elementType = "UGUI.Toggle", text = "Sound",
+                previewValue = 1f, rect = new Rect(10, 10, 160, 20),
+                attachedComponents = new System.Collections.Generic.List<DesignerAttachedComponentMetadata>
+                {
+                    new DesignerAttachedComponentMetadata
+                    {
+                        typeName = typeof(CanvasGroup).FullName + ", " + typeof(CanvasGroup).Assembly.GetName().Name
+                    }
+                }
+            });
+            metadata.elements.Add(new DesignerElementMetadata
+            {
+                stableId = "slider-stable", elementId = "volume", elementType = "UGUI.Slider",
+                previewValue = 75f, rect = new Rect(10, 40, 160, 20)
+            });
+            metadata.elements.Add(new DesignerElementMetadata
+            {
+                stableId = "scroll-stable", elementId = "items", elementType = "UGUI.ScrollView",
+                rect = new Rect(10, 70, 240, 200)
+            });
+
+            var report = new UGUIAssetSerializer().Save(screen, metadata);
+            var saved = PrefabUtility.LoadPrefabContents(prefabPath);
+            try
+            {
+                Assert.That(report.HasErrors, Is.False, report.Details());
+                var toggle = saved.transform.Find("sound");
+                Assert.That(toggle.GetComponent<Toggle>(), Is.Not.Null);
+                Assert.That(toggle.Find("Background/Checkmark"), Is.Not.Null);
+                Assert.That(toggle.GetComponent<Toggle>().isOn, Is.True);
+                Assert.That(toggle.GetComponent<CanvasGroup>(), Is.Not.Null);
+                Assert.That(toggle.GetComponent<DesignerAttachedComponentTracker>(), Is.Not.Null);
+
+                var slider = saved.transform.Find("volume");
+                Assert.That(slider.GetComponent<Slider>(), Is.Not.Null);
+                Assert.That(slider.Find("Fill Area/Fill"), Is.Not.Null);
+                Assert.That(slider.GetComponent<Slider>().value, Is.EqualTo(75f));
+
+                var scroll = saved.transform.Find("items");
+                Assert.That(scroll.GetComponent<ScrollRect>(), Is.Not.Null);
+                Assert.That(scroll.Find("Viewport/Content"), Is.Not.Null);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(saved);
+                Object.DestroyImmediate(metadata);
+                Object.DestroyImmediate(screen);
+            }
+        }
+
+        [Test]
         public void SavePreview_IsReadOnlyAndCategorizesCreateUnsupportedAndFallback()
         {
             var root = new GameObject("Screen", typeof(RectTransform));

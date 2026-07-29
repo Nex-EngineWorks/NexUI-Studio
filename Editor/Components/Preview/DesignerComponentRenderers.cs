@@ -227,15 +227,22 @@ namespace emiteat.NexUI.Designer.Editor.Components.Preview
         }
     }
 
-    /// <summary>Image (full-bleed) / IconButton (centered icon) real-texture preview.</summary>
+    /// <summary>
+    /// Real-texture preview for sprite-carrying types: full-bleed for image-shaped components
+    /// (Image, uGUI Image/RawImage, Avatar), or a centered icon for icon-carrying ones
+    /// (IconButton, Icon, Currency Display).
+    /// </summary>
     public sealed class ImagePreviewRenderer : IUIDesignerComponentPreviewRenderer
     {
+        private readonly bool _fullBleed;
+
+        public ImagePreviewRenderer(bool fullBleed = true) => _fullBleed = fullBleed;
+
         public void BuildPreview(VisualElement view, in DesignerPreviewContext ctx)
         {
             var element = ctx.Element;
             if (element.previewImage == null) return;
-            var fullBleed = element.elementType == "Image";
-            if (fullBleed)
+            if (_fullBleed)
             {
                 view.style.backgroundImage = new StyleBackground(element.previewImage);
                 view.style.unityBackgroundScaleMode = new StyleEnum<ScaleMode>(ScaleMode.ScaleToFit);

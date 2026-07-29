@@ -108,7 +108,6 @@ namespace emiteat.NexUI.Designer.Editor.Components.Preview
             if (_built) return;
             _built = true;
             var linear = new LinearFillPreviewRenderer();
-            var image = new ImagePreviewRenderer();
             _byId["ProgressBar"] = linear;
             _byId["StatBar"] = linear;
             _byId["RadialFill"] = new RadialPreviewRenderer(spin: false);
@@ -117,10 +116,13 @@ namespace emiteat.NexUI.Designer.Editor.Components.Preview
             _byId["List"] = new CollectionPreviewRenderer(grid: false);
             _byId["Grid"] = new CollectionPreviewRenderer(grid: true);
             _byId["Skeleton"] = new SkeletonPreviewRenderer();
-            _byId["Image"] = image;
-            _byId["IconButton"] = image;
+            _byId["Image"] = new ImagePreviewRenderer(fullBleed: true);
+            _byId["IconButton"] = new ImagePreviewRenderer(fullBleed: false);
             _byId["Slot"] = new SlotPreviewRenderer();
             _byId["Hotbar"] = new HotbarPreviewRenderer();
+
+            // NexUI's extended library plus Unity's stock uGUI / UI Toolkit controls.
+            DesignerStockPreviewRenderers.Register(_byId);
         }
     }
 }

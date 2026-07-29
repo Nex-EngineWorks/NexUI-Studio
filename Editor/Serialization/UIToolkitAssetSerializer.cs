@@ -3,6 +3,7 @@ using emiteat.NexUI.Core;
 using UnityEditor;
 using UnityEngine.UIElements;
 using System.IO;
+using emiteat.NexUI.Designer.Editor.Components;
 
 namespace emiteat.NexUI.Designer.Editor.Serialization
 {
@@ -68,6 +69,16 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 foreach (var element in metadata.elements)
                 {
                     if (element == null || string.IsNullOrEmpty(element.elementId)) continue;
+                    var support = DesignerComponentRegistry.Get(element.elementType).UIToolkitSupport;
+                    if (support == DesignerBackendSupport.PreviewOnly)
+                        report.MarkPreviewOnly(element.elementType,
+                            $"'{element.elementId}' is a {element.elementType} control; generated UXML contains only its VisualElement placeholder.", element.elementId);
+                    else if (support == DesignerBackendSupport.Unsupported)
+                        report.MarkUnsupported(element.elementType,
+                            $"'{element.elementId}' is unsupported by UI Toolkit.", element.elementId);
+                    if (element.attachedComponents != null && element.attachedComponents.Count > 0)
+                        report.MarkPreviewOnly("Attached components",
+                            $"'{element.elementId}' has MonoBehaviour attachments; these are applied only to uGUI GameObjects.", element.elementId);
                     if (!names.Contains(element.elementId))
                         report.MarkPreviewOnly("Unmatched element", $"Metadata element '{element.elementId}' has no matching named VisualElement in UXML. " +
                                     "Add name=\"" + element.elementId + "\" in UI Builder, or use 'Sync Metadata From UXML'.", element.elementId);
