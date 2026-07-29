@@ -99,6 +99,10 @@ namespace emiteat.NexUI.Designer.Editor.Components
                 _byId[d.TypeId] = d;
             foreach (var d in NexUIComponentCatalog.Build())
                 _byId[d.TypeId] = d;
+            foreach (var d in NexUILibraryCatalog.Build())
+                _byId[d.TypeId] = d;
+            foreach (var d in NexUIGameCatalog.Build())
+                _byId[d.TypeId] = d;
             foreach (var d in UGUIComponentCatalog.Build())
                 _byId[d.TypeId] = d;
             foreach (var d in UIToolkitComponentCatalog.Build())

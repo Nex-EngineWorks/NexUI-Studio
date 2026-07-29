@@ -5,6 +5,75 @@ using UnityEngine;
 
 namespace emiteat.NexUI.Designer.Editor.AI
 {
+    [Flags]
+    public enum NexUIAICapability
+    {
+        None = 0,
+        ReadContext = 1 << 0,
+        Selection = 1 << 1,
+        Content = 1 << 2,
+        Layout = 1 << 3,
+        VisualStyle = 1 << 4,
+        Binding = 1 << 5,
+        Hierarchy = 1 << 6,
+        CreateElements = 1 << 7,
+        DeleteElements = 1 << 8,
+        Motion = 1 << 9,
+        Components = 1 << 10,
+        AssetCreation = 1 << 11,
+        All = ReadContext | Selection | Content | Layout | VisualStyle | Binding | Hierarchy |
+              CreateElements | DeleteElements | Motion | Components | AssetCreation
+    }
+
+    public enum NexUIAITargetScope
+    {
+        SelectedElements,
+        SelectedSubtree,
+        CurrentScreen
+    }
+
+    public enum NexUIAIScopePreset
+    {
+        InspectOnly,
+        SelectedSafe,
+        ScreenDesign,
+        FullDesigner,
+        Custom
+    }
+
+    [Serializable]
+    public sealed class NexUIAIScopePolicy
+    {
+        public NexUIAIScopePreset preset = NexUIAIScopePreset.SelectedSafe;
+        public NexUIAITargetScope targetScope = NexUIAITargetScope.SelectedSubtree;
+        public NexUIAICapability capabilities = SafeDesignCapabilities;
+        public bool allowDestructiveActions;
+
+        public const NexUIAICapability SafeDesignCapabilities = NexUIAICapability.ReadContext |
+            NexUIAICapability.Selection | NexUIAICapability.Content | NexUIAICapability.Layout |
+            NexUIAICapability.VisualStyle | NexUIAICapability.Binding | NexUIAICapability.Hierarchy |
+            NexUIAICapability.CreateElements | NexUIAICapability.Motion | NexUIAICapability.Components;
+
+        public bool Allows(NexUIAICapability capability) => (capabilities & capability) == capability;
+
+        public static NexUIAIScopePolicy ForPreset(NexUIAIScopePreset preset)
+        {
+            switch (preset)
+            {
+                case NexUIAIScopePreset.InspectOnly:
+                    return new NexUIAIScopePolicy { preset = preset, targetScope = NexUIAITargetScope.CurrentScreen, capabilities = NexUIAICapability.ReadContext };
+                case NexUIAIScopePreset.ScreenDesign:
+                    return new NexUIAIScopePolicy { preset = preset, targetScope = NexUIAITargetScope.CurrentScreen, capabilities = SafeDesignCapabilities };
+                case NexUIAIScopePreset.FullDesigner:
+                    return new NexUIAIScopePolicy { preset = preset, targetScope = NexUIAITargetScope.CurrentScreen, capabilities = NexUIAICapability.All, allowDestructiveActions = true };
+                case NexUIAIScopePreset.Custom:
+                    return new NexUIAIScopePolicy { preset = preset };
+                default:
+                    return new NexUIAIScopePolicy { preset = NexUIAIScopePreset.SelectedSafe };
+            }
+        }
+    }
+
     [Serializable]
     public sealed class NexUIAIActionPlan
     {
@@ -30,6 +99,39 @@ namespace emiteat.NexUI.Designer.Editor.AI
         public float y;
         public float width;
         public float height;
+        public string componentId;
+        public string componentType;
+        public string preset;
+        public float duration;
+        public float delay;
+        public float distance;
+        public float startAlpha;
+        public float startScale;
+        public float overshoot;
+        public float staggerInterval;
+        public bool includeChildren;
+        public bool reverseOrder;
+        public string clipName;
+        public string assignTo;
+        public bool loop;
+        public int fps;
+        public List<NexUIAIMotionTrack> motionTracks = new List<NexUIAIMotionTrack>();
+    }
+
+    [Serializable]
+    public sealed class NexUIAIMotionTrack
+    {
+        public string targetId;
+        public string property;
+        public List<NexUIAIMotionKeyframe> keyframes = new List<NexUIAIMotionKeyframe>();
+    }
+
+    [Serializable]
+    public sealed class NexUIAIMotionKeyframe
+    {
+        public float time;
+        public string value;
+        public string easing;
     }
 
     public static class NexUIAIActionTypes
@@ -42,6 +144,14 @@ namespace emiteat.NexUI.Designer.Editor.AI
         public const string RemoveClass = "remove_class";
         public const string Select = "select";
         public const string Delete = "delete";
+        public const string SetMotion = "set_motion";
+        public const string ApplyTransition = "apply_transition";
+        public const string CreateMotionClip = "create_motion_clip";
+        public const string InstantiateComponent = "instantiate_component";
+        public const string AttachComponent = "attach_component";
+        public const string DetachComponent = "detach_component";
+        public const string SetComponentVariant = "set_component_variant";
+        public const string SetComponentProperty = "set_component_property";
     }
 
     public sealed class NexUIAIPlanValidation
@@ -70,6 +180,7 @@ namespace emiteat.NexUI.Designer.Editor.AI
         public string Model;
         public string Instructions;
         public string Input;
+        public string Endpoint;
     }
 
     public interface INexUIAIProvider

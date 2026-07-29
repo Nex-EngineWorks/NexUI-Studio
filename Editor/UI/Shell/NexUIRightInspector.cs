@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using emiteat.NexUI.Designer.Editor.Components;
 using emiteat.NexUI.Designer.Editor.Inspectors;
 using emiteat.NexUI.Designer.Editor.Localization;
@@ -17,20 +18,37 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
     /// </summary>
     public class NexUIRightInspector : VisualElement
     {
-        private const string FoldoutPrefPrefix = "NexUI.Designer.Inspector.Section.";
+        private const string FoldoutPrefPrefix = "NexUI.Designer.Inspector.V2.Section.";
+        private const string WorkflowPrefKey = "NexUI.Designer.Inspector.ActiveWorkflow";
+        private static readonly DesignerInspectorWorkflow[] WorkflowOrder =
+        {
+            DesignerInspectorWorkflow.All,
+            DesignerInspectorWorkflow.Build,
+            DesignerInspectorWorkflow.Connect,
+            DesignerInspectorWorkflow.Animate,
+            DesignerInspectorWorkflow.Verify,
+            DesignerInspectorWorkflow.Advanced
+        };
 
         private readonly NexUIDesignerContext _context;
         private readonly Label _title;
         private readonly Label _subtitle;
         private readonly Button _mode;
         private readonly ToolbarSearchField _search;
-        private readonly PopupField<DesignerInspectorWorkflow> _workflow;
+        private readonly Label _workflowIcon;
+        private readonly Label _workflowTitle;
+        private readonly Label _workflowDescription;
+        private readonly Label _workflowCount;
+        private readonly Dictionary<DesignerInspectorWorkflow, Button> _workflowButtons =
+            new Dictionary<DesignerInspectorWorkflow, Button>();
         private readonly ScrollView _host;
+        private DesignerInspectorWorkflow _activeWorkflow = DesignerInspectorWorkflow.Build;
         private string _lastTargetKey;
 
         public NexUIRightInspector(NexUIDesignerContext context)
         {
             _context = context;
+            _activeWorkflow = ReadWorkflowPreference();
             AddToClassList("nexui-right-inspector");
             AddToClassList("nexui-inspector");
             AddToClassList("nexui-unified-inspector");
@@ -63,24 +81,49 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             _search.AddToClassList("nexui-inspector-search");
             _search.RegisterValueChangedCallback(_ => RebuildSections());
             tools.Add(_search);
+            Add(tools);
 
-            _workflow = new PopupField<DesignerInspectorWorkflow>(
-                new System.Collections.Generic.List<DesignerInspectorWorkflow>
-                {
-                    DesignerInspectorWorkflow.All,
-                    DesignerInspectorWorkflow.Build,
-                    DesignerInspectorWorkflow.Connect,
-                    DesignerInspectorWorkflow.Animate,
-                    DesignerInspectorWorkflow.Verify,
-                    DesignerInspectorWorkflow.Advanced
-                }, 0)
+            var workspace = new VisualElement
             {
                 tooltip = DesignerLocalization.T("inspector.unified.workflowTooltip")
             };
-            _workflow.AddToClassList("nexui-inspector-workflow");
-            _workflow.RegisterValueChangedCallback(_ => RebuildSections());
-            tools.Add(_workflow);
-            Add(tools);
+            workspace.AddToClassList("nexui-inspector-workspace");
+            var workspaceSummary = new VisualElement { pickingMode = PickingMode.Ignore };
+            workspaceSummary.AddToClassList("nexui-inspector-workspace-summary");
+            _workflowIcon = new Label();
+            _workflowIcon.AddToClassList("nexui-inspector-workspace-icon");
+            workspaceSummary.Add(_workflowIcon);
+            var workspaceCopy = new VisualElement();
+            workspaceCopy.AddToClassList("nexui-inspector-workspace-copy");
+            _workflowTitle = new Label();
+            _workflowTitle.AddToClassList("nexui-inspector-workspace-title");
+            workspaceCopy.Add(_workflowTitle);
+            _workflowDescription = new Label();
+            _workflowDescription.AddToClassList("nexui-inspector-workspace-description");
+            workspaceCopy.Add(_workflowDescription);
+            workspaceSummary.Add(workspaceCopy);
+            _workflowCount = new Label();
+            _workflowCount.AddToClassList("nexui-inspector-workspace-count");
+            workspaceSummary.Add(_workflowCount);
+            workspace.Add(workspaceSummary);
+
+            var workflowTabs = new VisualElement();
+            workflowTabs.AddToClassList("nexui-inspector-workflow-tabs");
+            foreach (var workflow in WorkflowOrder)
+            {
+                var captured = workflow;
+                var tab = new Button(() => SelectWorkflow(captured))
+                {
+                    userData = captured,
+                    tooltip = WorkflowDescription(captured)
+                };
+                tab.AddToClassList("nexui-inspector-workflow-tab");
+                tab.AddToClassList("workflow-" + workflow.ToString().ToLowerInvariant());
+                _workflowButtons.Add(workflow, tab);
+                workflowTabs.Add(tab);
+            }
+            workspace.Add(workflowTabs);
+            Add(workspace);
 
             _host = new ScrollView();
             _host.AddToClassList("nexui-inspector-host");
@@ -111,8 +154,30 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             {
                 _lastTargetKey = targetKey;
                 _search.SetValueWithoutNotify(string.Empty);
-                _workflow.SetValueWithoutNotify(DesignerInspectorWorkflow.All);
+                if (!WorkflowAppliesToCurrentTarget(_activeWorkflow))
+                {
+                    _activeWorkflow = DesignerInspectorWorkflow.Build;
+                    SaveWorkflowPreference();
+                }
             }
+            RebuildSections();
+        }
+
+        private bool WorkflowAppliesToCurrentTarget(DesignerInspectorWorkflow workflow)
+        {
+            foreach (var descriptor in DesignerInspectorRegistry.All)
+                if (descriptor.AppliesTo(_context) &&
+                    (workflow == DesignerInspectorWorkflow.All || descriptor.Workflow == workflow))
+                    return true;
+            return false;
+        }
+
+        private void SelectWorkflow(DesignerInspectorWorkflow workflow)
+        {
+            if (_activeWorkflow == workflow) return;
+            _activeWorkflow = workflow;
+            SaveWorkflowPreference();
+            _host.scrollOffset = Vector2.zero;
             RebuildSections();
         }
 
@@ -125,10 +190,11 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             var query = (_search.value ?? string.Empty).Trim();
             var shown = 0;
             var hiddenByMode = 0;
+            var defaultExpandedAssigned = false;
             foreach (var descriptor in DesignerInspectorRegistry.All)
             {
                 if (!descriptor.AppliesTo(_context)) continue;
-                if (_workflow.value != DesignerInspectorWorkflow.All && descriptor.Workflow != _workflow.value) continue;
+                if (_activeWorkflow != DesignerInspectorWorkflow.All && descriptor.Workflow != _activeWorkflow) continue;
                 if (!descriptor.Matches(query)) continue;
 
                 if (!DesignerEditMode.IsAdvanced && descriptor.Exposure > DesignerInspectorExposure.Common)
@@ -137,9 +203,13 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
                     continue;
                 }
 
-                _host.Add(BuildSection(descriptor));
+                var defaultExpanded = !defaultExpandedAssigned && descriptor.Exposure == DesignerInspectorExposure.Essential;
+                if (defaultExpanded) defaultExpandedAssigned = true;
+                _host.Add(BuildSection(descriptor, defaultExpanded, !string.IsNullOrEmpty(query)));
                 shown++;
             }
+
+            RefreshWorkflowWorkspace(shown, query);
 
             if (hiddenByMode > 0)
             {
@@ -151,51 +221,153 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
                 _host.Add(reveal);
             }
 
-            if (shown == 0)
+            if (shown == 0 && hiddenByMode == 0)
             {
-                var empty = new Label(string.IsNullOrEmpty(query)
-                    ? DesignerLocalization.T("inspector.unified.emptySelection")
-                    : DesignerLocalization.T("inspector.unified.emptySearch", query));
-                empty.AddToClassList("nexui-inspector-empty");
-                _host.Add(empty);
+                _host.Add(BuildEmptyState(query));
             }
 
             _host.schedule.Execute(() => _host.scrollOffset = scroll);
         }
 
-        private VisualElement BuildSection(DesignerInspectorSectionDescriptor descriptor)
+        private VisualElement BuildSection(DesignerInspectorSectionDescriptor descriptor, bool defaultExpanded, bool expandForSearch)
         {
+            var preferenceKey = FoldoutPrefPrefix + descriptor.Id;
             var foldout = new Foldout
             {
                 text = descriptor.Title,
-                value = EditorPrefs.GetBool(FoldoutPrefPrefix + descriptor.Id, DefaultExpanded(descriptor))
+                value = expandForSearch || EditorPrefs.GetBool(preferenceKey, defaultExpanded)
             };
             foldout.AddToClassList("nexui-unified-inspector-section");
             foldout.AddToClassList("workflow-" + descriptor.Workflow.ToString().ToLowerInvariant());
-            foldout.tooltip = descriptor.Keywords;
-            foldout.RegisterValueChangedCallback(evt => EditorPrefs.SetBool(FoldoutPrefPrefix + descriptor.Id, evt.newValue));
+            foldout.AddToClassList("exposure-" + descriptor.Exposure.ToString().ToLowerInvariant());
+            foldout.tooltip = DesignerLocalization.T("inspector.unified.sectionTooltip",
+                descriptor.Title, WorkflowDescription(descriptor.Workflow),
+                ExposureTitle(descriptor.Exposure), descriptor.Keywords);
+            var contentBuilt = false;
+            void EnsureContent()
+            {
+                if (contentBuilt) return;
+                contentBuilt = true;
+                var content = descriptor.Create(_context);
+                var duplicateTitle = content.Q<Label>("SectionTitle");
+                duplicateTitle?.RemoveFromHierarchy();
+                var duplicatePanelTitle = content.Q<Label>("PanelTitle");
+                duplicatePanelTitle?.RemoveFromHierarchy();
+                content.RemoveFromClassList("nexui-inspector-section");
+                content.RemoveFromClassList("nexui-panel");
+                content.RemoveFromClassList("nexui-bottom-card");
+                content.style.flexGrow = 0;
+                content.AddToClassList("nexui-unified-inspector-content");
+                foldout.Add(content);
+            }
+
+            foldout.RegisterValueChangedCallback(evt =>
+            {
+                EditorPrefs.SetBool(preferenceKey, evt.newValue);
+                if (evt.newValue) EnsureContent();
+            });
             foldout.RegisterCallback<ContextClickEvent>(evt =>
             {
                 ShowSectionMenu();
                 evt.StopPropagation();
             });
 
-            var content = descriptor.Create(_context);
-            var duplicateTitle = content.Q<Label>("SectionTitle");
-            duplicateTitle?.RemoveFromHierarchy();
-            var duplicatePanelTitle = content.Q<Label>("PanelTitle");
-            duplicatePanelTitle?.RemoveFromHierarchy();
-            content.RemoveFromClassList("nexui-inspector-section");
-            content.RemoveFromClassList("nexui-panel");
-            content.RemoveFromClassList("nexui-bottom-card");
-            content.style.flexGrow = 0;
-            content.AddToClassList("nexui-unified-inspector-content");
-            foldout.Add(content);
+            if (foldout.value) EnsureContent();
             return foldout;
         }
 
-        private static bool DefaultExpanded(DesignerInspectorSectionDescriptor descriptor)
-            => descriptor.Exposure == DesignerInspectorExposure.Essential;
+        private VisualElement BuildEmptyState(string query)
+        {
+            var empty = new VisualElement();
+            empty.AddToClassList("nexui-inspector-empty");
+            var icon = new Label(string.IsNullOrEmpty(query) ? "◇" : "⌕") { pickingMode = PickingMode.Ignore };
+            icon.AddToClassList("nexui-inspector-empty-icon");
+            empty.Add(icon);
+            var title = new Label(string.IsNullOrEmpty(query)
+                ? DesignerLocalization.T("inspector.unified.emptySelection")
+                : DesignerLocalization.T("inspector.unified.emptySearch", query));
+            title.AddToClassList("nexui-inspector-empty-title");
+            empty.Add(title);
+            if (!string.IsNullOrEmpty(query))
+            {
+                var clear = new Button(() =>
+                {
+                    _search.SetValueWithoutNotify(string.Empty);
+                    RebuildSections();
+                })
+                {
+                    text = DesignerLocalization.T("inspector.unified.clearSearch"),
+                    tooltip = DesignerLocalization.T("inspector.unified.clearSearchTooltip")
+                };
+                clear.AddToClassList("nexui-inspector-empty-action");
+                empty.Add(clear);
+            }
+            return empty;
+        }
+
+        private void RefreshWorkflowWorkspace(int visibleSectionCount, string query)
+        {
+            _workflowIcon.text = WorkflowIcon(_activeWorkflow);
+            _workflowTitle.text = WorkflowTitle(_activeWorkflow);
+            _workflowDescription.text = WorkflowDescription(_activeWorkflow);
+            _workflowCount.text = DesignerLocalization.T("inspector.unified.sectionCount", visibleSectionCount);
+            foreach (var pair in _workflowButtons)
+            {
+                var count = CountVisibleSections(pair.Key, query);
+                pair.Value.text = WorkflowIcon(pair.Key) + "  " + WorkflowTitle(pair.Key) + "  " + count;
+                pair.Value.tooltip = DesignerLocalization.T("inspector.unified.workflowTabTooltip",
+                    WorkflowDescription(pair.Key), DesignerLocalization.T("inspector.unified.sectionCount", count));
+                pair.Value.EnableInClassList("is-selected", pair.Key == _activeWorkflow);
+                pair.Value.EnableInClassList("has-results", count > 0);
+            }
+        }
+
+        private int CountVisibleSections(DesignerInspectorWorkflow workflow, string query)
+        {
+            var count = 0;
+            foreach (var descriptor in DesignerInspectorRegistry.All)
+            {
+                if (!descriptor.AppliesTo(_context)) continue;
+                if (workflow != DesignerInspectorWorkflow.All && descriptor.Workflow != workflow) continue;
+                if (!descriptor.Matches(query)) continue;
+                if (!DesignerEditMode.IsAdvanced && descriptor.Exposure > DesignerInspectorExposure.Common) continue;
+                count++;
+            }
+            return count;
+        }
+
+        private static string WorkflowTitle(DesignerInspectorWorkflow workflow)
+            => DesignerLocalization.T("inspector.workflow." + workflow.ToString().ToLowerInvariant());
+
+        private static string WorkflowDescription(DesignerInspectorWorkflow workflow)
+            => DesignerLocalization.T("inspector.workflow." + workflow.ToString().ToLowerInvariant() + "Description");
+
+        private static string ExposureTitle(DesignerInspectorExposure exposure)
+            => DesignerLocalization.T("inspector.exposure." + exposure.ToString().ToLowerInvariant());
+
+        private static DesignerInspectorWorkflow ReadWorkflowPreference()
+        {
+            var value = EditorPrefs.GetInt(WorkflowPrefKey, (int)DesignerInspectorWorkflow.Build);
+            return Enum.IsDefined(typeof(DesignerInspectorWorkflow), value)
+                ? (DesignerInspectorWorkflow)value
+                : DesignerInspectorWorkflow.Build;
+        }
+
+        private void SaveWorkflowPreference()
+            => EditorPrefs.SetInt(WorkflowPrefKey, (int)_activeWorkflow);
+
+        private static string WorkflowIcon(DesignerInspectorWorkflow workflow)
+        {
+            switch (workflow)
+            {
+                case DesignerInspectorWorkflow.Build: return "▦";
+                case DesignerInspectorWorkflow.Connect: return "⌁";
+                case DesignerInspectorWorkflow.Animate: return "▶";
+                case DesignerInspectorWorkflow.Verify: return "✓";
+                case DesignerInspectorWorkflow.Advanced: return "◆";
+                default: return "≡";
+            }
+        }
 
         /// <summary>
         /// Right-click menu on a section header. Unity's component headers offer the same kind of
@@ -209,12 +381,13 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.inspector.collapseAll")), false, () => SetAllSections(false));
             menu.AddSeparator("");
 
-            var hasFilter = !string.IsNullOrEmpty(_search.value) || _workflow.value != DesignerInspectorWorkflow.All;
+            var hasFilter = !string.IsNullOrEmpty(_search.value) || _activeWorkflow != DesignerInspectorWorkflow.Build;
             if (hasFilter)
                 menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.inspector.resetFilters")), false, () =>
                 {
                     _search.SetValueWithoutNotify(string.Empty);
-                    _workflow.SetValueWithoutNotify(DesignerInspectorWorkflow.All);
+                    _activeWorkflow = DesignerInspectorWorkflow.Build;
+                    SaveWorkflowPreference();
                     RebuildSections();
                 });
             else

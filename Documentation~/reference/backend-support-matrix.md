@@ -38,6 +38,22 @@ Backend Asset은 Prefab이어야 합니다. Serializer는 **Stable ID를 우선*
 
 Generate/Publish는 Metadata에서 `.g.uxml`과 `.g.uss`를 만듭니다. Generated Marker가 없는 사용자 파일은 덮어쓰지 않습니다. 생성 결과가 같으면 파일을 다시 쓰지 않습니다. 지원되지 않거나 부분 지원인 값은 Diff와 결과 메시지를 확인하세요.
 
+## 생산성 기능의 Backend 지원
+
+| 기능 | uGUI | UI Toolkit | 비고 |
+|---|---:|---:|---|
+| 화면 생성 마법사 | 지원 | 지원 | Prefab / UXML 생성 |
+| 전환 프리셋 | 지원 | 지원 | 공통 Motion Clip 모델 |
+| Preview Scenario | 지원 | 지원 | Designer Preview 데이터 |
+| Auto Layout 변환 | 지원 | 지원 | Layout Group / Flex 변환 |
+| Grid 자동 변환 | 지원 | 지원 | GridLayoutGroup / Flex Wrap |
+| Anchor 추천 | 지원 | 지원 | 공통 Metadata |
+| Metadata Validation/Fix | 지원 | 지원 | 공통 규칙 |
+| Graphic/CanvasGroup Fix | 지원 | 해당 없음 | uGUI Prefab 전용 |
+| Generated UXML 구조 저장 | 해당 없음 | 지원 | Marker 있는 UXML/USS만 트랜잭션 갱신 |
+
+지원하지 않는 Backend 작업은 숨기지 않고 비활성화하거나 Validation 안내로 이유를 표시하는 것을 원칙으로 합니다.
+
 ## Runtime 확인이 필요한 이유
 
 Designer는 Key와 에셋 참조를 저장합니다. 실제 데이터, Command, Screen Lifecycle, Theme, 접근성 동작은 Runtime 코드와 Backend Capability가 공급합니다. 따라서 두 Backend 모두 Play Mode 검증이 최종 단계입니다.

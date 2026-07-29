@@ -14,14 +14,27 @@ namespace emiteat.NexUI.Designer.Editor.Components
     {
         // NexUI's own component library.
         public const string Containers = "palette.group.containers";
+        public const string Layout = "palette.group.layout";
         public const string TextMedia = "palette.group.textMedia";
+        public const string Media = "palette.group.media";
         public const string Controls = "palette.group.controls";
         public const string Selection = "palette.group.selection";
         public const string Navigation = "palette.group.navigation";
         public const string Feedback = "palette.group.feedback";
         public const string Overlay = "palette.group.overlay";
         public const string Data = "palette.group.data";
+        public const string Charts = "palette.group.charts";
+        public const string Social = "palette.group.social";
+        public const string Commerce = "palette.group.commerce";
+        public const string Settings = "palette.group.settings";
+        // Game UI is large enough to need its own shelves: a HUD readout, a loot table row and a
+        // match-result screen are different jobs and would be unfindable in one folder.
         public const string Game = "palette.group.game";
+        public const string GameWorld = "palette.group.game.world";
+        public const string GameItems = "palette.group.game.items";
+        public const string GameProgression = "palette.group.game.progression";
+        public const string GameMenu = "palette.group.game.menu";
+        public const string GameMultiplayer = "palette.group.game.multiplayer";
 
         // Unity uGUI stock controls (GameObject > UI menu).
         public const string UGUIBasic = "palette.group.ugui.basic";
@@ -37,7 +50,9 @@ namespace emiteat.NexUI.Designer.Editor.Components
         /// <summary>Folder order in the palette. Groups not listed here are appended alphabetically.</summary>
         public static readonly string[] Order =
         {
-            Containers, TextMedia, Controls, Selection, Navigation, Feedback, Overlay, Data, Game,
+            Containers, Layout, TextMedia, Media, Controls, Selection, Navigation, Feedback, Overlay,
+            Data, Charts, Social, Commerce, Settings,
+            Game, GameWorld, GameItems, GameProgression, GameMenu, GameMultiplayer,
             UGUIBasic, UGUIControls, UGUIContainers,
             UITKBasic, UITKControls, UITKFields, UITKContainers
         };

@@ -17,9 +17,13 @@ namespace emiteat.NexUI.Designer.Editor.Productivity
         private UIMotionClip previewClose;
 
         public static void Open(NexUIDesignerContext context)
+            => Open(context, DesignerTransitionPreset.Fade);
+
+        public static void Open(NexUIDesignerContext context, DesignerTransitionPreset initialPreset)
         {
             var window = GetWindow<DesignerTransitionPresetWindow>(true, DesignerLocalization.T("productivity.transition"), true);
             window.context = context;
+            window.preset = initialPreset;
             window.minSize = new Vector2(420, 490);
             window.RebuildPreview();
             window.Show();

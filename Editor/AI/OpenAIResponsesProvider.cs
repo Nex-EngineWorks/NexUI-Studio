@@ -1,144 +1,82 @@
 using System;
 using System.Text;
 using Cysharp.Threading.Tasks;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace emiteat.NexUI.Designer.Editor.AI
 {
-    public static class NexUIAISettings
-    {
-        private const string ModelKey = "NexUI.Designer.AI.Model";
-        private const string ProjectManifestKey = "NexUI.Designer.AI.IncludeProjectManifest";
-        public const string ApiKeyEnvironmentVariable = "OPENAI_API_KEY";
-        public const string DefaultModel = "gpt-5.6-sol";
-
-        public static string Model
-        {
-            get => EditorPrefs.GetString(ModelKey, DefaultModel);
-            set => EditorPrefs.SetString(ModelKey, string.IsNullOrWhiteSpace(value) ? DefaultModel : value.Trim());
-        }
-
-        public static bool IncludeProjectManifest
-        {
-            get => EditorPrefs.GetBool(ProjectManifestKey, false);
-            set => EditorPrefs.SetBool(ProjectManifestKey, value);
-        }
-
-        public static string EnvironmentApiKey
-            => Environment.GetEnvironmentVariable(ApiKeyEnvironmentVariable) ?? string.Empty;
-    }
-
-    /// <summary>
-    /// Minimal OpenAI Responses API transport. The API key is supplied per request and is never
-    /// serialized into a Unity asset or EditorPrefs.
-    /// </summary>
+    /// <summary>OpenAI Responses API transport. Secrets are supplied per request and never persisted.</summary>
     public sealed class OpenAIResponsesProvider : INexUIAIProvider
     {
-        private const string Endpoint = "https://api.openai.com/v1/responses";
-        public string DisplayName => "OpenAI Responses API";
+        private const string DefaultEndpoint = "https://api.openai.com/v1/responses";
+        public string DisplayName => "OpenAI";
 
         public async UniTask<string> CompleteAsync(NexUIAIProviderRequest requestData)
         {
-            if (requestData == null) throw new ArgumentNullException(nameof(requestData));
-            if (string.IsNullOrWhiteSpace(requestData.ApiKey))
-                throw new InvalidOperationException($"Set {NexUIAISettings.ApiKeyEnvironmentVariable} or enter a session API key.");
-
+            NexUIAIProviderUtility.RequireRequest(requestData, "OPENAI_API_KEY");
             var payload = JsonUtility.ToJson(new ResponsesRequest
             {
-                model = string.IsNullOrWhiteSpace(requestData.Model) ? NexUIAISettings.DefaultModel : requestData.Model,
+                model = requestData.Model,
                 instructions = requestData.Instructions ?? string.Empty,
                 input = requestData.Input ?? string.Empty,
-                max_output_tokens = 4000,
+                max_output_tokens = 6000,
                 store = false
             });
-
-            using var webRequest = new UnityWebRequest(Endpoint, UnityWebRequest.kHttpVerbPOST)
-            {
-                uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(payload)),
-                downloadHandler = new DownloadHandlerBuffer(),
-                timeout = 120
-            };
+            using var webRequest = NexUIAIProviderUtility.CreatePost(DefaultEndpoint, payload, 120);
             webRequest.SetRequestHeader("Authorization", "Bearer " + requestData.ApiKey.Trim());
-            webRequest.SetRequestHeader("Content-Type", "application/json");
-
             await webRequest.SendWebRequest().ToUniTask();
-
-            var body = webRequest.downloadHandler?.text ?? string.Empty;
-            if (webRequest.result != UnityWebRequest.Result.Success)
-                throw new InvalidOperationException(FormatApiError(webRequest.responseCode, webRequest.error, body));
-
+            var body = NexUIAIProviderUtility.EnsureSuccess(webRequest, DisplayName);
             var response = JsonUtility.FromJson<ResponsesResponse>(body);
-            var text = ExtractOutputText(response);
-            if (string.IsNullOrWhiteSpace(text))
-                throw new InvalidOperationException("OpenAI response did not contain output_text.");
-            return text;
+            if (response?.output != null)
+                foreach (var item in response.output)
+                    if (item?.content != null)
+                        foreach (var content in item.content)
+                            if (content != null && content.type == "output_text" && !string.IsNullOrWhiteSpace(content.text))
+                                return content.text;
+            throw new InvalidOperationException("OpenAI response did not contain output text.");
         }
 
-        private static string ExtractOutputText(ResponsesResponse response)
+        [Serializable] private sealed class ResponsesRequest { public string model; public string instructions; public string input; public int max_output_tokens; public bool store; }
+        [Serializable] private sealed class ResponsesResponse { public ResponsesOutputItem[] output; }
+        [Serializable] private sealed class ResponsesOutputItem { public ResponsesContent[] content; }
+        [Serializable] private sealed class ResponsesContent { public string type; public string text; }
+    }
+
+    internal static class NexUIAIProviderUtility
+    {
+        public static void RequireRequest(NexUIAIProviderRequest request, string environmentVariable)
         {
-            if (response?.output == null) return null;
-            foreach (var item in response.output)
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            if (string.IsNullOrWhiteSpace(request.ApiKey))
+                throw new InvalidOperationException($"Set {environmentVariable} or enter a session API key.");
+            if (string.IsNullOrWhiteSpace(request.Model))
+                throw new InvalidOperationException("Choose a model before sending the request.");
+        }
+
+        public static UnityWebRequest CreatePost(string endpoint, string payload, int timeout)
+        {
+            if (!Uri.TryCreate(endpoint, UriKind.Absolute, out var uri) ||
+                (uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp))
+                throw new InvalidOperationException("The provider endpoint must be an absolute HTTP(S) URL.");
+            var request = new UnityWebRequest(endpoint, UnityWebRequest.kHttpVerbPOST)
             {
-                if (item?.content == null) continue;
-                foreach (var content in item.content)
-                    if (content != null && content.type == "output_text" && !string.IsNullOrEmpty(content.text))
-                        return content.text;
-            }
-            return null;
+                uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(payload ?? string.Empty)),
+                downloadHandler = new DownloadHandlerBuffer(),
+                timeout = timeout
+            };
+            request.SetRequestHeader("Content-Type", "application/json");
+            return request;
         }
 
-        private static string FormatApiError(long code, string transportError, string body)
+        public static string EnsureSuccess(UnityWebRequest request, string provider)
         {
-            string message = null;
-            try { message = JsonUtility.FromJson<ResponsesErrorEnvelope>(body)?.error?.message; }
-            catch { /* fall back to the transport error */ }
-            if (string.IsNullOrWhiteSpace(message)) message = transportError;
-            if (string.IsNullOrWhiteSpace(message)) message = "Unknown API error.";
-            if (message.Length > 800) message = message.Substring(0, 800) + "…";
-            return $"OpenAI API error ({code}): {message}";
-        }
-
-        [Serializable]
-        private sealed class ResponsesRequest
-        {
-            public string model;
-            public string instructions;
-            public string input;
-            public int max_output_tokens;
-            public bool store;
-        }
-
-        [Serializable]
-        private sealed class ResponsesResponse
-        {
-            public ResponsesOutputItem[] output;
-        }
-
-        [Serializable]
-        private sealed class ResponsesOutputItem
-        {
-            public ResponsesContent[] content;
-        }
-
-        [Serializable]
-        private sealed class ResponsesContent
-        {
-            public string type;
-            public string text;
-        }
-
-        [Serializable]
-        private sealed class ResponsesErrorEnvelope
-        {
-            public ResponsesError error;
-        }
-
-        [Serializable]
-        private sealed class ResponsesError
-        {
-            public string message;
+            var body = request.downloadHandler?.text ?? string.Empty;
+            if (request.result == UnityWebRequest.Result.Success) return body;
+            var detail = string.IsNullOrWhiteSpace(body) ? request.error : body;
+            if (string.IsNullOrWhiteSpace(detail)) detail = "Unknown API error.";
+            if (detail.Length > 800) detail = detail.Substring(0, 800) + "...";
+            throw new InvalidOperationException($"{provider} API error ({request.responseCode}): {detail}");
         }
     }
 }

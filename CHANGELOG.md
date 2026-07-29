@@ -2,6 +2,40 @@
 
 ## [Unreleased]
 
+### 게임 UI 컴포넌트 143종 추가 (게임 계열 총 190종)
+- `NexUIGameCatalog`을 추가했습니다. 게임이 실제로 출시할 때 필요한 화면을 팔레트에서 조립할 수 있도록, HUD 하나만이 아니라 게임 UI 전 영역을 채웠습니다.
+- 팔레트 폴더를 5개 더 나눴습니다. HUD 하나에 몰아넣으면 찾을 수 없기 때문입니다: **게임 월드 및 맵**(18), **게임 아이템 및 인벤토리**(29), **게임 성장 및 보상**(19), **게임 메뉴 및 결과**(25), **게임 멀티플레이**(20). 기존 게임 HUD는 47 → 79종.
+- 전투 HUD: Health/Shield/Armor/Mana/Energy Bar, Stamina Wheel, Ultimate Charge, Reload Indicator, Cast Bar, Hit Marker, 피격 방향 표시, Status Effect Icon, Ability Queue, Weapon Slot, Ammo Pips, Combo Rank, Detection/Noise Meter, Tachometer, Gear Indicator.
+- 월드: Map Screen, Radar, Off-screen/Lock-on Indicator, Zone Banner, Objective List, Placement Ghost, Time of Day, Weather, Cutscene Letterbox, Skip Prompt.
+- 아이템: Item Card/Tooltip/Comparison, Rarity Frame, Durability Bar, Paperdoll, Loadout, Bag Tabs, Weight Meter, Crafting Recipe/Queue, Upgrade·Enchant·Salvage Panel, Vendor/Buyback List, Auction Row, Mail, Chest Opening, Summon Result, Pity Counter, Collection Album, Codex.
+- 성장: Experience Bar, Level Up Popup, Skill Tree, Talent Grid, Battle Pass Track, Season Tier, Daily Login Calendar, Quest Log/Objective, Achievement Row, Mastery Ring, Reputation Bar, Rank Progress, Energy Timer, VIP Level.
+- 메뉴/결과: Title Screen, Main·Pause Menu, Save Slot(List), Difficulty·Character·Level Select, Loading Screen/Tip, Death Screen, Respawn Timer, Match Results, Score Breakdown, Star Rating, MVP Card, Credits, Quit Confirm, Controls Diagram, Ad Reward Button.
+- 멀티플레이: Team Roster, Scoreboard(+Row), Lobby Slot, Ready Check, Matchmaking Status, Party Invite, Guild Panel, Chat Channel Tabs, Voice Indicator, Ping/Host Badge, Spectator Bar, Kill Cam, Report Player, Server List, Session Code.
+- 아키타입 헬퍼를 `NexUIComponentArchetypes`로 분리해 라이브러리·게임 카탈로그가 공유합니다. Container 아키타입에 `overlay` 옵션을 추가했고, 오버레이 컨테이너는 접근성 역할이 자동으로 Dialog가 됩니다.
+- 새 타입에도 캔버스 프리뷰를 연결했습니다(막대·링·슬롯·행·타일·표 형태로 재사용). 게임 폴더 6종이 각각 15종 이상 유지되는지, 팔레트 폴더 제목 번역이 있는지도 테스트로 고정했습니다.
+
+### NexUI 컴포넌트 라이브러리를 232종 확장 (총 305종)
+- `NexUILibraryCatalog`를 추가했습니다. 기존 73종으로는 화면을 팔레트에서 조립하기에 부족해, 실제 제품에 필요한 긴 꼬리를 채웠습니다. 이것들은 **컴포넌트**이며(레시피가 아님), 각각 레지스트리의 1급 타입으로 자체 기본값·슬롯·상태·바인딩·백엔드 매핑을 가집니다.
+- 팔레트 폴더를 6개 추가했습니다: 레이아웃(19), 미디어(14), 차트(13), 소셜(9), 상점 및 결제(12), 설정(10). 기존 폴더도 함께 늘어 컨트롤 40, 게임 HUD 47, 텍스트 및 미디어 28, 피드백 27, 데이터 23, 내비게이션 22, 오버레이 20종이 되었습니다.
+- 예: Dock Panel·Safe Area·Page Container·Form 같은 레이아웃 골격, Color/Date/Time Picker·Knob·Virtual Joystick·D-Pad 같은 컨트롤, Bar/Line/Pie/Radar/Heatmap 차트, Product Card·Checkout Summary 같은 상점 요소, Ability Bar·Cast Bar·Party Frame·Kill Feed·Weapon Wheel 같은 게임 HUD 부품.
+- 아키타입 헬퍼(Text/Media/Control/Field/Meter/Status/Container/Collection/Dialog/Chart)로 선언합니다. 아키타입이 상태·바인딩 채널·접근성 역할을 고정하므로, 입력 컴포넌트가 Error/Focused 상태를, 컬렉션이 Empty 상태를 빠뜨리는 일이 구조적으로 생기지 않습니다.
+- 새 타입 대부분에 캔버스 프리뷰를 붙였습니다. 차트·스탯 타일·리스트 행·컬러 영역·조이스틱은 전용 렌더러를, 나머지는 형태가 같은 기존 렌더러를 재사용합니다.
+- 레지스트리는 TypeId로 키를 잡으므로 나중에 등록된 카탈로그가 앞의 것을 조용히 덮어씁니다. 카탈로그 간 ID 충돌, 팔레트 도달 가능성, 라이브러리 규모(300종 이상)를 테스트로 고정했습니다.
+- 새 팔레트 폴더 제목을 ko/en 양쪽에 추가했습니다. 번역이 빠지면 팔레트에 `palette.group.charts` 같은 키가 그대로 노출되므로, 이를 막는 테스트도 함께 추가했습니다.
+
+### 전체 개요 문서
+- `Documentation~/overview.md`를 추가했습니다. 프로젝트를 만든 이유(웹의 React 수준 UI 제작 경험을 Unity에서), 런타임/Designer 전체 기능, 컴포넌트 라이브러리, 백엔드 출력 파이프라인, 현재 상태와 남은 일, 그리고 기존 문서 전체로 가는 지도를 한 문서에 모았습니다. 흩어진 문서를 먼저 다 읽지 않아도 프로젝트 전체를 파악할 수 있게 하는 것이 목적입니다.
+- 문서 index 상단에서 이 개요를 첫 진입점으로 안내합니다.
+
+### Unity 기본 컴포넌트를 팔레트에 추가
+- 팔레트를 컴포넌트 레지스트리에서 생성하도록 바꿨습니다. 패널이 각자 들고 있던 하드코딩 목록이 사라졌고, 컴포넌트 한 종을 추가하려면 디스크립터 하나만 등록하면 됩니다.
+- **Unity uGUI 스톡 컨트롤 22종**을 추가했습니다. 저장 시 Unity 자신의 `DefaultControls` / `TMP_DefaultControls`를 호출하므로, `GameObject > UI` 메뉴로 만든 것과 같은 계층·참조가 프리팹에 생성됩니다.
+- **UI Toolkit 스톡 컨트롤 37종**을 추가했습니다. 각 디스크립터가 UXML 태그를 들고 있어 코드 생성기가 `<ui:DropdownField />` 같은 실제 태그를 씁니다.
+- **NexUI 자체 컴포넌트 52종**(선택·입력·내비게이션·데이터·게임 HUD 계열)을 추가해 팔레트 항목이 132종이 되었습니다.
+- 계열이 맞지 않는 백엔드에서는 Preview-only로 처리합니다. 캔버스에는 보이고, 저장 리포트가 "이 백엔드에는 쓰지 않았다"고 밝힙니다.
+- 새 타입 대부분에 캔버스 프리뷰 렌더러를 붙여, 슬라이더·체크박스·표·트리·탭이 빈 상자가 아니라 형태로 보입니다.
+- 요소에 임의 MonoBehaviour를 부착하는 **Add Component**를 추가했습니다. 메타데이터에는 타입 이름만 저장하고, Designer가 붙인 컴포넌트만 추적해 사용자가 프리팹에 직접 붙인 같은 타입 컴포넌트를 지우지 않습니다.
+
 ### Panes can be pulled out and docked anywhere
 - Each region (Explorer, Inspector, Output) has a **⧉** button that opens it as its own `EditorWindow`. Rather than building a bespoke docking system, the pane becomes a normal editor window — so Unity's docking, tabbing, floating, multi-monitor placement and layout saving all apply for free, and the arrangement survives restarts and layout switches.
 - Closing a detached window docks the pane back into the Designer, and the shell re-lays itself out around whatever is currently detached. The canvas is never detachable, since it is what the Designer window is.

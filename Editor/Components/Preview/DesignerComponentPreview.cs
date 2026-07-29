@@ -123,6 +123,8 @@ namespace emiteat.NexUI.Designer.Editor.Components.Preview
 
             // NexUI's extended library plus Unity's stock uGUI / UI Toolkit controls.
             DesignerStockPreviewRenderers.Register(_byId);
+            DesignerLibraryPreviewRenderers.Register(_byId);
+            DesignerGamePreviewRenderers.Register(_byId);
         }
     }
 }

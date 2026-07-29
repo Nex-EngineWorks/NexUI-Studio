@@ -66,6 +66,9 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         private DesignerElementMetadata _dropTarget;
         private bool _dropTargetResolved;
         private readonly Dictionary<DesignerElementMetadata, VisualElement> _views = new Dictionary<DesignerElementMetadata, VisualElement>();
+        private readonly Dictionary<DesignerElementMetadata, List<VisualElement>> _ownedPreviewViews =
+            new Dictionary<DesignerElementMetadata, List<VisualElement>>();
+        private readonly Dictionary<VisualElement, Rect> _previewViewRects = new Dictionary<VisualElement, Rect>();
         private readonly Dictionary<string, VisualElement> _motionGhostViews = new Dictionary<string, VisualElement>();
         private emiteat.NexUI.MotionClip.UIMotionClip _motionGhostClip;
         private int _motionGhostTrackSignature;
@@ -78,6 +81,7 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         private bool _resizing;
         private Vector2 _lastDragDelta;
         private Dictionary<DesignerElementMetadata, Rect> _groupDragStartRects;
+        private Dictionary<VisualElement, Rect> _dragPreviewStartRects;
 
         // Drag-box (rectangle) selection state, in unscaled canvas coordinates.
         private Vector2? _boxSelectStart;
@@ -333,6 +337,8 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         {
             _elementLayer.Clear();
             _views.Clear();
+            _ownedPreviewViews.Clear();
+            _previewViewRects.Clear();
             ClearMotionGhosts();
 
             if (_context.Metadata == null || _context.Metadata.elements.Count == 0)
@@ -353,10 +359,21 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             foreach (var element in _context.PreviewElements)
             {
                 if (element == null || element.hiddenInDesigner) continue;
-                var view = CreateElementView(element);
-                var authored = _context.ResolveAuthoredElement(element) ?? element;
-                if (!_views.ContainsKey(authored))
+                var authored = _context.ResolveAuthoredElement(element);
+                var owner = authored ?? _context.ResolveAuthoredOwner(element);
+                var view = CreateElementView(element, authored);
+                if (authored != null && !_views.ContainsKey(authored))
                     _views[authored] = view;
+                if (owner != null)
+                {
+                    if (!_ownedPreviewViews.TryGetValue(owner, out var ownedViews))
+                    {
+                        ownedViews = new List<VisualElement>();
+                        _ownedPreviewViews[owner] = ownedViews;
+                    }
+                    ownedViews.Add(view);
+                }
+                _previewViewRects[view] = element.rect;
                 _elementLayer.Add(view);
             }
 
@@ -400,7 +417,8 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             return _context.Backend + " / " + _context.Resolution.x + "x" + _context.Resolution.y + " / " + _context.PreviewState + " / " + _context.InputMode;
         }
 
-        private VisualElement CreateElementView(DesignerElementMetadata element, bool motionGhost = false)
+        private VisualElement CreateElementView(DesignerElementMetadata element,
+            DesignerElementMetadata editableElement, bool motionGhost = false)
         {
             var view = new VisualElement();
             view.AddToClassList("nexui-design-element");
@@ -507,9 +525,13 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
                 view.Add(meta);
             }
 
-            if (motionGhost)
+            if (motionGhost || editableElement == null)
             {
-                view.pickingMode = PickingMode.Ignore;
+                // Expanded component children are visual detail only. If they take pointer input,
+                // the user drags a throw-away expansion clone and the authored instance snaps back
+                // on rebuild. Ignoring the whole subtree lets the instance root underneath receive
+                // selection, move, resize and context-menu input.
+                SetPickingModeRecursive(view, PickingMode.Ignore);
             }
             else
             {
@@ -519,12 +541,20 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
 
                 AddSelectionHandles(view);
 
-                view.RegisterCallback<PointerDownEvent>(evt => BeginDrag(evt, element, view));
+                view.RegisterCallback<PointerDownEvent>(evt => BeginDrag(evt, editableElement, view));
                 view.RegisterCallback<PointerMoveEvent>(evt => ContinueDrag(evt, view));
                 view.RegisterCallback<PointerUpEvent>(evt => EndDrag(evt, view));
                 view.RegisterCallback<PointerCancelEvent>(evt => CancelDrag(evt, view));
             }
             return view;
+        }
+
+        private static void SetPickingModeRecursive(VisualElement view, PickingMode mode)
+        {
+            if (view == null) return;
+            view.pickingMode = mode;
+            for (var i = 0; i < view.childCount; i++)
+                SetPickingModeRecursive(view[i], mode);
         }
 
         /// <summary>
@@ -572,7 +602,7 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
 
                 if (!_motionGhostViews.TryGetValue(track.targetElementId, out var ghost) || ghost == null)
                 {
-                    ghost = CreateElementView(element, motionGhost: true);
+                    ghost = CreateElementView(element, null, motionGhost: true);
                     _motionGhostViews[track.targetElementId] = ghost;
                     _motionGhostLayer.Add(ghost);
                 }
@@ -796,19 +826,21 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             // follow their parent. Rects are absolute canvas space, so each node translates by the
             // same delta. Resizing only affects the single dragged element.
             _groupDragStartRects = null;
+            HashSet<DesignerElementMetadata> closure = null;
             if (!_resizing)
             {
                 System.Collections.Generic.IEnumerable<DesignerElementMetadata> roots =
                     (_context.SelectedElements.Count > 1 && _context.IsSelected(element))
                         ? _context.SelectedElements
                         : new[] { element };
-                var closure = _context.MoveClosure(roots);
+                closure = _context.MoveClosure(roots);
                 if (closure.Count > 1)
                 {
                     _groupDragStartRects = new Dictionary<DesignerElementMetadata, Rect>();
                     foreach (var node in closure)
                         _groupDragStartRects[node] = node.rect;
                 }
+                CaptureDragPreviewRects(closure);
             }
 
             view.CapturePointer(evt.pointerId);
@@ -842,20 +874,14 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
 
                 if (_groupDragStartRects != null)
                 {
-                    foreach (var pair in _groupDragStartRects)
-                    {
-                        var r = pair.Value;
-                        r.position += delta;
-                        if (_views.TryGetValue(pair.Key, out var elementView))
-                            ApplyRect(elementView, r);
-                    }
+                    ApplyDragPreviewDelta(delta);
                 }
                 else
                 {
                     var rect = _dragStartRect;
                     rect.position += delta;
                     _pendingDragRect = SnapWithSmartGuides(rect, _dragElement);
-                    ApplyRect(view, _pendingDragRect);
+                    ApplyDragPreviewDelta(_pendingDragRect.position - _dragStartRect.position);
                 }
 
                 UpdateDropTarget(evt.position, evt.ctrlKey || evt.commandKey);
@@ -912,6 +938,10 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
 
         private void EndDrag(PointerUpEvent evt, VisualElement view)
         {
+            // Right-click must keep bubbling so UI Toolkit can synthesize ContextClickEvent for
+            // the canvas menu. BeginDrag only accepts the primary button, so ending a drag must
+            // follow the same contract instead of consuming every PointerUp over an element.
+            if (evt.button != 0) return;
             if (view.HasPointerCapture(evt.pointerId))
                 view.ReleasePointer(evt.pointerId);
             CommitDrag();
@@ -922,12 +952,14 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         {
             if (view.HasPointerCapture(evt.pointerId))
                 view.ReleasePointer(evt.pointerId);
+            RestoreDragPreviewRects();
             ClearDropTargetHighlight();
             _dropTarget = null;
             _dropTargetResolved = false;
             _dragElement = null;
             _resizing = false;
             _groupDragStartRects = null;
+            _dragPreviewStartRects = null;
             HideDropHint();
             evt.StopPropagation();
         }
@@ -968,9 +1000,41 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _dragElement = null;
             _resizing = false;
             _groupDragStartRects = null;
+            _dragPreviewStartRects = null;
             _lastDragDelta = Vector2.zero;
             HideSmartGuides();
             HideDropHint();
+        }
+
+        private void CaptureDragPreviewRects(IEnumerable<DesignerElementMetadata> owners)
+        {
+            _dragPreviewStartRects = new Dictionary<VisualElement, Rect>();
+            if (owners == null) return;
+            foreach (var owner in owners)
+            {
+                if (owner == null || !_ownedPreviewViews.TryGetValue(owner, out var views)) continue;
+                foreach (var ownedView in views)
+                    if (ownedView != null && _previewViewRects.TryGetValue(ownedView, out var rect))
+                        _dragPreviewStartRects[ownedView] = rect;
+            }
+        }
+
+        private void ApplyDragPreviewDelta(Vector2 delta)
+        {
+            if (_dragPreviewStartRects == null) return;
+            foreach (var pair in _dragPreviewStartRects)
+            {
+                var rect = pair.Value;
+                rect.position += delta;
+                ApplyRect(pair.Key, rect);
+            }
+        }
+
+        private void RestoreDragPreviewRects()
+        {
+            if (_dragPreviewStartRects == null) return;
+            foreach (var pair in _dragPreviewStartRects)
+                ApplyRect(pair.Key, pair.Value);
         }
 
         private Rect SnapWithSmartGuides(Rect rect, DesignerElementMetadata moving)

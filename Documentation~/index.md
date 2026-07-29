@@ -2,6 +2,8 @@
 
 사용 목적에 맞는 경로에서 시작해 주세요. 문서의 기능 설명은 현재 코드 기준이며, 장기 목표는 별도 명세로 분리했습니다.
 
+> **처음이라면 [전체 개요](overview.md)** — 프로젝트를 만든 이유, 런타임과 Designer의 전체 기능, 컴포넌트 라이브러리, 백엔드 출력, 현재 상태, 그리고 모든 문서로 가는 지도를 한 문서에 정리했습니다.
+
 ## 처음 사용하는 사용자
 
 - [설치](getting-started/installation.md) — Core와 Designer 패키지를 올바른 순서로 설치합니다.
@@ -32,7 +34,7 @@
 ## 기능 상태와 문제 해결
 
 - [현재 기능 상태](reference/feature-status.md) — 실제 지원·부분 지원·실험적 기능을 확인합니다.
-- [구현 상태 표](ImplementationStatus.md) — Backend와 테스트 여부를 표로 확인합니다.
+- [Feature Parity Matrix](FeatureParityMatrix.md) — Backend와 테스트 여부를 표로 확인합니다.
 - [목표 기능 명세](reference/feature-specification.md) — 장기 제품 범위를 확인합니다.
 - [단축키](reference/shortcuts.md) · [용어](reference/terminology.md)
 - [알려진 제한](reference/known-limitations.md) · [문제 해결](reference/troubleshooting.md)
@@ -61,7 +63,5 @@
 
 - [화면 생성 마법사](user-guide/screen-creation-wizard.md)
 - [전환 프리셋](user-guide/transition-presets.md)
-- [Preview Scenario와 Mock Data](user-guide/preview-scenarios-and-mock-data.md)
 - [Auto Layout 변환과 Anchor 추천](user-guide/layout-conversion-and-anchor.md)
 - [Validation Auto Fix](user-guide/validation-auto-fix.md)
-- [Backend별 지원 차이](reference/backend-productivity-support.md)

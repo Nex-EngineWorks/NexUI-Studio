@@ -16,6 +16,7 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
     public static class DesignerComponentLibrary
     {
         private const string FavouritePrefKey = "NexUI.Designer.ComponentFavourites";
+        public const string DefaultFolder = "Custom";
 
         private static readonly Dictionary<string, DesignerComponentDefinitionAsset> ByGuid = new(StringComparer.Ordinal);
         private static readonly Dictionary<string, string> GuidByComponentId = new(StringComparer.Ordinal);
@@ -64,6 +65,8 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
         public static string GuidOf(DesignerComponentDefinitionAsset definition)
         {
             if (definition == null) return null;
+            var builtInGuid = DesignerBuiltInComponentCatalog.SyntheticGuid(definition);
+            if (!string.IsNullOrEmpty(builtInGuid)) return builtInGuid;
             var path = AssetDatabase.GetAssetPath(definition);
             return string.IsNullOrEmpty(path) ? null : AssetDatabase.AssetPathToGUID(path);
         }
@@ -74,6 +77,8 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
         /// </summary>
         public static DesignerComponentDefinitionAsset Resolve(string definitionGuid, string definitionId)
         {
+            var builtIn = DesignerBuiltInComponentCatalog.Resolve(definitionGuid, definitionId);
+            if (builtIn != null) return builtIn;
             EnsureBuilt();
             if (!string.IsNullOrEmpty(definitionGuid) && ByGuid.TryGetValue(definitionGuid, out var byGuid))
                 return byGuid;
@@ -97,11 +102,120 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
         public static IEnumerable<string> Categories()
         {
             EnsureBuilt();
-            var seen = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+            var seen = new SortedSet<string>(StringComparer.OrdinalIgnoreCase) { DefaultFolder };
+            foreach (var folder in DesignerComponentFolderSettings.All)
+                seen.Add(folder);
             foreach (var d in Ordered)
-                seen.Add(string.IsNullOrEmpty(d.category) ? "Custom" : d.category);
+                seen.Add(EffectiveFolder(d));
             return seen;
         }
+
+        public static string EffectiveFolder(DesignerComponentDefinitionAsset definition)
+            => NormalizeFolder(definition?.category);
+
+        /// <summary>Normalizes a user folder path without ever touching the file system.</summary>
+        public static string NormalizeFolder(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return DefaultFolder;
+            var parts = path.Replace('\\', '/').Split('/');
+            var clean = new List<string>(parts.Length);
+            foreach (var part in parts)
+            {
+                var value = part.Trim();
+                if (string.IsNullOrEmpty(value) || value == "." || value == "..") continue;
+                foreach (var invalid in System.IO.Path.GetInvalidFileNameChars()) value = value.Replace(invalid.ToString(), string.Empty);
+                if (!string.IsNullOrWhiteSpace(value)) clean.Add(value.Trim());
+            }
+            return clean.Count == 0 ? DefaultFolder : string.Join("/", clean);
+        }
+
+        public static bool CreateFolder(string path)
+        {
+            var changed = DesignerComponentFolderSettings.Add(path);
+            if (changed) Changed?.Invoke();
+            return changed;
+        }
+
+        public static void SetFolder(DesignerComponentDefinitionAsset definition, string folder)
+        {
+            if (definition == null) return;
+            folder = NormalizeFolder(folder);
+            DesignerComponentFolderSettings.Add(folder);
+            if (string.Equals(EffectiveFolder(definition), folder, StringComparison.OrdinalIgnoreCase)) return;
+            Undo.RecordObject(definition, "Move NexUI Component Folder");
+            definition.category = folder;
+            EditorUtility.SetDirty(definition);
+            AssetDatabase.SaveAssets();
+            Invalidate();
+        }
+
+        /// <summary>Renames a folder and every nested path, preserving component membership.</summary>
+        public static int RenameFolder(string oldPath, string newPath)
+        {
+            oldPath = NormalizeFolder(oldPath);
+            newPath = NormalizeFolder(newPath);
+            if (string.Equals(oldPath, newPath, StringComparison.OrdinalIgnoreCase)) return 0;
+            EnsureBuilt();
+            var changed = new List<DesignerComponentDefinitionAsset>();
+            foreach (var definition in Ordered)
+                if (IsInFolderTree(EffectiveFolder(definition), oldPath)) changed.Add(definition);
+
+            if (changed.Count > 0) Undo.RecordObjects(changed.ToArray(), "Rename NexUI Component Folder");
+            foreach (var definition in changed)
+            {
+                var current = EffectiveFolder(definition);
+                definition.category = newPath + current.Substring(oldPath.Length);
+                EditorUtility.SetDirty(definition);
+            }
+            DesignerComponentFolderSettings.RenameTree(oldPath, newPath);
+            DesignerComponentFolderSettings.Add(newPath);
+            if (changed.Count > 0) AssetDatabase.SaveAssets();
+            Invalidate();
+            return changed.Count;
+        }
+
+        /// <summary>
+        /// Removes a folder node without deleting component assets. Components in the removed tree
+        /// move to its parent (or Custom), which makes the operation reversible through Undo.
+        /// </summary>
+        public static int RemoveFolder(string path)
+        {
+            path = NormalizeFolder(path);
+            if (string.Equals(path, DefaultFolder, StringComparison.OrdinalIgnoreCase)) return 0;
+            var slash = path.LastIndexOf('/');
+            var destination = slash > 0 ? path.Substring(0, slash) : DefaultFolder;
+            EnsureBuilt();
+            var changed = new List<DesignerComponentDefinitionAsset>();
+            foreach (var definition in Ordered)
+                if (IsInFolderTree(EffectiveFolder(definition), path)) changed.Add(definition);
+
+            if (changed.Count > 0) Undo.RecordObjects(changed.ToArray(), "Remove NexUI Component Folder");
+            foreach (var definition in changed)
+            {
+                definition.category = destination;
+                EditorUtility.SetDirty(definition);
+            }
+            DesignerComponentFolderSettings.RemoveTree(path);
+            if (changed.Count > 0) AssetDatabase.SaveAssets();
+            Invalidate();
+            return changed.Count;
+        }
+
+        public static void RenameComponent(DesignerComponentDefinitionAsset definition, string displayName)
+        {
+            if (definition == null || string.IsNullOrWhiteSpace(displayName)) return;
+            displayName = displayName.Trim();
+            if (definition.EffectiveDisplayName == displayName) return;
+            Undo.RecordObject(definition, "Rename NexUI Component");
+            definition.displayName = displayName;
+            EditorUtility.SetDirty(definition);
+            AssetDatabase.SaveAssets();
+            Invalidate();
+        }
+
+        private static bool IsInFolderTree(string candidate, string root)
+            => string.Equals(candidate, root, StringComparison.OrdinalIgnoreCase) ||
+               candidate.StartsWith(root + "/", StringComparison.OrdinalIgnoreCase);
 
         public static IEnumerable<string> Tags()
         {
@@ -125,7 +239,7 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
             foreach (var d in Ordered)
             {
                 if (!string.IsNullOrEmpty(category) &&
-                    !string.Equals(string.IsNullOrEmpty(d.category) ? "Custom" : d.category, category, StringComparison.OrdinalIgnoreCase))
+                    !string.Equals(EffectiveFolder(d), NormalizeFolder(category), StringComparison.OrdinalIgnoreCase))
                     continue;
                 if (favouritesOnly && !IsFavourite(d)) continue;
                 if (!Matches(d, query)) continue;
@@ -234,6 +348,100 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
                         return true;
                 return false;
             }
+        }
+    }
+
+    /// <summary>Project-shared empty-folder index for the custom component library.</summary>
+    [FilePath("ProjectSettings/NexUIDesignerComponentFolders.asset", FilePathAttribute.Location.ProjectFolder)]
+    internal sealed class DesignerComponentFolderSettings : ScriptableSingleton<DesignerComponentFolderSettings>
+    {
+        [SerializeField] private List<string> folders = new List<string> { DesignerComponentLibrary.DefaultFolder };
+
+        public static IReadOnlyList<string> All
+        {
+            get
+            {
+                instance.NormalizeStoredFolders();
+                return instance.folders;
+            }
+        }
+
+        public static bool Add(string path)
+        {
+            path = DesignerComponentLibrary.NormalizeFolder(path);
+            if (string.IsNullOrEmpty(path)) return false;
+            instance.NormalizeStoredFolders();
+            if (instance.folders.Exists(x => string.Equals(x, path, StringComparison.OrdinalIgnoreCase))) return false;
+            AddParents(path, instance.folders);
+            instance.SaveSettings();
+            return true;
+        }
+
+        public static bool RenameTree(string oldPath, string newPath)
+        {
+            oldPath = DesignerComponentLibrary.NormalizeFolder(oldPath);
+            newPath = DesignerComponentLibrary.NormalizeFolder(newPath);
+            if (string.IsNullOrEmpty(oldPath) || string.IsNullOrEmpty(newPath) ||
+                string.Equals(oldPath, newPath, StringComparison.OrdinalIgnoreCase)) return false;
+
+            instance.NormalizeStoredFolders();
+            var changed = false;
+            for (var i = 0; i < instance.folders.Count; i++)
+            {
+                var folder = instance.folders[i];
+                if (!IsInTree(folder, oldPath)) continue;
+                instance.folders[i] = newPath + folder.Substring(oldPath.Length);
+                changed = true;
+            }
+            AddParents(newPath, instance.folders);
+            if (changed) instance.SaveSettings();
+            return changed;
+        }
+
+        public static bool RemoveTree(string path)
+        {
+            path = DesignerComponentLibrary.NormalizeFolder(path);
+            if (string.IsNullOrEmpty(path) || string.Equals(path, DesignerComponentLibrary.DefaultFolder, StringComparison.OrdinalIgnoreCase))
+                return false;
+            instance.NormalizeStoredFolders();
+            var removed = instance.folders.RemoveAll(x => IsInTree(x, path));
+            if (removed > 0) instance.SaveSettings();
+            return removed > 0;
+        }
+
+        private static bool IsInTree(string candidate, string root)
+            => string.Equals(candidate, root, StringComparison.OrdinalIgnoreCase) ||
+               candidate.StartsWith(root + "/", StringComparison.OrdinalIgnoreCase);
+
+        private static void AddParents(string path, List<string> target)
+        {
+            var segments = path.Split('/');
+            var current = string.Empty;
+            foreach (var segment in segments)
+            {
+                current = string.IsNullOrEmpty(current) ? segment : current + "/" + segment;
+                if (!target.Exists(x => string.Equals(x, current, StringComparison.OrdinalIgnoreCase)))
+                    target.Add(current);
+            }
+        }
+
+        private void NormalizeStoredFolders()
+        {
+            folders ??= new List<string>();
+            var normalized = new SortedSet<string>(StringComparer.OrdinalIgnoreCase) { DesignerComponentLibrary.DefaultFolder };
+            foreach (var folder in folders)
+            {
+                var path = DesignerComponentLibrary.NormalizeFolder(folder);
+                if (!string.IsNullOrEmpty(path)) normalized.Add(path);
+            }
+            folders.Clear();
+            folders.AddRange(normalized);
+        }
+
+        private void SaveSettings()
+        {
+            NormalizeStoredFolders();
+            Save(true);
         }
     }
 }

@@ -59,6 +59,24 @@ namespace emiteat.NexUI.Designer.Editor
             return authored;
         }
 
+        /// <summary>
+        /// Returns the authored element that owns a preview element. Ordinary elements and component
+        /// roots map to themselves; generated definition children map to their authored instance.
+        /// This is for moving the whole visible component together, not for making generated children
+        /// independently editable.
+        /// </summary>
+        public DesignerElementMetadata ResolveAuthoredOwner(DesignerElementMetadata previewElement)
+        {
+            var authored = ResolveAuthoredElement(previewElement);
+            if (authored != null || previewElement == null || Metadata == null) return authored;
+
+            var expansion = Expansion;
+            if (expansion != null &&
+                expansion.OwnerInstanceByElementId.TryGetValue(previewElement.elementId, out var ownerElementId))
+                return Metadata.Find(ownerElementId);
+            return null;
+        }
+
         private DesignerComponentExpansion Expansion
         {
             get

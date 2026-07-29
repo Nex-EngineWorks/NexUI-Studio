@@ -46,7 +46,13 @@ dotnet build emiteat.NexUI.Designer.Tests.EditMode.csproj --no-restore
 
 `.github/workflows/unity-tests.yml`은 PR, `master` push, 수동 실행에서 EditMode/PlayMode를 수행하고 결과를 artifact로 올립니다.
 
-Personal License는 `UNITY_LICENSE`, `UNITY_EMAIL`, `UNITY_PASSWORD` secret이 필요합니다. Pro License는 `UNITY_EMAIL`, `UNITY_PASSWORD`, `UNITY_SERIAL`을 사용합니다. Secret이 없으면 GameCI 단계가 라이선스 오류로 실패합니다.
+Personal License는 `UNITY_LICENSE`, `UNITY_EMAIL`, `UNITY_PASSWORD` secret이 필요합니다. Pro License는 `UNITY_EMAIL`, `UNITY_PASSWORD`, `UNITY_SERIAL`을 사용합니다. Secret이 없으면 GameCI 단계가 라이선스 오류로 실패합니다. Fork PR에는 secret이 전달되지 않으며, secret 값은 로그나 artifact에 출력하지 않습니다.
+
+Unity job보다 먼저 `Tools/Validate-NexUI.ps1` gate가 실행되어 package.json, `.meta`, Runtime/Editor assembly 경계, 문서 링크, 임시 생성물과 merge marker를 검사합니다. 결과는 `unity-editmode-results`, `unity-playmode-results` artifact로 올라갑니다. Windows 실행 정책이 스크립트를 막으면 다음처럼 로컬에서 확인합니다.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\Tools\Validate-NexUI.ps1
+```
 
 ## 주요 테스트 범위
 
