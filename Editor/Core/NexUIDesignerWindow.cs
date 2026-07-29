@@ -58,10 +58,7 @@ namespace emiteat.NexUI.Designer.Editor
             titleContent.text = DesignerLocalization.T("designer.title");
             rootVisualElement.Clear();
             rootVisualElement.AddToClassList("nexui-designer-root");
-            var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(
-                "Packages/com.emiteat.nexui.designer/Editor/Styles/NexUIDesigner.uss");
-            if (styleSheet != null && !rootVisualElement.styleSheets.Contains(styleSheet))
-                rootVisualElement.styleSheets.Add(styleSheet);
+            Styles.DesignerStyleSheet.Apply(rootVisualElement);
             // Do not read EditorStyles here. Unity can invoke CreateGUI while EditorStyles is
             // still uninitialized during a domain reload; the USS/default editor font is valid
             // and avoids an initialization-order NullReferenceException.

@@ -7,6 +7,35 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
 {
     public sealed class DesignerUIStateTests
     {
+        // Grid size and snapping live in EditorPrefs, which are shared with whatever the developer
+        // last set in the Designer window. Several assertions below depend on them, so pin known
+        // values for the run and put the user's settings back afterwards - otherwise the suite
+        // passes or fails depending on the machine it runs on.
+        //
+        // Snapping is pinned OFF: these tests assert exact alignment and smart-guide results, and
+        // grid rounding on top of them tests nothing. Grid size still matters because Duplicate
+        // offsets copies by two grid cells.
+        private float _originalGridSize;
+        private bool _originalSnap;
+
+        [SetUp]
+        public void PinCanvasPreferences()
+        {
+            using var probe = new NexUIDesignerContext();
+            _originalGridSize = probe.GridSize;
+            _originalSnap = probe.SnapEnabled;
+            probe.SetGridSize(8f);
+            probe.SetSnap(false);
+        }
+
+        [TearDown]
+        public void RestoreCanvasPreferences()
+        {
+            using var probe = new NexUIDesignerContext();
+            probe.SetGridSize(_originalGridSize);
+            probe.SetSnap(_originalSnap);
+        }
+
         [Test]
         public void UIState_ChangesPersistOnContext()
         {

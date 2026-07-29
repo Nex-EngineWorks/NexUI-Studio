@@ -20,5 +20,9 @@
 | `Alt+L/C/R` | 왼쪽/가운데/오른쪽 정렬 | Canvas | |
 | `Alt+T/M/B` | 위/가운데/아래 정렬 | Canvas | |
 | `F` | 선택 항목 보기 | Canvas | |
+| `Space` + 드래그 | 화면 이동 | Canvas | 도구·선택 유지 |
+| 가운데 버튼 드래그 | 화면 이동 | Canvas | |
+| `Ctrl/Cmd` + 휠 | 커서 기준 확대·축소 | Canvas | 커서 아래 지점 고정 |
+| `Alt` + 안내선 클릭 | 안내선 삭제 | Canvas | 눈금자에서 드래그해 추가 |
 | `Shift` 클릭 | 범위/추가 선택 | Canvas/Layers/Timeline | 위치에 따라 범위 기준 다름 |
 | `Ctrl/Command` 클릭 | 선택 토글 | Canvas/Layers/Timeline | |

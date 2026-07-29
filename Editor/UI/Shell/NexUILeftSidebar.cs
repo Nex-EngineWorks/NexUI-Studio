@@ -14,11 +14,17 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
         private readonly NexUILayersPanel _layers;
         private readonly NexUIComponentsPanel _components;
         private readonly NexUIAssetsPanel _assets;
+        private readonly NexUIPaneHeader _header;
 
         public NexUILeftSidebar(NexUIDesignerContext context)
         {
             _context = context;
             AddToClassList("nexui-left-sidebar");
+
+            _header = new NexUIPaneHeader(DesignerLocalization.T("pane.sidebar"))
+                .WithDetachButton(() => NexUIPaneWindow.Open(DesignerPaneKind.Explorer),
+                    DesignerLocalization.T("pane.detach.tooltip"));
+            Add(_header);
 
             // Tab names follow Unity's own windows so the vocabulary transfers: the element tree is
             // the Hierarchy, the element palette is the Library (as in UI Builder) and the asset
@@ -69,16 +75,22 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
         {
             _tabs.SetCurrent(_context.SidebarTab);
             _host.Clear();
+
+            // The caption names the pane and then says what the *active* tab is for, so the header
+            // adds information instead of repeating the tab label underneath it.
             switch (_context.SidebarTab)
             {
                 case DesignerSidebarTab.Components:
                     _host.Add(_components);
+                    _header.Set(DesignerLocalization.T("pane.sidebar"), DesignerLocalization.T("pane.sidebar.library"));
                     break;
                 case DesignerSidebarTab.Assets:
                     _host.Add(_assets);
+                    _header.Set(DesignerLocalization.T("pane.sidebar"), DesignerLocalization.T("pane.sidebar.project"));
                     break;
                 default:
                     _host.Add(_layers);
+                    _header.Set(DesignerLocalization.T("pane.sidebar"), DesignerLocalization.T("pane.sidebar.hierarchy"));
                     break;
             }
         }

@@ -17,6 +17,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
         private readonly NexUIDesignerHistoryPanel _history;
         private readonly NexUIDesignerScreenGraphPanel _graph;
         private readonly NexUIPreviewLogPanel _previewLog;
+        private readonly NexUIPaneHeader _header;
         private Vector2 _resizeStart;
         private float _heightStart;
 
@@ -31,6 +32,11 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             handle.RegisterCallback<PointerMoveEvent>(OnResizeMove);
             handle.RegisterCallback<PointerUpEvent>(OnResizeUp);
             Add(handle);
+
+            _header = new NexUIPaneHeader(DesignerLocalization.T("pane.drawer"))
+                .WithDetachButton(() => NexUIPaneWindow.Open(DesignerPaneKind.Output),
+                    DesignerLocalization.T("pane.detach.tooltip"));
+            Add(_header);
 
             var bar = new VisualElement();
             bar.AddToClassList("nexui-drawer-bar");
@@ -81,6 +87,17 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             RefreshBadge();
         }
 
+        private string DrawerDetailKey()
+        {
+            switch (_context.BottomTab)
+            {
+                case DesignerBottomTab.History: return "pane.drawer.history";
+                case DesignerBottomTab.Graph:   return "pane.drawer.graph";
+                case DesignerBottomTab.Preview: return "pane.drawer.preview";
+                default:                        return "pane.drawer.validation";
+            }
+        }
+
         private void Refresh()
         {
             _tabs.SetCurrent(_context.BottomTab);
@@ -89,6 +106,12 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             style.height = _context.BottomDrawerOpen ? _context.BottomDrawerHeight : 36f;
             EnableInClassList("is-open", _context.BottomDrawerOpen);
             _content.style.display = _context.BottomDrawerOpen ? DisplayStyle.Flex : DisplayStyle.None;
+
+            // Collapsed, the drawer is only a tab strip - a caption above it would eat the single row
+            // the user deliberately left visible.
+            _header.style.display = _context.BottomDrawerOpen ? DisplayStyle.Flex : DisplayStyle.None;
+            _header.Set(DesignerLocalization.T("pane.drawer"), DesignerLocalization.T(DrawerDetailKey()));
+
             if (!_context.BottomDrawerOpen) return;
 
             _content.Clear();

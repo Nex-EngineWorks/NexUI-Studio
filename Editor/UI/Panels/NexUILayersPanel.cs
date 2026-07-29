@@ -36,6 +36,19 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
         private NexUILayerRow _dropTargetRow;
         private DropZone _dropZone;
 
+        // A press that has not yet moved far enough to count as a drag.
+        //
+        // Drag initiation lives on the panel rather than the row and deliberately does NOT rely on
+        // pointer capture: the rows sit inside a ScrollView, and once the ScrollView takes the
+        // pointer for its own drag-scrolling the row never sees another move event - which left
+        // hierarchy drag-and-drop silently doing nothing. Tracking the press here and listening for
+        // moves on the panel works regardless of who holds the capture.
+        private DesignerElementMetadata _pressedElement;
+        private Vector2 _pressedPosition;
+
+        /// <summary>Squared pixel distance a press must travel before it becomes a drag.</summary>
+        private const float DragThresholdSquared = 36f;
+
         internal enum DropZone { None, Before, Into, After }
 
         public NexUILayersPanel(NexUIDesignerContext context)
@@ -60,9 +73,13 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
             _list.style.flexGrow = 1;
             Add(_list);
 
-            // Drop on empty space below the rows ⇒ move to root.
+            // Drop on empty space below the rows ⇒ move to root. Registered on the panel as well as
+            // the list so a drag that wanders outside the list still updates and still completes.
             _list.RegisterCallback<PointerMoveEvent>(OnListDragMove);
             _list.RegisterCallback<PointerUpEvent>(OnListDragEnd);
+            RegisterCallback<PointerMoveEvent>(OnListDragMove);
+            RegisterCallback<PointerUpEvent>(OnListDragEnd);
+            RegisterCallback<PointerLeaveEvent>(_ => _pressedElement = null);
 
             // Right-clicking empty space offers the create/paste menu, like Unity's Hierarchy.
             // Rows stop the event themselves, so this only ever fires on the background.
@@ -130,6 +147,10 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
         // ---- row model ---------------------------------------------------------------------
         private void Refresh()
         {
+            // Rebuilding mid-drag would destroy the rows the drag is measuring against, losing the
+            // drop target. Anything that repaints the canvas can land here, so guard at the entry.
+            if (_dragElement != null) return;
+
             using var markerScope = RebuildMarker.Auto();
             _list.Clear();
             if (_context.Metadata == null || _context.Metadata.elements.Count == 0)
@@ -230,10 +251,37 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
 
         internal bool IsDragging => _dragElement != null;
 
+        /// <summary>
+        /// A row was pressed. The drag only actually starts once the pointer has moved far enough,
+        /// so a plain click still selects and a double-click still renames.
+        /// </summary>
+        internal void NotifyRowPressed(DesignerElementMetadata element, Vector2 position)
+        {
+            _pressedElement = element;
+            _pressedPosition = position;
+        }
+
         private void OnListDragMove(PointerMoveEvent evt)
         {
-            if (_dragElement == null) return;
+            if (_dragElement == null)
+            {
+                if (_pressedElement == null) return;
+                // Button not held any more (a release we never saw) - drop the pending press.
+                if ((evt.pressedButtons & 1) == 0) { _pressedElement = null; return; }
+                if ((((Vector2)evt.position) - _pressedPosition).sqrMagnitude < DragThresholdSquared) return;
+
+                BeginDrag(_pressedElement);
+                _pressedElement = null;
+                MarkRowDragging(true);
+            }
             UpdateDropTarget(evt.position);
+        }
+
+        private void MarkRowDragging(bool dragging)
+        {
+            foreach (var child in _list.Children())
+                if (child is NexUILayerRow row)
+                    row.EnableInClassList("is-dragging", dragging && row.Element == _dragElement);
         }
 
         /// <summary>Recomputes the hovered row and drop zone (top⇒Before, middle⇒Into, bottom⇒After) and paints indicators.</summary>
@@ -251,7 +299,9 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
                 if (pointer.y < b.yMin || pointer.y > b.yMax) continue;
                 var t = (pointer.y - b.yMin) / Mathf.Max(1f, b.height);
                 _dropTargetRow = row;
-                _dropZone = t < 0.28f ? DropZone.Before : t > 0.72f ? DropZone.After : DropZone.Into;
+                // "Into" owns the middle half of the row. Re-parenting is the reason to drag here at
+                // all, so it gets the generous band and reordering takes the thin edges.
+                _dropZone = t < 0.25f ? DropZone.Before : t > 0.75f ? DropZone.After : DropZone.Into;
                 break;
             }
 
@@ -267,19 +317,33 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
         }
 
         private bool IsLegalDrop(DesignerElementMetadata target, DropZone zone)
+            => IsLegalDrop(_dragElement, target, zone);
+
+        /// <summary>
+        /// Takes the dragged element explicitly rather than reading the field, because
+        /// <see cref="CompleteDrag"/> clears the field before validating the drop. Reading the field
+        /// there made every drop onto a row fail the legality check and silently do nothing - only
+        /// drops on empty space (which skip this check) ever worked.
+        /// </summary>
+        private bool IsLegalDrop(DesignerElementMetadata dragged, DesignerElementMetadata target, DropZone zone)
         {
-            if (_dragElement == null || target == null) return false;
-            if (target == _dragElement) return false;
+            if (dragged == null || target == null) return false;
+            if (target == dragged) return false;
             // Into: target becomes parent. Before/After: target's parent becomes parent.
             var newParentId = zone == DropZone.Into ? target.elementId : (target.parentId ?? string.Empty);
-            return !DesignerHierarchyUtility.WouldCreateCycle(_context.Metadata, _dragElement.elementId, newParentId);
+            return !DesignerHierarchyUtility.WouldCreateCycle(_context.Metadata, dragged.elementId, newParentId);
         }
 
-        private void OnListDragEnd(PointerUpEvent evt) => CompleteDrag(evt.position);
+        private void OnListDragEnd(PointerUpEvent evt)
+        {
+            _pressedElement = null;
+            CompleteDrag(evt.position);
+        }
 
         internal void CompleteDrag(Vector2 pointer)
         {
             if (_dragElement == null) return;
+            MarkRowDragging(false);
             var dragged = _dragElement;
             var target = _dropTargetRow;
             var zone = _dropZone;
@@ -299,13 +363,18 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
             {
                 // Dropped on empty space ⇒ move to canvas root (append).
                 _context.ReparentElements(movers, null);
+                Refresh();
                 return;
             }
 
-            if (!IsLegalDrop(target.Element, zone)) return;
+            if (!IsLegalDrop(dragged, target.Element, zone)) return;
 
             if (zone == DropZone.Into)
             {
+                // Make sure the new parent is expanded, otherwise the element the user just dropped
+                // vanishes from the list and the drop looks like it failed.
+                _collapsed.Remove(target.Element.elementId);
+                SaveCollapsedState();
                 _context.ReparentElements(movers, target.Element);
             }
             else
@@ -316,6 +385,10 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
                 if (zone == DropZone.After) idx += 1;
                 _context.ReparentElements(movers, parent, idx);
             }
+
+            // The guard in Refresh() suppressed rebuilds while the drag was live, so redraw now that
+            // the drag is finished and the hierarchy has actually changed.
+            Refresh();
         }
 
         internal void CancelDrag()
@@ -415,7 +488,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
             RegisterCallback<PointerDownEvent>(OnPointerDownSelect, TrickleDown.TrickleDown);
             RegisterCallback<ContextClickEvent>(OnContext);
             RegisterCallback<PointerDownEvent>(OnDragStart);
-            RegisterCallback<PointerMoveEvent>(OnDragMove);
+            // Moves are handled by the panel, not the row - see NexUILayersPanel.OnListDragMove.
             RegisterCallback<PointerUpEvent>(OnDragEnd);
             RefreshSelection();
         }
@@ -460,36 +533,24 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
         private Vector2 _dragStart;
         private bool _dragging;
 
+        /// <summary>
+        /// Records the press with the panel, which owns drag initiation. The row deliberately does
+        /// not capture the pointer: it lives inside a ScrollView that may take the capture for its
+        /// own scrolling, after which the row would never see another move event.
+        /// </summary>
         private void OnDragStart(PointerDownEvent evt)
         {
             if (evt.button != 0) return;
             if (evt.target is TextField || (evt.target as VisualElement)?.parent is TextField) return;
-            _dragStart = evt.position;
-            _dragging = false;
-            this.CapturePointer(evt.pointerId);
-        }
-
-        private void OnDragMove(PointerMoveEvent evt)
-        {
-            if (!this.HasPointerCapture(evt.pointerId)) return;
-            if (!_dragging)
-            {
-                var pointer = new Vector2(evt.position.x, evt.position.y);
-                if ((pointer - _dragStart).sqrMagnitude < 36f) return;
-                _dragging = true;
-                _panel.BeginDrag(_element);
-                EnableInClassList("is-dragging", true);
-            }
-            _panel.UpdateDropTarget(evt.position);
+            // Buttons on the row (visibility, lock, reorder) handle their own clicks.
+            if (evt.target is Button) return;
+            _panel.NotifyRowPressed(_element, evt.position);
         }
 
         private void OnDragEnd(PointerUpEvent evt)
         {
-            if (!this.HasPointerCapture(evt.pointerId)) return;
-            this.ReleasePointer(evt.pointerId);
-            EnableInClassList("is-dragging", false);
-            if (_dragging)
-                _panel.CompleteDrag(evt.position);
+            // The panel also listens for pointer-up; this only handles the release landing on a row.
+            if (_panel.IsDragging) _panel.CompleteDrag(evt.position);
         }
 
         internal void ShowDropIndicator(NexUILayersPanel.DropZone zone, bool legal)

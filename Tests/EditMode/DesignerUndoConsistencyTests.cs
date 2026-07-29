@@ -9,6 +9,8 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
     {
         private DesignerMetadataAsset _metadata;
         private NexUIDesignerContext _context;
+        private float _originalGridSize;
+        private bool _originalSnap;
 
         [SetUp]
         public void SetUp()
@@ -16,12 +18,23 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
             Undo.ClearAll();
             _metadata = ScriptableObject.CreateInstance<DesignerMetadataAsset>();
             _context = new NexUIDesignerContext();
+
+            // These tests are about Undo granularity, not snapping. Grid settings come from
+            // EditorPrefs shared with the Designer window, so disable snapping for the run and
+            // restore the user's values afterwards - otherwise an exact-position assertion fails
+            // purely because someone changed the grid in the editor.
+            _originalGridSize = _context.GridSize;
+            _originalSnap = _context.SnapEnabled;
+            _context.SetSnap(false);
+
             _context.SetMetadata(_metadata);
         }
 
         [TearDown]
         public void TearDown()
         {
+            _context.SetGridSize(_originalGridSize);
+            _context.SetSnap(_originalSnap);
             _context.Dispose();
             Object.DestroyImmediate(_metadata);
             Undo.ClearAll();

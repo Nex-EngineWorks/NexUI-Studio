@@ -12,6 +12,9 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
         private DesignerMetadataAsset _metadata;
         private NexUIDesignerContext _context;
 
+        private float _originalGridSize;
+        private bool _originalSnap;
+
         [SetUp]
         public void SetUp()
         {
@@ -19,12 +22,21 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
             _metadata = ScriptableObject.CreateInstance<DesignerMetadataAsset>();
             _metadata.screenId = "test-screen";
             _context = new NexUIDesignerContext();
+
+            // An applied plan states exact rects, so grid snapping (an EditorPrefs value shared with
+            // the Designer window) must not silently round them. Restored in TearDown.
+            _originalGridSize = _context.GridSize;
+            _originalSnap = _context.SnapEnabled;
+            _context.SetSnap(false);
+
             _context.SetMetadata(_metadata);
         }
 
         [TearDown]
         public void TearDown()
         {
+            _context.SetGridSize(_originalGridSize);
+            _context.SetSnap(_originalSnap);
             _context.Dispose();
             Object.DestroyImmediate(_metadata);
             Undo.ClearAll();

@@ -34,13 +34,20 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             {
                 if (element == null || element == movingElement || element.hiddenInDesigner) continue;
                 var target = element.rect;
+                // Alignment: like edges and centres line up.
                 TrySnapX(ref rect, moving, target.xMin, moving.xMin, ref bestX, ref vertical);
                 TrySnapX(ref rect, moving, target.center.x, moving.center.x, ref bestX, ref vertical);
                 TrySnapX(ref rect, moving, target.xMax, moving.xMax, ref bestX, ref vertical);
+                // Adjacency: butting one element against another. Without these, dragging a element
+                // up beside its neighbour never snaps - which is the single most common layout move.
+                TrySnapX(ref rect, moving, target.xMin, moving.xMax, ref bestX, ref vertical);
+                TrySnapX(ref rect, moving, target.xMax, moving.xMin, ref bestX, ref vertical);
 
                 TrySnapY(ref rect, moving, target.yMin, moving.yMin, ref bestY, ref horizontal);
                 TrySnapY(ref rect, moving, target.center.y, moving.center.y, ref bestY, ref horizontal);
                 TrySnapY(ref rect, moving, target.yMax, moving.yMax, ref bestY, ref horizontal);
+                TrySnapY(ref rect, moving, target.yMin, moving.yMax, ref bestY, ref horizontal);
+                TrySnapY(ref rect, moving, target.yMax, moving.yMin, ref bestY, ref horizontal);
 
                 var xGap = Gap(moving.xMin, moving.xMax, target.xMin, target.xMax);
                 var yGap = Gap(moving.yMin, moving.yMax, target.yMin, target.yMax);

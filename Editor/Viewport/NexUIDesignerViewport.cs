@@ -49,6 +49,21 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         private readonly Label _emptyState;
         private readonly Label _distanceLabel;
         private readonly Label _dropHint;
+        private readonly DesignerRulerOverlay _horizontalRuler;
+        private readonly DesignerRulerOverlay _verticalRuler;
+        private readonly DesignerGuideLayer _guideOverlay;
+        private readonly List<DesignerGuide> _userGuides;
+
+        // Canvas navigation: space-drag and middle-drag pan without leaving the current tool, the way
+        // every layout tool works. Selecting the Hand tool still pans, this just removes the round trip.
+        private bool _spaceHeld;
+        private bool _panning;
+        private Vector2 _panPointerStart;
+        private Vector2 _panScrollStart;
+
+        // Drag-to-reparent: the container the current element drag would drop into.
+        private DesignerElementMetadata _dropTarget;
+        private bool _dropTargetResolved;
         private readonly Dictionary<DesignerElementMetadata, VisualElement> _views = new Dictionary<DesignerElementMetadata, VisualElement>();
 
         // Single element drag/resize state (also used as the "grabbed" element during a group move).
@@ -179,8 +194,52 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _previewCanvas.Add(_distanceLabel);
             _previewCanvas.Add(_emptyState);
             _previewCanvas.Add(_dropHint);
+
+            // Rulers frame the canvas the way every layout tool does: a corner box, a horizontal strip
+            // above and a vertical strip beside the scrolling area. They read zoom/scroll live rather
+            // than caching, so they stay correct without extra bookkeeping.
+            _userGuides = LoadGuides();
+            _guideOverlay = new DesignerGuideLayer(_userGuides, () => _context.Zoom)
+            {
+                // Dragging a guide honours the same grid snap as dragging an element, so a guide can
+                // be parked exactly on the grid rather than one pixel off it.
+                SnapPosition = position => _context.SnapEnabled
+                    ? Mathf.Round(position / Mathf.Max(1f, _context.GridSize)) * Mathf.Max(1f, _context.GridSize)
+                    : position
+            };
+            _guideOverlay.Changed += SaveGuides;
+            _previewCanvas.Add(_guideOverlay);
             _previewFrame.Add(_previewCanvas);
-            Add(_previewFrame);
+
+            _horizontalRuler = new DesignerRulerOverlay(DesignerGuideAxis.Vertical,
+                () => _context.Zoom, () => _previewFrame.scrollOffset.x);
+            _verticalRuler = new DesignerRulerOverlay(DesignerGuideAxis.Horizontal,
+                () => _context.Zoom, () => _previewFrame.scrollOffset.y);
+            _horizontalRuler.GuideCreated += AddGuide;
+            _verticalRuler.GuideCreated += AddGuide;
+            _horizontalRuler.GuidePreview += SetGuidePreview;
+            _verticalRuler.GuidePreview += SetGuidePreview;
+
+            var rulerCorner = new VisualElement();
+            rulerCorner.AddToClassList("nexui-ruler-corner");
+            rulerCorner.tooltip = "Clear all guides.";
+            rulerCorner.RegisterCallback<PointerDownEvent>(_ => ClearGuides());
+
+            var topRow = new VisualElement();
+            topRow.AddToClassList("nexui-ruler-row");
+            topRow.Add(rulerCorner);
+            topRow.Add(_horizontalRuler);
+
+            var canvasRow = new VisualElement();
+            canvasRow.AddToClassList("nexui-canvas-row");
+            canvasRow.Add(_verticalRuler);
+            canvasRow.Add(_previewFrame);
+
+            var canvasArea = new VisualElement();
+            canvasArea.AddToClassList("nexui-canvas-area");
+            canvasArea.Add(topRow);
+            canvasArea.Add(canvasRow);
+            Add(canvasArea);
 
             _previewFrame.RegisterCallback<WheelEvent>(OnWheel);
             _previewCanvas.RegisterCallback<PointerDownEvent>(OnCanvasPointerDown);
@@ -191,7 +250,15 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _previewCanvas.RegisterCallback<DragPerformEvent>(OnCanvasDragPerform);
             _previewCanvas.RegisterCallback<DragLeaveEvent>(_ => HideDropHint());
             _previewCanvas.RegisterCallback<DragExitedEvent>(_ => HideDropHint());
+            _previewCanvas.RegisterCallback<PointerLeaveEvent>(_ =>
+            {
+                _horizontalRuler?.SetCursor(null);
+                _verticalRuler?.SetCursor(null);
+            });
             RegisterCallback<KeyDownEvent>(OnKeyDown);
+            RegisterCallback<KeyUpEvent>(OnKeyUp);
+            // Losing focus mid-pan would otherwise leave space "stuck down".
+            RegisterCallback<BlurEvent>(_ => SetSpaceHeld(false));
 
             subscriptions.Add(h => context.PreviewRebuilt += h, h => context.PreviewRebuilt -= h, RefreshAll);
             subscriptions.Add<DesignerMetadataAsset>(h => context.MetadataChanged += h, h => context.MetadataChanged -= h, _ => RefreshAll());
@@ -233,6 +300,7 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             RefreshHeaderAndCanvas();
             RebuildElements();
             RefreshSelection();
+            RefreshRulers();
         }
 
         private void RefreshHeaderAndCanvas()
@@ -673,9 +741,57 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
                     _pendingDragRect = SnapWithSmartGuides(rect, _dragElement);
                     ApplyRect(view, _pendingDragRect);
                 }
+
+                UpdateDropTarget(evt.position, evt.ctrlKey || evt.commandKey);
             }
 
             evt.StopPropagation();
+        }
+
+        // ---- Drag-to-reparent ------------------------------------------------------------------
+        // Dragging an element over a container makes it a child of that container, the same gesture
+        // as dropping a row onto another row in Unity's Hierarchy. Holding Ctrl/Cmd suppresses it for
+        // the times you only want to move something across a panel without re-parenting.
+
+        /// <summary>Highlights the container the current drag would drop into, and remembers it for commit.</summary>
+        private void UpdateDropTarget(Vector2 worldPosition, bool suppressed)
+        {
+            ClearDropTargetHighlight();
+
+            if (suppressed || _context.Metadata == null)
+            {
+                _dropTarget = null;
+                _dropTargetResolved = false;
+                HideDropHint();
+                return;
+            }
+
+            var movers = _groupDragStartRects != null
+                ? new List<DesignerElementMetadata>(_groupDragStartRects.Keys)
+                : new List<DesignerElementMetadata> { _dragElement };
+
+            var canvasPoint = CanvasPoint(worldPosition);
+            _dropTarget = DesignerDropTargetResolver.Resolve(_context.Metadata, canvasPoint, movers);
+            _dropTargetResolved = true;
+
+            if (!DesignerDropTargetResolver.WouldChangeParent(movers, _dropTarget))
+            {
+                _dropTarget = null;
+                _dropTargetResolved = false;
+                HideDropHint();
+                return;
+            }
+
+            if (_dropTarget != null && _views.TryGetValue(_dropTarget, out var targetView))
+                targetView.AddToClassList("is-drop-target");
+
+            ShowDropHint(canvasPoint, DesignerDropTargetResolver.Describe(_dropTarget));
+        }
+
+        private void ClearDropTargetHighlight()
+        {
+            foreach (var pair in _views)
+                pair.Value.RemoveFromClassList("is-drop-target");
         }
 
         private void EndDrag(PointerUpEvent evt, VisualElement view)
@@ -690,9 +806,13 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         {
             if (view.HasPointerCapture(evt.pointerId))
                 view.ReleasePointer(evt.pointerId);
+            ClearDropTargetHighlight();
+            _dropTarget = null;
+            _dropTargetResolved = false;
             _dragElement = null;
             _resizing = false;
             _groupDragStartRects = null;
+            HideDropHint();
             evt.StopPropagation();
         }
 
@@ -700,6 +820,10 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         {
             if (_dragElement != null)
             {
+                var movers = _groupDragStartRects != null
+                    ? new List<DesignerElementMetadata>(_groupDragStartRects.Keys)
+                    : new List<DesignerElementMetadata> { _dragElement };
+
                 if (_groupDragStartRects != null)
                 {
                     var rects = new Dictionary<DesignerElementMetadata, Rect>();
@@ -715,13 +839,22 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
                 {
                     _context.UpdateElementRect(_dragElement, _pendingDragRect);
                 }
+
+                // Re-parent after the rects are committed so the element keeps exactly the position it
+                // was dropped at (ReparentElements preserves canvas position by default).
+                if (_dropTargetResolved && DesignerDropTargetResolver.WouldChangeParent(movers, _dropTarget))
+                    _context.ReparentElements(movers, _dropTarget);
             }
 
+            ClearDropTargetHighlight();
+            _dropTarget = null;
+            _dropTargetResolved = false;
             _dragElement = null;
             _resizing = false;
             _groupDragStartRects = null;
             _lastDragDelta = Vector2.zero;
             HideSmartGuides();
+            HideDropHint();
         }
 
         private Rect SnapWithSmartGuides(Rect rect, DesignerElementMetadata moving)
@@ -729,9 +862,21 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             var snapped = _context.SnapRect(rect);
             if (_context.Metadata == null) return snapped;
 
-            var guide = NexUISmartGuideUtility.Snap(snapped, _context.Metadata.elements, moving, Mathf.Max(4f, 8f / Mathf.Max(0.01f, _context.Zoom)));
-            ShowSmartGuides(guide, snapped);
-            return guide.Rect;
+            var threshold = Mathf.Max(4f, 8f / Mathf.Max(0.01f, _context.Zoom));
+
+            // User guides win over element edges: a guide is an explicit decision, an element edge is
+            // incidental, so a deliberately placed guide should not be overruled by whatever happens
+            // to be nearby.
+            snapped = DesignerCanvasGuides.Snap(snapped, _userGuides, threshold, out var guideX, out var guideY);
+
+            var guide = NexUISmartGuideUtility.Snap(snapped, _context.Metadata.elements, moving, threshold);
+            var result = guide.Rect;
+            if (guideX.HasValue) result.x = snapped.x;
+            if (guideY.HasValue) result.y = snapped.y;
+
+            ShowSmartGuides(new NexUISmartGuideResult(result,
+                guideX ?? guide.VerticalGuide, guideY ?? guide.HorizontalGuide, guide.DistanceLabel), snapped);
+            return result;
         }
 
         private void ShowSmartGuides(NexUISmartGuideResult guide, Rect moving)
@@ -783,8 +928,21 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         private void OnCanvasPointerDown(PointerDownEvent evt)
         {
             Focus();
+            if (TryBeginPan(evt))
+            {
+                evt.StopPropagation();
+                return;
+            }
             if (evt.button != 0) return;
             if (evt.target != _previewCanvas && evt.target != _gridLayer && evt.target != _elementLayer) return;
+
+            // Alt-clicking a guide removes it - the cheapest gesture that cannot be confused with
+            // selecting, since Alt-drag on an element already means duplicate.
+            if (evt.altKey && TryRemoveGuideAt(CanvasPoint(evt.position)))
+            {
+                evt.StopPropagation();
+                return;
+            }
 
             _boxSelectStart = _previewCanvas.WorldToLocal(evt.position);
             _boxSelectShift = evt.shiftKey;
@@ -796,13 +954,31 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
 
         private void OnCanvasPointerMove(PointerMoveEvent evt)
         {
+            // Track the pointer on both rulers so the current X/Y is always readable while placing.
+            var canvasPoint = CanvasPoint(evt.position);
+            _horizontalRuler?.SetCursor(canvasPoint.x);
+            _verticalRuler?.SetCursor(canvasPoint.y);
+
+            if (UpdatePan(evt))
+            {
+                evt.StopPropagation();
+                return;
+            }
             if (!_boxSelectStart.HasValue || !_previewCanvas.HasPointerCapture(evt.pointerId)) return;
             ShowSelectionRect(_boxSelectStart.Value, _previewCanvas.WorldToLocal(evt.position));
             evt.StopPropagation();
         }
 
+        private Vector2 CanvasPoint(Vector2 worldPosition)
+            => _previewCanvas.WorldToLocal(worldPosition) / Mathf.Max(0.01f, _context.Zoom);
+
         private void OnCanvasPointerUp(PointerUpEvent evt)
         {
+            if (EndPan(evt))
+            {
+                evt.StopPropagation();
+                return;
+            }
             if (!_boxSelectStart.HasValue) return;
             if (_previewCanvas.HasPointerCapture(evt.pointerId))
                 _previewCanvas.ReleasePointer(evt.pointerId);
@@ -1123,15 +1299,145 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _floatingToolbar.Add(button);
         }
 
+        /// <summary>
+        /// Ctrl/Cmd + wheel zooms <b>around the pointer</b> rather than the canvas origin, so the thing
+        /// under the cursor stays put. Zooming to origin is the single most disorienting thing a canvas
+        /// can do while you are placing elements.
+        /// </summary>
         private void OnWheel(WheelEvent evt)
         {
             if (!evt.ctrlKey && !evt.commandKey) return;
+
+            var before = _context.Zoom;
+            var localPoint = _previewFrame.WorldToLocal(evt.mousePosition);
+            var canvasPoint = (localPoint + _previewFrame.scrollOffset) / Mathf.Max(0.01f, before);
+
             _context.ZoomBy(evt.delta.y > 0 ? -0.08f : 0.08f);
+
+            var after = _context.Zoom;
+            if (!Mathf.Approximately(before, after))
+                _previewFrame.scrollOffset = canvasPoint * after - localPoint;
+
+            RefreshRulers();
             evt.StopPropagation();
+        }
+
+        // ---- Guides ----------------------------------------------------------------------------
+
+        private string GuidePrefKey
+            => "NexUI.Designer.Guides." + (_context.Metadata != null
+                ? UnityEditor.AssetDatabase.AssetPathToGUID(UnityEditor.AssetDatabase.GetAssetPath(_context.Metadata))
+                : "none");
+
+        /// <summary>
+        /// Guides are editor-local working state (like zoom and scroll), so they live in EditorPrefs
+        /// keyed by the metadata asset rather than in the asset itself. That keeps them out of Git
+        /// diffs and avoids a schema migration for scratch data.
+        /// </summary>
+        private List<DesignerGuide> LoadGuides()
+            => DesignerCanvasGuides.Deserialize(UnityEditor.EditorPrefs.GetString(GuidePrefKey, string.Empty));
+
+        private void SaveGuides()
+            => UnityEditor.EditorPrefs.SetString(GuidePrefKey, DesignerCanvasGuides.Serialize(_userGuides));
+
+        private void AddGuide(DesignerGuide guide)
+        {
+            if (!DesignerCanvasGuides.Add(_userGuides, guide)) return;
+            SaveGuides();
+            _guideOverlay.Rebuild();
+        }
+
+        private void SetGuidePreview(DesignerGuideAxis axis, float? position)
+        {
+            _guideOverlay.Preview = position.HasValue ? new DesignerGuide(axis, position.Value) : (DesignerGuide?)null;
+            _guideOverlay.Rebuild();
+        }
+
+        private void ClearGuides()
+        {
+            if (_userGuides.Count == 0) return;
+            _userGuides.Clear();
+            SaveGuides();
+            _guideOverlay.Rebuild();
+        }
+
+        /// <summary>Removes the guide under a canvas point, if any. Returns true when one was removed.</summary>
+        private bool TryRemoveGuideAt(Vector2 canvasPoint)
+        {
+            var vertical = DesignerCanvasGuides.IndexAt(_userGuides, DesignerGuideAxis.Vertical, canvasPoint.x, _context.Zoom);
+            var horizontal = DesignerCanvasGuides.IndexAt(_userGuides, DesignerGuideAxis.Horizontal, canvasPoint.y, _context.Zoom);
+            var index = vertical >= 0 ? vertical : horizontal;
+            if (index < 0) return false;
+
+            _userGuides.RemoveAt(index);
+            SaveGuides();
+            _guideOverlay.Rebuild();
+            return true;
+        }
+
+        private void OnKeyUp(KeyUpEvent evt)
+        {
+            if (evt.keyCode != KeyCode.Space) return;
+            SetSpaceHeld(false);
+            evt.StopPropagation();
+        }
+
+        private void SetSpaceHeld(bool held)
+        {
+            if (_spaceHeld == held) return;
+            _spaceHeld = held;
+            _previewCanvas.EnableInClassList("is-pan-ready", held);
+        }
+
+        private void RefreshRulers()
+        {
+            _horizontalRuler?.Rebuild();
+            _verticalRuler?.Rebuild();
+            _guideOverlay?.Rebuild();
+        }
+
+        // ---- Pan --------------------------------------------------------------------------------
+
+        private bool TryBeginPan(PointerDownEvent evt)
+        {
+            // Middle mouse always pans; space-drag pans with the left button so the current tool and
+            // selection are untouched.
+            if (evt.button != 2 && !(evt.button == 0 && _spaceHeld)) return false;
+
+            _panning = true;
+            _panPointerStart = evt.position;
+            _panScrollStart = _previewFrame.scrollOffset;
+            _previewCanvas.CapturePointer(evt.pointerId);
+            return true;
+        }
+
+        private bool UpdatePan(PointerMoveEvent evt)
+        {
+            if (!_panning) return false;
+            _previewFrame.scrollOffset = _panScrollStart - ((Vector2)evt.position - _panPointerStart);
+            RefreshRulers();
+            return true;
+        }
+
+        private bool EndPan(PointerUpEvent evt)
+        {
+            if (!_panning) return false;
+            _panning = false;
+            if (_previewCanvas.HasPointerCapture(evt.pointerId)) _previewCanvas.ReleasePointer(evt.pointerId);
+            return true;
         }
 
         private void OnKeyDown(KeyDownEvent evt)
         {
+            // Space is a modifier here, not a command: holding it turns a left-drag into a pan so the
+            // hand tool is not a mode you have to enter and leave.
+            if (evt.keyCode == KeyCode.Space)
+            {
+                SetSpaceHeld(true);
+                evt.StopPropagation();
+                return;
+            }
+
             if (UIDesignerCommandDispatcher.TryDispatch(evt, _context))
             {
                 evt.StopPropagation();

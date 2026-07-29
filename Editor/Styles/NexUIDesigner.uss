@@ -1811,6 +1811,289 @@
     font-size: 10px;
 }
 
+/* --------------------------------------------------------------------------- pane headers */
+/* One compact caption per region so the window says what each pane is without a tooltip hunt. */
+
+.nexui-pane-header {
+    flex-direction: row;
+    align-items: center;
+    height: 18px;
+    min-height: 18px;
+    padding-left: 8px;
+    padding-right: 6px;
+    background-color: var(--nexui-bg-window);
+    border-bottom-width: 1px;
+    border-bottom-color: var(--nexui-border);
+}
+
+.nexui-pane-header-title {
+    font-size: 9px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+    color: var(--nexui-text-secondary);
+}
+
+.nexui-pane-header-detail {
+    font-size: 9px;
+    margin-left: 6px;
+    color: var(--nexui-text-disabled);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nexui-pane-header-trailing {
+    flex-direction: row;
+    align-items: center;
+}
+
+.nexui-pane-header-button {
+    height: 14px;
+    min-width: 18px;
+    margin: 0;
+    padding-left: 4px;
+    padding-right: 4px;
+    border-width: 0;
+    border-radius: 3px;
+    background-color: transparent;
+    color: var(--nexui-text-disabled);
+    font-size: 10px;
+}
+
+.nexui-pane-header-button:hover {
+    background-color: var(--nexui-bg-hover);
+    color: var(--nexui-text-primary);
+}
+
+/* ------------------------------------------------------------------------- transform bar */
+
+.nexui-transform-bar {
+    flex-direction: row;
+    align-items: center;
+    height: 24px;
+    min-height: 24px;
+    padding-left: 6px;
+    padding-right: 8px;
+    background-color: var(--nexui-bg-panel);
+    border-bottom-width: 1px;
+    border-bottom-color: var(--nexui-border);
+}
+
+.nexui-transform-field {
+    width: 74px;
+    margin-right: 4px;
+    font-size: 10px;
+}
+
+.nexui-transform-field > .unity-base-field__label {
+    min-width: 12px;
+    width: 12px;
+    color: var(--nexui-text-secondary);
+    font-size: 10px;
+}
+
+.nexui-transform-field > .unity-base-field__input {
+    background-color: var(--nexui-bg-input);
+    border-color: var(--nexui-border);
+    border-radius: 3px;
+}
+
+.nexui-transform-summary {
+    font-size: 10px;
+    color: var(--nexui-text-disabled);
+}
+
+/* ---------------------------------------------------------------------------- rulers & guides */
+
+.nexui-canvas-area {
+    flex-grow: 1;
+    min-height: 0;
+}
+
+.nexui-ruler-row {
+    flex-direction: row;
+    height: 18px;
+    min-height: 18px;
+}
+
+.nexui-canvas-row {
+    flex-direction: row;
+    flex-grow: 1;
+    min-height: 0;
+}
+
+.nexui-ruler-corner {
+    width: 18px;
+    min-width: 18px;
+    background-color: var(--nexui-bg-raised);
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-color: var(--nexui-border);
+}
+
+.nexui-ruler-corner:hover {
+    background-color: var(--nexui-bg-hover);
+}
+
+.nexui-ruler {
+    background-color: var(--nexui-bg-raised);
+    border-color: var(--nexui-border);
+    overflow: hidden;
+}
+
+.nexui-ruler.is-horizontal-strip {
+    flex-grow: 1;
+    height: 18px;
+    border-bottom-width: 1px;
+}
+
+.nexui-ruler.is-vertical-strip {
+    width: 18px;
+    min-width: 18px;
+    border-right-width: 1px;
+}
+
+.nexui-ruler-ticks {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.nexui-ruler-tick {
+    position: absolute;
+}
+
+.is-horizontal-strip .nexui-ruler-tick {
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background-color: var(--nexui-border-strong);
+}
+
+.is-vertical-strip .nexui-ruler-tick {
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: var(--nexui-border-strong);
+}
+
+.nexui-ruler-label {
+    position: absolute;
+    font-size: 8px;
+    color: var(--nexui-text-disabled);
+}
+
+.is-horizontal-strip .nexui-ruler-label {
+    left: 3px;
+    top: 2px;
+}
+
+.is-vertical-strip .nexui-ruler-label {
+    left: 2px;
+    top: 2px;
+}
+
+.nexui-ruler-cursor {
+    position: absolute;
+    background-color: var(--nexui-selection);
+    opacity: 0.9;
+}
+
+.is-horizontal-strip .nexui-ruler-cursor {
+    top: 0;
+    bottom: 0;
+    width: 1px;
+}
+
+.is-vertical-strip .nexui-ruler-cursor {
+    left: 0;
+    right: 0;
+    height: 1px;
+}
+
+.nexui-guide-layer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+/* The grab band is transparent and wide so a 1px guide can actually be picked up. */
+.nexui-guide-band {
+    position: absolute;
+    align-items: center;
+    justify-content: center;
+}
+
+.nexui-guide-band.is-vertical {
+    top: 0;
+    bottom: 0;
+    width: 11px;
+    cursor: resize-horizontal;
+}
+
+.nexui-guide-band.is-horizontal {
+    left: 0;
+    right: 0;
+    height: 11px;
+    cursor: resize-vertical;
+}
+
+.nexui-guide-line {
+    position: absolute;
+    background-color: var(--nexui-guide);
+    opacity: 0.75;
+}
+
+.nexui-guide-line.is-vertical {
+    top: 0;
+    bottom: 0;
+    width: 1px;
+}
+
+.nexui-guide-line.is-horizontal {
+    left: 0;
+    right: 0;
+    height: 1px;
+}
+
+/* Hovering or dragging the band thickens the line so the grab target is obvious. */
+.nexui-guide-band:hover > .nexui-guide-line,
+.nexui-guide-band.is-dragging > .nexui-guide-line {
+    opacity: 1;
+    background-color: var(--nexui-selection);
+}
+
+.nexui-guide-band:hover > .nexui-guide-line.is-vertical,
+.nexui-guide-band.is-dragging > .nexui-guide-line.is-vertical {
+    width: 2px;
+}
+
+.nexui-guide-band:hover > .nexui-guide-line.is-horizontal,
+.nexui-guide-band.is-dragging > .nexui-guide-line.is-horizontal {
+    height: 2px;
+}
+
+.nexui-guide-line.is-preview {
+    opacity: 1;
+    background-color: var(--nexui-selection);
+}
+
+/* The container a drag would drop into. Deliberately loud - re-parenting changes structure, so it
+   must never happen without the user having seen where it was going. */
+.nexui-design-element.is-drop-target {
+    border-width: 2px;
+    border-color: var(--nexui-selection);
+    background-color: rgba(90, 169, 255, 0.12);
+}
+
+/* Space held: the canvas is ready to pan, so say so instead of leaving the user guessing. */
+.nexui-preview-canvas.is-pan-ready {
+    cursor: pan;
+}
+
 /* Feedback shown while an asset is dragged over the canvas, so the drop is never a surprise. */
 .nexui-drop-hint {
     position: absolute;

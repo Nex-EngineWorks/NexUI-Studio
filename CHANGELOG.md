@@ -2,6 +2,42 @@
 
 ## [Unreleased]
 
+### Panes can be pulled out and docked anywhere
+- Each region (Explorer, Inspector, Output) has a **⧉** button that opens it as its own `EditorWindow`. Rather than building a bespoke docking system, the pane becomes a normal editor window — so Unity's docking, tabbing, floating, multi-monitor placement and layout saving all apply for free, and the arrangement survives restarts and layout switches.
+- Closing a detached window docks the pane back into the Designer, and the shell re-lays itself out around whatever is currently detached. The canvas is never detachable, since it is what the Designer window is.
+- The canvas column instance is preserved across re-layouts, so rearranging panes does not throw away the viewport and its scroll/zoom/guides.
+- Detached panes follow the active Designer window's context, so focusing a different screen re-points them instead of leaving a stale view.
+- Added `Tools/NexUI/Panels/…` to open any panel directly, including Hierarchy, Library and Project Assets as extra windows, plus `Dock All Back Into Designer` as the way back from a layout the user has lost track of.
+
+### Every pane is now labelled
+- Added a one-line caption to each region of the Designer window (sidebar, canvas, inspector, output drawer). The five regions previously looked alike with nothing naming them, which is what made "where is this feature" a hunt.
+- The caption states the pane name *and* what the current view is for, so it adds information rather than repeating the tab label directly underneath it: the sidebar reads `EXPLORER — Structure of the open screen` and changes with the active tab, and the canvas caption carries the open screen's id.
+- Kept to a single 18px row, and hidden on the output drawer while it is collapsed so it never eats the one row left visible on purpose.
+
+### Layers panel drag-and-drop actually works now
+- **Dropping a row onto another row did nothing.** `CompleteDrag` cleared the dragged-element field *before* calling the legality check, and that check bails out when the field is null — so every into/before/after drop was silently refused and only drops on empty space (which skip the check) ever worked. The check now takes the dragged element as an argument.
+- Drag initiation no longer depends on pointer capture. The rows live inside a `ScrollView`, and once it takes the pointer for its own scrolling the row stopped receiving move events, so a drag could fail to start at all. The panel now tracks the press and listens for moves itself.
+- Rebuilding the row list is suppressed while a drag is live; it previously destroyed the rows the drop target was measured against.
+- The "into" zone now owns the middle half of a row (was ~44%), since re-parenting is the main reason to drag here. Dropping into a collapsed container also expands it, so the moved element does not appear to vanish.
+
+### Fixes found while building the above
+- Smart guides never snapped one element's edge against its neighbour's opposite edge — only like-for-like edges and centres. Butting two elements together, the most common layout move, therefore did not snap at all. Added the two adjacency pairs on each axis.
+- Several EditMode tests read grid size and snapping straight out of `EditorPrefs`, which are shared with whatever was last set in the Designer window. The suite's pass/fail set changed depending on the machine. `DesignerUIStateTests`, `DesignerUndoConsistencyTests` and `NexUIAIServiceTests` now pin known values and restore the user's settings afterwards.
+
+### Canvas ergonomics (follow-up)
+- Guides can now be **grabbed and moved**. Each one carries an 11px transparent grab band around its 1px line — a hair-line is effectively unhittable with a mouse, which is why guides were previously create-and-delete only. Hovering thickens the line so the target is visible, and dragging honours Grid Snap.
+- Dragging a guide back onto the ruler removes it, alongside the existing `Alt`-click.
+- Added **drag-to-reparent on the canvas**: drop an element onto a container and it becomes its child, the same gesture as dropping a row onto another row in Unity's Hierarchy. The target is outlined and named in a drop hint before release, the element keeps its on-screen position, and `Ctrl/Cmd` suppresses re-parenting for a plain move.
+- Drop targets exclude the dragged elements and their descendants (which would detach a branch), hidden and locked elements, and component types that accept no children. The deepest container under the cursor wins, with draw order breaking ties.
+
+### Canvas ergonomics
+- Added rulers along the top and left of the canvas. Tick spacing adapts to zoom and always lands on round numbers (1/2/5 × 10ⁿ), and both rulers track the pointer so the current X/Y is readable while placing.
+- Added drag-out guides: pull from a ruler to place one, `Alt`-click to delete one, click the ruler corner to clear all. Elements snap their edges and centre to guides, and guides take priority over element edges because a guide is an explicit decision.
+- Added `Space`-drag and middle-mouse panning that keep the current tool and selection, so panning no longer means switching to the Hand tool and back.
+- `Ctrl/Cmd`+wheel now zooms around the pointer instead of the canvas origin, so the element under the cursor stays put.
+- Added a Transform Bar under the canvas toolbar with live, editable X/Y/W/H for the selection (label-drag scrubs). Nudging a rect no longer requires a round trip to the Inspector. Multi-selection shows the union read-only rather than pretending four fields can edit many rects.
+- Guides are stored per metadata asset in `EditorPrefs`, like zoom and scroll — they stay out of Git diffs and need no schema migration.
+
 ### Documentation accuracy pass
 - Corrected `developer/metadata-schema.md`, which still claimed `CurrentSchemaVersion` was 1 (it is 4), and documented what every migration step actually changes.
 - Corrected `reference/backend-support-matrix.md`, `developer/serialization.md` and `reference/troubleshooting.md`, which still described uGUI saving as name-based matching. It has been stable-id-first with a name fallback since Phase 0.

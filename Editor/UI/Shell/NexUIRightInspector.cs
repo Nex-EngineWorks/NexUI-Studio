@@ -2,6 +2,7 @@ using System;
 using emiteat.NexUI.Designer.Editor.Components;
 using emiteat.NexUI.Designer.Editor.Inspectors;
 using emiteat.NexUI.Designer.Editor.Localization;
+using emiteat.NexUI.Designer.Editor.UI.Controls;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -33,6 +34,11 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             AddToClassList("nexui-right-inspector");
             AddToClassList("nexui-inspector");
             AddToClassList("nexui-unified-inspector");
+
+            Add(new NexUIPaneHeader(DesignerLocalization.T("pane.inspector"),
+                    DesignerLocalization.T("pane.inspector.detail"))
+                .WithDetachButton(() => NexUIPaneWindow.Open(DesignerPaneKind.Inspector),
+                    DesignerLocalization.T("pane.detach.tooltip")));
 
             var header = new VisualElement();
             header.AddToClassList("nexui-inspector-header");

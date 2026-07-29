@@ -26,6 +26,36 @@ namespace emiteat.NexUI.Designer.Editor
         [MenuItem("Tools/NexUI/Designer", priority = PriorityWindows)]
         public static void OpenDesigner() => NexUIDesigner.Open();
 
+        // Panels open as ordinary EditorWindows, so they dock, tab and float like the rest of the
+        // editor and their arrangement is saved in the Unity layout.
+        [MenuItem("Tools/NexUI/Panels/Explorer", priority = PriorityWindows + 10)]
+        public static void OpenExplorerPanel() => UI.Shell.NexUIPaneWindow.Open(UI.Shell.DesignerPaneKind.Explorer);
+
+        [MenuItem("Tools/NexUI/Panels/Inspector", priority = PriorityWindows + 11)]
+        public static void OpenInspectorPanel() => UI.Shell.NexUIPaneWindow.Open(UI.Shell.DesignerPaneKind.Inspector);
+
+        [MenuItem("Tools/NexUI/Panels/Output", priority = PriorityWindows + 12)]
+        public static void OpenOutputPanel() => UI.Shell.NexUIPaneWindow.Open(UI.Shell.DesignerPaneKind.Output);
+
+        [MenuItem("Tools/NexUI/Panels/Hierarchy", priority = PriorityWindows + 30)]
+        public static void OpenHierarchyPanel() => UI.Shell.NexUIPaneWindow.Open(UI.Shell.DesignerPaneKind.Hierarchy);
+
+        [MenuItem("Tools/NexUI/Panels/Library", priority = PriorityWindows + 31)]
+        public static void OpenLibraryPanel() => UI.Shell.NexUIPaneWindow.Open(UI.Shell.DesignerPaneKind.Library);
+
+        [MenuItem("Tools/NexUI/Panels/Project Assets", priority = PriorityWindows + 32)]
+        public static void OpenProjectPanel() => UI.Shell.NexUIPaneWindow.Open(UI.Shell.DesignerPaneKind.Project);
+
+        /// <summary>The way back when panes have been scattered across the editor layout.</summary>
+        [MenuItem("Tools/NexUI/Panels/Dock All Back Into Designer", priority = PriorityWindows + 50)]
+        public static void ResetPaneLayout()
+        {
+            foreach (var window in Resources.FindObjectsOfTypeAll<UI.Shell.NexUIPaneWindow>())
+                window.Close();
+            UI.Shell.DesignerPaneLayout.ResetLayout();
+            NexUIDesigner.Open();
+        }
+
         [MenuItem("Tools/NexUI/Screen/Open Selected Screen", priority = PriorityScreen + 1)]
         public static void OpenSelectedScreen()
         {

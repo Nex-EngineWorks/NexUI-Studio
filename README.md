@@ -32,8 +32,7 @@ Global Toolbar의 `+ 새 화면`에서 Screen Definition, Designer Metadata와 B
 - [Backend 지원 범위](Documentation~/reference/backend-support-matrix.md)
 - [현재 기능 상태](Documentation~/reference/feature-status.md)
 - [구현 상태 표](Documentation~/ImplementationStatus.md)
-- [Phase별 구현 계획](Documentation~/PhasedImplementationPlan.md)
-- [Phase 0 완료 보고](Documentation~/Phase0CompletionReport.md)
+- [기능 지원 매트릭스](Documentation~/FeatureParityMatrix.md)
 - [목표 기능 목록](FunctionList.md)
 - [알려진 제한사항](Documentation~/reference/known-limitations.md)
 
