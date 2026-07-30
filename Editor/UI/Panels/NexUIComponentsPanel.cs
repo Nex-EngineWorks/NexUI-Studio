@@ -46,6 +46,8 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
             UGUI,
             UIToolkit,
             Custom,
+            /// <summary>The raw component types themselves, not presets built from them.</summary>
+            Components,
             // Legacy persisted value from the brief standalone Built-In library. It is migrated
             // to NexUI in the constructor and is intentionally absent from the popup choices.
             BuiltIn
@@ -124,7 +126,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
             var choices = new List<FamilyFilter>
             {
                 FamilyFilter.All, FamilyFilter.NexUI, FamilyFilter.UGUI, FamilyFilter.UIToolkit,
-                FamilyFilter.Custom
+                FamilyFilter.Custom, FamilyFilter.Components
             };
             var field = new PopupField<FamilyFilter>(DesignerLocalization.T("palette.family"), choices, _familyFilter, FamilyLabel, FamilyLabel)
             {
@@ -146,6 +148,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
             FamilyFilter.UGUI => DesignerLocalization.T("palette.family.ugui"),
             FamilyFilter.UIToolkit => DesignerLocalization.T("palette.family.uitk"),
             FamilyFilter.Custom => DesignerLocalization.T("palette.family.custom"),
+            FamilyFilter.Components => DesignerLocalization.T("palette.family.components"),
             _ => DesignerLocalization.T("palette.family.all")
         };
 
@@ -181,6 +184,9 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
 
                 _content.Add(familyFolder);
             }
+
+            if (_familyFilter == FamilyFilter.All || _familyFilter == FamilyFilter.Components)
+                BuildComponentLibrary();
 
             var customCount = DesignerComponentLibrary.All.Count;
             if (_familyFilter == FamilyFilter.All || _familyFilter == FamilyFilter.Custom)
@@ -224,6 +230,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
 
         private bool ShowsFamily(DesignerComponentFamily family) => _familyFilter switch
         {
+            FamilyFilter.Components => false,
             FamilyFilter.NexUI => family == DesignerComponentFamily.NexUI,
             FamilyFilter.UGUI => family == DesignerComponentFamily.UGUI,
             FamilyFilter.UIToolkit => family == DesignerComponentFamily.UIToolkit,
@@ -341,6 +348,131 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
             foreach (var child in node.Children.Values) BuildBuiltInFolder(foldout, child, depth + 1);
             parent.Add(foldout);
             _foldouts.Add(foldout);
+        }
+
+        /// <summary>
+        /// The component types themselves - the pieces every preset is built from. Placing one creates
+        /// an empty element carrying it (Unity's Create Empty + Add Component in one step); the context
+        /// menu attaches it to what is already selected instead.
+        /// </summary>
+        private void BuildComponentLibrary()
+        {
+            var backend = _context.ComponentBackend;
+            var byFamily = new SortedDictionary<DesignerUIComponentFamily, SortedDictionary<DesignerUIComponentCategory, List<DesignerUIComponentType>>>();
+
+            foreach (var type in DesignerUIComponentRegistry.ForBackend(backend))
+            {
+                if (type.Category == DesignerUIComponentCategory.Core) continue;
+                if (!byFamily.TryGetValue(type.Family, out var categories))
+                    byFamily[type.Family] = categories = new SortedDictionary<DesignerUIComponentCategory, List<DesignerUIComponentType>>();
+                if (!categories.TryGetValue(type.Category, out var list))
+                    categories[type.Category] = list = new List<DesignerUIComponentType>();
+                list.Add(type);
+            }
+
+            foreach (var familyPair in byFamily)
+            {
+                var count = 0;
+                foreach (var categoryPair in familyPair.Value) count += categoryPair.Value.Count;
+
+                var prefKey = "NexUI.Designer.Components.ComponentFamily." + familyPair.Key;
+                var familyFolder = new Foldout
+                {
+                    text = $"{ComponentFamilyLabel(familyPair.Key)} ({count})",
+                    value = EditorPrefs.GetBool(prefKey, _familyFilter == FamilyFilter.Components)
+                };
+                familyFolder.AddToClassList("nexui-component-family-folder");
+                familyFolder.RegisterValueChangedCallback(evt =>
+                {
+                    if (evt.target == familyFolder) EditorPrefs.SetBool(prefKey, evt.newValue);
+                });
+                _familyFoldouts.Add(familyFolder);
+
+                foreach (var categoryPair in familyPair.Value)
+                {
+                    var categoryFolder = new Foldout { text = categoryPair.Key.ToString(), value = true };
+                    categoryFolder.AddToClassList("nexui-sidebar-foldout");
+                    var grid = new VisualElement();
+                    grid.AddToClassList("nexui-component-grid");
+                    categoryFolder.Add(grid);
+
+                    categoryPair.Value.Sort((a, b) => string.CompareOrdinal(a.DisplayName, b.DisplayName));
+                    foreach (var type in categoryPair.Value)
+                        grid.Add(CreateComponentTypeCard(type));
+
+                    familyFolder.Add(categoryFolder);
+                    _foldouts.Add(categoryFolder);
+                }
+
+                _content.Add(familyFolder);
+            }
+
+            // Create Empty belongs with the components: it is the starting point for building an
+            // element by hand rather than from a preset.
+            var emptyFolder = new Foldout { text = DesignerLocalization.T("palette.components.build"), value = true };
+            emptyFolder.AddToClassList("nexui-sidebar-foldout");
+            var emptyGrid = new VisualElement();
+            emptyGrid.AddToClassList("nexui-component-grid");
+            var empty = new Button(() => _context.CreateEmptyMetadataElement())
+            {
+                text = DesignerLocalization.T("palette.components.empty"),
+                tooltip = DesignerLocalization.T("tooltip.palette.components.empty")
+            };
+            empty.AddToClassList("nexui-component-card");
+            empty.userData = DesignerLocalization.T("palette.components.empty");
+            _cards.Add(empty);
+            emptyGrid.Add(empty);
+            emptyFolder.Add(emptyGrid);
+            _content.Add(emptyFolder);
+            _foldouts.Add(emptyFolder);
+        }
+
+        private Button CreateComponentTypeCard(DesignerUIComponentType type)
+        {
+            var label = ComponentTypeLabel(type);
+            var button = new Button(() => _context.CreateEmptyMetadataElement(type.TypeId))
+            {
+                text = label,
+                tooltip = string.IsNullOrEmpty(type.Description) ? label : label + "\n" + type.Description
+            };
+            button.AddToClassList("nexui-component-card");
+            button.userData = label + " " + type.TypeId;
+            button.RegisterCallback<ContextClickEvent>(evt =>
+            {
+                var menu = new GenericMenu();
+                var selection = _context.SelectedMetadata;
+                var attachLabel = new GUIContent(DesignerLocalization.T("ctx.components.attachToSelection"));
+                var blocked = selection == null
+                    ? "no selection"
+                    : DesignerElementComponentAccess.AttachBlockedReason(selection, type.TypeId, _context.ComponentBackend);
+
+                if (blocked == null)
+                    menu.AddItem(attachLabel, false, () => _context.AttachComponentToSelection(type.TypeId));
+                else
+                    menu.AddDisabledItem(attachLabel);
+
+                menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.components.createEmptyWith")), false,
+                    () => _context.CreateEmptyMetadataElement(type.TypeId));
+                menu.ShowAsContext();
+                evt.StopPropagation();
+            });
+            _cards.Add(button);
+            return button;
+        }
+
+        private static string ComponentFamilyLabel(DesignerUIComponentFamily family) => family switch
+        {
+            DesignerUIComponentFamily.UGUI => DesignerLocalization.T("palette.family.ugui"),
+            DesignerUIComponentFamily.UIToolkit => DesignerLocalization.T("palette.family.uitk"),
+            DesignerUIComponentFamily.NexUIBase => DesignerLocalization.T("palette.family.nexuiBase"),
+            _ => DesignerLocalization.T("palette.family.core")
+        };
+
+        private static string ComponentTypeLabel(DesignerUIComponentType type)
+        {
+            if (string.IsNullOrEmpty(type.LocalizationKey)) return type.DisplayName;
+            var localized = DesignerLocalization.T(type.LocalizationKey);
+            return localized == type.LocalizationKey ? type.DisplayName : localized;
         }
 
         private void BuildCustomLibrary()

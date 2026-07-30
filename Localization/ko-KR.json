@@ -388,8 +388,8 @@
   "inspector.section.validation": "검사",
   "inspector.section.policy": "런타임 정책",
   "inspector.section.selection": "선택",
-  "inspector.section.component": "컴포넌트",
-  "inspector.section.componentInstance": "Component Instance",
+  "inspector.section.component": "컴포넌트 타입 정보",
+  "inspector.section.componentInstance": "컴포넌트 인스턴스",
   "inspector.section.layout": "레이아웃",
   "inspector.section.autoLayout": "자동 레이아웃",
   "inspector.section.constraints": "제약 조건",
@@ -1073,7 +1073,7 @@
 ,"palette.group.uitk.controls": "컨트롤"
 ,"palette.group.uitk.fields": "필드"
 ,"palette.group.uitk.containers": "컨테이너 및 컬렉션"
-  ,"inspector.section.attachedComponents": "부착된 컴포넌트"
+  ,"inspector.section.attachedComponents": "프로젝트 스크립트"
   ,"attachedComponents.help": "MonoBehaviour는 생성된 uGUI GameObject에 적용됩니다. UI Toolkit에서는 메타데이터를 보존하지만 VisualElement에 부착할 수 없습니다."
   ,"attachedComponents.add": "컴포넌트 추가"
   ,"attachedComponents.addTooltip": "uGUI 프리팹 저장 시 부착할 런타임 MonoBehaviour를 선택합니다."
@@ -1909,4 +1909,48 @@
 ,"inspector.componentParts.reset": "파트 오버라이드 초기화"
 ,"inspector.componentParts.contents": "편집 가능한 내부 요소"
 ,"inspector.componentParts.contentsDescription": "실제 Hierarchy 요소입니다. 선택하면 Position, Size, Rotation, Scale, Style, Binding, Motion을 모두 편집할 수 있습니다."
+,"inspector.section.elementComponents": "컴포넌트"
+,"inspector.elementComponents": "컴포넌트"
+,"inspector.components.add": "컴포넌트 추가"
+,"inspector.components.fromPreset": "{0} 프리셋으로 만든 요소"
+,"inspector.components.custom": "직접 조합한 요소"
+,"inspector.components.decompose": "분해"
+,"inspector.components.unknown": "이 빌드에 없는 컴포넌트입니다. 값은 그대로 보존됩니다."
+,"inspector.components.noProperties": "편집할 속성이 없습니다."
+,"tooltip.inspector.addComponent": "이 요소에 컴포넌트를 붙입니다. 현재 화면 백엔드에서 동작하는 것만 표시됩니다."
+,"tooltip.inspector.componentEnabled": "컴포넌트를 켜고 끕니다. Unity의 컴포넌트 체크박스와 같습니다."
+,"tooltip.inspector.decompose": "프리셋 표시를 지웁니다. 구성 컴포넌트는 그대로 남습니다."
+,"ctx.component.remove": "컴포넌트 제거"
+,"ctx.component.reset": "값 초기화"
+,"ctx.component.moveUp": "위로 이동"
+,"ctx.component.moveDown": "아래로 이동"
+,"component.type.unknown": "알 수 없는 컴포넌트"
+,"component.type.core.element": "요소 (위치·크기)"
+,"component.type.nx.roundedRect": "둥근 사각형"
+,"component.type.nx.gradient": "그라데이션"
+,"component.type.nx.softShadow": "부드러운 그림자"
+,"component.type.nx.segmentedBar": "분할 바"
+,"component.type.nx.cooldownOverlay": "쿨다운 오버레이"
+,"component.type.nx.safeArea": "세이프 에어리어"
+,"component.type.nx.flowLayout": "플로 레이아웃"
+,"component.type.nx.radialLayout": "방사형 레이아웃"
+,"component.type.nx.autoGrid": "자동 그리드"
+,"component.type.nx.marqueeText": "흐르는 텍스트"
+,"component.type.nx.typewriterText": "타자기 텍스트"
+,"component.type.nx.numberTicker": "숫자 티커"
+,"component.type.nx.holdButton": "길게 누르기 버튼"
+,"component.type.nx.swipeArea": "스와이프 영역"
+,"component.type.nx.tooltipTrigger": "툴팁 트리거"
+,"inspector.components.addScript": "프로젝트 스크립트..."
+,"palette.family.components": "컴포넌트"
+,"palette.family.nexuiBase": "NexUI Base"
+,"palette.family.core": "기본"
+,"palette.components.build": "직접 조립"
+,"palette.components.empty": "빈 요소"
+,"tooltip.palette.components.empty": "컴포넌트가 없는 빈 요소를 만듭니다. Unity의 Create Empty와 같습니다."
+,"ctx.components.attachToSelection": "선택한 요소에 부착"
+,"ctx.components.createEmptyWith": "이 컴포넌트로 새 요소 만들기"
+,"component.type.nx.virtualList": "가상화 리스트"
+,"component.type.nx.carousel": "캐러셀"
+,"component.type.nx.tabGroup": "탭 그룹"
 }

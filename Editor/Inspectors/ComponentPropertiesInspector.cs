@@ -50,6 +50,11 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
             var element = Context.SelectedMetadata;
             if (element == null) { style.display = DisplayStyle.None; return; }
 
+            // Superseded by the component model: once an element carries components, each component
+            // shows its own fields, and repeating the palette type's schema here is the duplicate the
+            // Inspector does not need.
+            if (element.components != null && element.components.Count > 0) { style.display = DisplayStyle.None; return; }
+
             var descriptor = DesignerComponentRegistry.Get(element.elementType);
             if (descriptor.Properties.Count == 0) { style.display = DisplayStyle.None; return; }
             style.display = DisplayStyle.Flex;

@@ -150,6 +150,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             public List<string> previewOptions = new();
             public List<DesignerAttachedComponentMetadata> attachedComponents = new();
             public List<ComponentPropertyDto> componentProperties = new();
+            public List<ElementComponentDto> components = new();
             public List<ComponentPartOverrideDto> componentPartOverrides = new();
             public DesignerFillMetadata fill = new();
             public string previewImageGuid = "";
@@ -237,6 +238,17 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         /// One component-property value. Asset references are written as persistent GUIDs, like every
         /// other asset reference in this file, so the JSON stays valid across machines.
         /// </summary>
+        /// <summary>One attached component and the values authored on it.</summary>
+        [Serializable]
+        private sealed class ElementComponentDto
+        {
+            public string instanceId;
+            public string typeId;
+            public bool enabled = true;
+            public bool fromPreset;
+            public List<ComponentPropertyDto> properties = new();
+        }
+
         [Serializable]
         private sealed class ComponentPropertyDto
         {
@@ -370,6 +382,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                     previewOptions = e.previewOptions != null ? new List<string>(e.previewOptions) : new List<string>(),
                     attachedComponents = CloneAttachedComponents(e.attachedComponents),
                     componentProperties = ToComponentPropertyDtos(e.componentProperties),
+                    components = ToElementComponentDtos(e.components),
                     componentPartOverrides = ToComponentPartOverrideDtos(e.componentPartOverrides),
                     fill = e.fill ?? new DesignerFillMetadata(),
                     previewImageGuid = AssetGuid(e.previewImage),
@@ -431,6 +444,9 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             // Older files predate component properties; importing their (absent) list would wipe
             // values the asset already holds, so only a file that can carry them may overwrite them.
             var hasComponentPropertySchema = dto.formatVersion >= 5;
+            // Elements became containers of components in format 6; an older file has none to give,
+            // and importing its empty list would strip the ones the asset already holds.
+            var hasElementComponentSchema = dto.formatVersion >= 6;
             var hasComponentPartSchema = dto.formatVersion >= 6;
             if (hasFullSchema)
                 asset.schemaVersion = dto.schemaVersion;
@@ -506,6 +522,8 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                         e.attachedComponents = CloneAttachedComponents(d.attachedComponents);
                     if (hasComponentPropertySchema)
                         e.componentProperties = FromComponentPropertyDtos(d.componentProperties);
+                    if (hasElementComponentSchema)
+                        e.components = FromElementComponentDtos(d.components);
                     if (hasComponentPartSchema)
                         e.componentPartOverrides = FromComponentPartOverrideDtos(d.componentPartOverrides);
                     e.fill = d.fill ?? new DesignerFillMetadata();
@@ -569,6 +587,44 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             }
             asset.elements = importedElements;
             DesignerHierarchyMigration.Migrate(asset, recordUndo: false);
+        }
+
+        private static List<ElementComponentDto> ToElementComponentDtos(List<DesignerElementComponent> source)
+        {
+            var result = new List<ElementComponentDto>();
+            if (source == null) return result;
+            foreach (var component in source)
+            {
+                if (component == null || string.IsNullOrEmpty(component.typeId)) continue;
+                result.Add(new ElementComponentDto
+                {
+                    instanceId = component.instanceId,
+                    typeId = component.typeId,
+                    enabled = component.enabled,
+                    fromPreset = component.fromPreset,
+                    properties = ToComponentPropertyDtos(component.properties)
+                });
+            }
+            return result;
+        }
+
+        private static List<DesignerElementComponent> FromElementComponentDtos(List<ElementComponentDto> source)
+        {
+            var result = new List<DesignerElementComponent>();
+            if (source == null) return result;
+            foreach (var dto in source)
+            {
+                if (dto == null || string.IsNullOrEmpty(dto.typeId)) continue;
+                result.Add(new DesignerElementComponent
+                {
+                    instanceId = string.IsNullOrEmpty(dto.instanceId) ? System.Guid.NewGuid().ToString("N") : dto.instanceId,
+                    typeId = dto.typeId,
+                    enabled = dto.enabled,
+                    fromPreset = dto.fromPreset,
+                    properties = FromComponentPropertyDtos(dto.properties)
+                });
+            }
+            return result;
         }
 
         private static List<ComponentPropertyDto> ToComponentPropertyDtos(List<DesignerComponentPropertyEntry> source)

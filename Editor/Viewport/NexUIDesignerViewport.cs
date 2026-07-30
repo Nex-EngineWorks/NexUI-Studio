@@ -684,15 +684,16 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         }
 
         /// <summary>
-        /// Builds type-specific internal preview structure so the canvas shows an actual
-        /// filled progress bar / radial ring / list rows instead of the same bare tinted box
-        /// for every component type. All fills use percentage sizing so they stay correct as
-        /// the element is resized, without any per-drag recomputation.
+        /// Draws the element from the components attached to it, layer by layer, so the canvas shows a
+        /// filled bar / radial ring / list rows rather than the same bare tinted box - and so removing
+        /// a component removes what it drew. Elements with no visual components fall back to the
+        /// palette preset's renderer. All fills use percentage sizing so they stay correct as the
+        /// element is resized, without any per-drag recomputation.
         /// </summary>
         private void AddTypeSpecificPreview(VisualElement view, DesignerElementMetadata element)
         {
             var ctx = BuildPreviewContext(element);
-            DesignerComponentPreviewRegistry.Get(element.elementType).BuildPreview(view, ctx);
+            DesignerElementPreviewComposer.Build(view, ctx);
         }
 
         private DesignerPreviewContext BuildPreviewContext(DesignerElementMetadata element)

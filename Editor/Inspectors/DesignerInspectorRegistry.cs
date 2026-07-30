@@ -114,6 +114,8 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
                 DesignerInspectorExposure.Common, DesignerInspectorTarget.SingleElement, c => new ComponentInspector(c));
             Register("attached-components", "inspector.section.attachedComponents", "add component monobehaviour script ugui", DesignerInspectorWorkflow.Build,
                 DesignerInspectorExposure.Common, DesignerInspectorTarget.SingleElement, c => new AttachedComponentsInspector(c));
+            Register("element-components", "inspector.section.elementComponents", "components add component attach detach ugui toolkit nexui base", DesignerInspectorWorkflow.Build,
+                DesignerInspectorExposure.Essential, DesignerInspectorTarget.SingleElement, c => new ElementComponentsInspector(c));
             Register("component-properties", "inspector.section.componentProperties", "properties fields options settings value interaction data", DesignerInspectorWorkflow.Build,
                 DesignerInspectorExposure.Essential, DesignerInspectorTarget.SingleElement, c => new ComponentPropertiesInspector(c));
             Register("component-parts", "inspector.section.componentParts", "parts internals content children position size rotation scale transform", DesignerInspectorWorkflow.Build,

@@ -142,6 +142,14 @@ namespace emiteat.NexUI.Designer
         public List<DesignerComponentPropertyEntry> componentProperties = new List<DesignerComponentPropertyEntry>();
 
         /// <summary>
+        /// Components attached to this element, in inspector order - the element's actual identity,
+        /// the same way a GameObject's components are. <see cref="elementType"/> only records which
+        /// palette preset stamped them, and detaching from that preset ("decompose") clears it without
+        /// touching anything here.
+        /// </summary>
+        public List<DesignerElementComponent> components = new List<DesignerElementComponent>();
+
+        /// <summary>
         /// Sparse Unity-like transform overrides for named internal component parts. Authored child
         /// elements still live in the normal hierarchy; this list is only for library-owned parts
         /// such as a Slider track/handle or Toggle checkmark.

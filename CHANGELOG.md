@@ -15,6 +15,33 @@
 - NexUI controls with honest stock equivalents now generate real uGUI control hierarchies. Legacy plain elements are upgraded without deleting unrelated components, and clean projects without TMP Essential Resources fall back to working legacy Text.
 - Companion JSON format 5 round-trips component properties and asset references. Validation and Save Preview now report malformed values and property-level Full/Partial/Preview-only/Unsupported backend parity.
 
+### 컴포넌트 모델을 캔버스·UXML·검증까지 확장
+- **캔버스가 컴포넌트 스택을 순서대로 합성합니다.** Image 위에 Gradient, 그 위에 Cooldown Overlay가 붙은 순서대로 그려지고, 컴포넌트를 떼면 캔버스에서도 사라집니다. 시각 컴포넌트가 없는 요소(UI Toolkit 컨트롤 등)는 기존 프리셋 렌더러로 폴백합니다.
+- **UXML 태그를 컴포넌트가 결정합니다.** UI Toolkit 컨트롤 컴포넌트가 태그를, NexUI Base가 자기 커스텀 요소를 냅니다. 출력 방식은 설정으로 고릅니다 — 커스텀 요소(바로 동작, NexUI 런타임 어셈블리 의존) 또는 표준 태그 + `nx-*` 클래스(의존성 없음). 기본은 커스텀 요소.
+- **백엔드 전환 검증 + 자동 수정.** 화면을 uGUI ↔ UI Toolkit으로 바꾸면 반대편 컴포넌트를 경고로 잡고, 대응물이 있으면 교체합니다(uGUI.Slider ↔ UITK.Slider 등). 값은 양쪽이 공유하는 키만 이전하고, 대응물이 없으면 지우지 않고 경고로 남깁니다. 필수 누락·충돌도 함께 검사합니다.
+- Base 컴포넌트 3종 추가(uGUI): **Virtual List**(보이는 행만 만들고 재활용 — uGUI엔 ListView가 없음), **Carousel**(페이지 스냅·루프·자동 넘김), **Tab Group**(탭 선택에 따라 페이지 전환).
+
+### 인스펙터 레이아웃 깨짐 수정
+- 컴포넌트 카드가 팔레트 라이브러리 타일용 클래스(`nexui-component-card`, 48%×78px)를 재사용해 필드가 78px 박스에 갇히고 아래 섹션 위로 겹쳐 그려지던 문제. 인스펙터 전용 클래스로 분리했습니다.
+- 컴포넌트가 없는 요소를 rebuild 중에 구성하면서 `ElementChanged`가 다시 rebuild를 부르던 재귀. 가드를 넣고 프리셋 스탬프가 멱등인지 테스트로 고정했습니다.
+- "컴포넌트 / 컴포넌트 속성 / 런타임 컴포넌트"가 같은 일을 세 번 하던 문제. 속성 섹션은 컴포넌트가 있으면 숨기고, 스크립트 부착은 Add Component 메뉴로 합쳤으며, 겹치던 섹션 이름을 정리했습니다.
+
+### 요소를 Unity처럼 "컴포넌트를 붙이는 것"으로 바꿈
+- 요소가 더 이상 타입 하나에 모든 게 박혀 있지 않습니다. **요소 = 컴포넌트들의 컨테이너**(GameObject와 같은 구조)이고, 팔레트의 'Slider'는 컴포넌트 조합을 찍어 주는 **프리셋**이 되었습니다. 프리셋이 붙인 것도 전부 끄고, 순서 바꾸고, 지울 수 있습니다.
+- `DesignerElementComponent`(typeId + enabled + 값 목록)를 요소에 배열로 저장합니다. 값은 사용자가 바꾼 것만 기록하고, 모르는 키는 보존해 새 빌드에서 만든 화면이 구 빌드에서도 열립니다.
+- **속성은 리플렉션으로 생성합니다.** uGUI/NexUI 컴포넌트의 스키마를 실제 타입의 직렬화 필드에서 읽어, Unity 인스펙터가 보여 주는 것과 같은 필드가 나옵니다. Unity가 필드를 추가해도 코드 수정 없이 따라갑니다. 저장은 그 역연산이라 수기 매핑 표가 필요 없습니다.
+- Unity식 인스펙터: 컴포넌트 카드(체크박스 + ⋮ 메뉴로 제거/위아래 이동/값 초기화) + 하단 **Add Component**. Add Component 목록은 **현재 화면 백엔드에서 동작하는 것만** 보여 주고, 지금 붙일 수 없는 것은 숨기지 않고 이유와 함께 비활성 표시합니다.
+- 규칙은 Unity와 같습니다: 단일 인스턴스 타입 중복 금지, 필수 컴포넌트 자동 동반, 충돌(그래픽 2개, 레이아웃 그룹 2개) 거부. Core 요소 컴포넌트는 Transform처럼 제거 불가.
+- uGUI 저장 시 붙인 컴포넌트를 **실제 MonoBehaviour로 생성**하고 값을 필드에 직접 씁니다. UI Toolkit 전용 컴포넌트가 uGUI 화면에 있으면 저장 리포트에 이유를 남깁니다.
+
+### NexUI Base Components — Unity에 없어서 매번 직접 만들던 것들
+- 실제로 동작하는 런타임 컴포넌트를 uGUI(MonoBehaviour)와 UI Toolkit(VisualElement) **양쪽에** 추가했습니다.
+- 그래픽: **Rounded Rect**(스프라이트 없이 모서리 반경·테두리), **Gradient**(선형/4코너), **Soft Shadow**(uGUI Shadow는 하드 카피 1장뿐), **Segmented Bar**(체력 칸), **Cooldown Overlay**(원형 스윕).
+- 레이아웃: **Safe Area**(노치 대응 — Unity는 값만 주고 컴포넌트를 안 줍니다), **Flow Layout**(줄바꿈 — uGUI 레이아웃 그룹이 못 하는 것), **Radial Layout**(원형 배치), **Auto Grid**(열 수 유지하며 셀 크기 계산).
+- 텍스트: **Marquee**(넘치면 흐름), **Typewriter**(문장부호 일시정지 + 스킵), **Number Ticker**(값까지 카운트).
+- 인터랙션: **Hold Button**(진행률 보고 + 완료), **Swipe Area**(방향·거리), **Tooltip Trigger**(지연 표시/숨김 — Unity엔 런타임 툴팁이 아예 없음).
+- UI Toolkit이 이미 네이티브로 하는 것(둥근 모서리, flex-wrap)은 일부러 중복 래퍼를 만들지 않고 그 사실을 컴포넌트 설명에 적었습니다.
+
 ### 컴포넌트 이름 529종을 한국어로
 - 팔레트에 노출되는 모든 컴포넌트(NexUI 448 · uGUI 22 · UI Toolkit 59)에 `component.*` 이름 키를 ko/en 양쪽에 채웠습니다. 각 파일에 508개가 추가되어 총 1,718개 키가 되었습니다.
 - 지금까지는 번역 키가 없으면 팔레트가 영문 DisplayName으로 조용히 되돌아갔습니다. 한국어 에디터에서 "체력 바"가 아니라 "Health Bar"로 보이던 이유이고, 실패로 드러나지 않는 종류의 문제라 **누락을 잡는 테스트**(`EveryPaletteComponentIsNamedInBothLanguages`)를 함께 넣었습니다.

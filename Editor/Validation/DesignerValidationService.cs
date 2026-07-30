@@ -58,9 +58,19 @@ namespace emiteat.NexUI.Designer.Editor.Validation
             ValidateMotion(metadata, screenId, issues);
             ValidatePrefabComponents(screen, metadata, screenId, issues);
             DesignerComponentValidation.Validate(metadata, screenId, issues);
+            // The screen's backend decides which attached components can run at all, so this check
+            // belongs here rather than at attach time: switching the backend afterwards is exactly the
+            // case attach-time rules cannot catch.
+            DesignerElementComponentValidation.Validate(metadata, screenId, ComponentBackendOf(screen), issues);
 
             return issues;
         }
+
+        /// <summary>The component family a screen's backend can actually run.</summary>
+        private static Components.DesignerUIComponentFamily ComponentBackendOf(UIScreenDefinition screen)
+            => screen != null && screen.backendAsset.backend == UIRenderBackend.UIToolkit
+                ? Components.DesignerUIComponentFamily.UIToolkit
+                : Components.DesignerUIComponentFamily.UGUI;
 
         private static void ValidateScreen(UIScreenDefinition screen, string screenId, List<DesignerValidationIssue> issues)
         {

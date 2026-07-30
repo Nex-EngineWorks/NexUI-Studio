@@ -780,6 +780,13 @@ namespace emiteat.NexUI.Designer.Editor
                 fontSize = descriptor.Category == DesignerComponentCategory.Text ? 18 : 14,
                 accessibilityRole = descriptor.DefaultAccessibilityRole
             };
+            // A palette entry is a preset: it stamps components, and from here on the element is
+            // whatever those components say it is.
+            DesignerComponentPresetComposer.Stamp(element, typeId,
+                CurrentBackend != null && CurrentBackend.Backend == emiteat.NexUI.Abstractions.UIRenderBackend.UIToolkit
+                    ? DesignerUIComponentFamily.UIToolkit
+                    : DesignerUIComponentFamily.UGUI);
+
             DesignerPropertyAdapter.SetBackgroundColor(element, element.tint);
             DesignerPropertyAdapter.SetTextColor(element, element.textColor);
             DesignerPropertyAdapter.SetFontSize(element, element.fontSize);
@@ -787,6 +794,76 @@ namespace emiteat.NexUI.Designer.Editor
             MarkMetadataDirty();
             SelectMetadata(element);
             return element;
+        }
+
+        /// <summary>
+        /// The backend components can currently run on, derived from the open screen.
+        /// </summary>
+        public DesignerUIComponentFamily ComponentBackend =>
+            CurrentBackend != null && CurrentBackend.Backend == emiteat.NexUI.Abstractions.UIRenderBackend.UIToolkit
+                ? DesignerUIComponentFamily.UIToolkit
+                : DesignerUIComponentFamily.UGUI;
+
+        /// <summary>
+        /// Creates an element with no preset behind it - the equivalent of Unity's
+        /// <c>GameObject &gt; Create Empty</c>. Optionally attaches one component straight away, which
+        /// is how the palette's component entries place something directly.
+        /// </summary>
+        public DesignerElementMetadata CreateEmptyMetadataElement(string componentTypeId = null)
+        {
+            if (Metadata == null) return null;
+
+            var componentType = string.IsNullOrEmpty(componentTypeId)
+                ? null
+                : DesignerUIComponentRegistry.Get(componentTypeId);
+
+            RecordMetadata("Create NexUI Element");
+            var element = new DesignerElementMetadata
+            {
+                elementId = NextElementId(DesignerComponentRegistry.Get("Container")),
+                displayName = componentType?.DisplayName ?? "Element",
+                // Empty elements are not a palette preset, so nothing claims otherwise: the element is
+                // exactly the components it carries.
+                elementType = "Custom",
+                rect = new Rect(96, 96, 160, 80),
+                text = string.Empty,
+                tint = new Color(0f, 0f, 0f, 0f),
+                textColor = Color.white,
+                fontSize = 14
+            };
+
+            DesignerElementComponentAccess.EnsureCore(element);
+            if (componentType != null)
+                DesignerElementComponentAccess.Attach(element, componentType.TypeId, ComponentBackend);
+
+            DesignerPropertyAdapter.SetBackgroundColor(element, element.tint);
+            DesignerPropertyAdapter.SetTextColor(element, element.textColor);
+            DesignerPropertyAdapter.SetFontSize(element, element.fontSize);
+            Metadata.elements.Add(element);
+            MarkMetadataDirty();
+            SelectMetadata(element);
+            return element;
+        }
+
+        /// <summary>Attaches a component to every selected element in one Undo step.</summary>
+        public int AttachComponentToSelection(string componentTypeId)
+        {
+            if (Metadata == null || _selection.Count == 0 || string.IsNullOrEmpty(componentTypeId)) return 0;
+
+            var attached = 0;
+            NexUIDesignerUndo.Group("Add Component", () =>
+            {
+                RecordMetadata("Add Component");
+                foreach (var element in _selection)
+                {
+                    if (element == null) continue;
+                    DesignerElementComponentAccess.EnsureCore(element);
+                    if (DesignerElementComponentAccess.Attach(element, componentTypeId, ComponentBackend) != null)
+                        attached++;
+                }
+                MarkMetadataDirty();
+            });
+            return attached;
         }
 
         /// <summary>

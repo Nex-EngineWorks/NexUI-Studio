@@ -39,8 +39,16 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
                 style.display = DisplayStyle.None;
                 return;
             }
-            style.display = DisplayStyle.Flex;
             element.attachedComponents ??= new List<DesignerAttachedComponentMetadata>();
+
+            // Attaching is done from the component panel's Add Component menu now; this section is
+            // the detail view for what is already attached, so an empty one is just noise.
+            if (element.attachedComponents.Count == 0)
+            {
+                style.display = DisplayStyle.None;
+                return;
+            }
+            style.display = DisplayStyle.Flex;
 
             _host.Add(BuildOverview(element));
             var help = new Label(DesignerLocalization.T("attachedComponents.help"))

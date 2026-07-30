@@ -171,6 +171,29 @@ Motion Clip Editor(전문 타임라인: 재생·마커·자동 키·복사/반�
 
 "빠르게"의 핵심입니다. 팔레트에서 꺼내 놓으면 되는 것의 범위를 넓혔습니다.
 
+### 7.0 요소는 컴포넌트들의 컨테이너입니다
+
+2026-07-30부터 Designer의 요소는 **Unity의 GameObject와 같은 구조**입니다. 요소 자체는 이름과 사각형만 갖고, 무엇인지는 **붙어 있는 컴포넌트**가 결정합니다.
+
+- 팔레트의 `Button`은 타입이 아니라 **프리셋**입니다 — `Core.Element + UGUI.Image + UGUI.Button`을 찍어 줄 뿐이고, 그 뒤로는 전부 끄고·순서 바꾸고·지울 수 있습니다. **분해**는 프리셋 라벨만 지웁니다(구성은 애초부터 컴포넌트였으므로 구조는 그대로).
+- 붙일 수 있는 컴포넌트는 세 계열입니다: **Unity uGUI**, **UI Toolkit**, **NexUI Base**(Unity에 없어서 매번 직접 만들던 것들). 화면 백엔드에서 동작하는 것만 Add Component 목록에 나옵니다.
+- uGUI·NexUI 컴포넌트의 속성은 **실제 타입의 직렬화 필드에서 리플렉션으로** 만들어집니다. Unity 인스펙터가 보여 주는 필드가 그대로 나오고, Unity가 필드를 추가해도 코드 수정 없이 따라갑니다. 저장은 그 역연산입니다.
+- 규칙은 Unity와 같습니다: 단일 인스턴스 중복 금지, 필수 컴포넌트 자동 동반, 충돌(그래픽 2개·레이아웃 그룹 2개) 거부, Core 요소는 Transform처럼 제거 불가.
+- **캔버스도 컴포넌트 기준으로 그립니다.** Image 위에 Gradient, 그 위에 Cooldown Overlay가 붙은 순서대로 합성되고, 컴포넌트를 떼면 캔버스에서도 사라집니다.
+- **백엔드를 바꾸면** 반대편 컴포넌트는 검증이 경고하고, 대응물이 있으면 교체 자동 수정을 제공합니다(uGUI.Slider ↔ UITK.Slider 등). 대응물이 없으면 지우지 않고 경고로 남깁니다.
+
+#### NexUI Base Components (Unity에 없는 것들)
+
+| 분류 | uGUI | UI Toolkit |
+|---|---|---|
+| 그래픽 | Rounded Rect · Gradient · Soft Shadow · Segmented Bar · Cooldown Overlay | Gradient · Segmented Bar · Cooldown (둥근 모서리는 USS가 이미 지원) |
+| 레이아웃 | Safe Area · Flow Layout · Radial Layout · Auto Grid | Safe Area · Radial Container (wrap은 flex-wrap) |
+| 텍스트 | Marquee · Typewriter · Number Ticker | 동일 3종 |
+| 인터랙션 | Hold Button · Swipe Area · Tooltip Trigger | Hold Button · Swipe Manipulator |
+| 데이터 | Virtual List · Carousel · Tab Group | ListView·TabView가 네이티브로 제공 |
+
+UXML 출력에서 NexUI Base를 **커스텀 요소 태그**로 낼지(`<emiteat.NexUI...NXGradientElement />`, 바로 동작하지만 런타임 어셈블리 의존), **표준 태그 + 클래스**(`nx-gradient`, 의존성 없음)로 낼지는 설정으로 고릅니다. 기본값은 커스텀 요소입니다.
+
 ### 7.1 계열(Family) 구성
 
 | 계열 | 개수 | 성격 | 백엔드 출력 |

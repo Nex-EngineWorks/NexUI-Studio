@@ -29,6 +29,15 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         // ---- UXML ---------------------------------------------------------------
 
         public static string GenerateUxml(DesignerMetadataAsset metadata, string ussFileName = null)
+            => GenerateUxml(metadata, ussFileName, UIToolkitGenerationOptions.Default);
+
+        /// <summary>
+        /// <paramref name="options"/> decides how NexUI base components leave the Designer: as their
+        /// own custom elements (works out of the box, and the generated UXML then depends on the NexUI
+        /// runtime assembly), or as standard tags carrying a class the project styles itself.
+        /// </summary>
+        public static string GenerateUxml(DesignerMetadataAsset metadata, string ussFileName,
+            UIToolkitGenerationOptions options)
         {
             using var markerScope = UxmlMarker.Auto();
             var sb = new StringBuilder();
@@ -39,24 +48,25 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
 
             if (metadata != null)
                 foreach (var root in DesignerHierarchyUtility.GetRootElements(metadata))
-                    AppendUxmlElement(sb, metadata, root, 1);
+                    AppendUxmlElement(sb, metadata, root, 1, options);
 
             sb.AppendLine("</ui:UXML>");
             return sb.ToString();
         }
 
-        private static void AppendUxmlElement(StringBuilder sb, DesignerMetadataAsset metadata, DesignerElementMetadata element, int depth)
+        private static void AppendUxmlElement(StringBuilder sb, DesignerMetadataAsset metadata,
+            DesignerElementMetadata element, int depth, UIToolkitGenerationOptions options)
         {
             if (element == null || string.IsNullOrEmpty(element.elementId)) return;
 
             var indent = new string(' ', depth * 4);
-            var tag = TagFor(element.elementType);
+            var tag = TagForElement(element, options);
             var children = DesignerHierarchyUtility.GetOrderedChildren(metadata, element.elementId);
 
             sb.Append(indent).Append('<').Append(tag);
             sb.Append(" name=\"").Append(EscapeAttr(element.elementId)).Append('"');
 
-            var classAttr = ClassAttr(element);
+            var classAttr = ClassAttr(element, options);
             if (!string.IsNullOrEmpty(classAttr))
                 sb.Append(" class=\"").Append(EscapeAttr(classAttr)).Append('"');
 
@@ -79,7 +89,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
 
             sb.AppendLine(">");
             foreach (var child in children)
-                AppendUxmlElement(sb, metadata, child, depth + 1);
+                AppendUxmlElement(sb, metadata, child, depth + 1, options);
             sb.Append(indent).Append("</").Append(tag).AppendLine(">");
         }
 
@@ -399,13 +409,66 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             return string.IsNullOrEmpty(descriptor.UxmlTag) ? "ui:VisualElement" : descriptor.UxmlTag;
         }
 
-        private static string ClassAttr(DesignerElementMetadata element)
+        /// <summary>
+        /// The tag an element writes, decided by the components attached to it. A UI Toolkit control
+        /// component names the tag directly; a NexUI base component that <i>is</i> the element (a
+        /// gradient surface, a marquee label) names its own custom element when the generator is
+        /// allowed to emit them. Only when nothing attached defines a tag does the palette preset's
+        /// tag apply, which is what keeps elements authored before the component model unchanged.
+        /// </summary>
+        private static string TagForElement(DesignerElementMetadata element, UIToolkitGenerationOptions options)
         {
-            if (element.classes == null || element.classes.Count == 0) return string.Empty;
+            if (element.components != null)
+            {
+                foreach (var component in element.components)
+                {
+                    if (component == null || !component.enabled) continue;
+                    var type = DesignerUIComponentRegistry.Get(component.typeId);
+                    if (type == null) continue;
+
+                    if (type.Family == DesignerUIComponentFamily.UIToolkit && !string.IsNullOrEmpty(type.UxmlTag))
+                        return type.UxmlTag;
+
+                    if (type.Family == DesignerUIComponentFamily.NexUIBase && options.EmitCustomElements)
+                    {
+                        var custom = NexUIBaseUxmlTags.TagFor(component.typeId);
+                        if (!string.IsNullOrEmpty(custom)) return custom;
+                    }
+                }
+            }
+            return TagFor(element.elementType);
+        }
+
+        /// <summary>
+        /// USS classes contributed by components. In standard-tag mode this is how a NexUI base
+        /// component survives into the generated file at all: the project styles or scripts the class,
+        /// and the UXML stays free of any dependency on the NexUI assemblies.
+        /// </summary>
+        private static void AppendComponentClasses(List<string> classes, DesignerElementMetadata element,
+            UIToolkitGenerationOptions options)
+        {
+            if (element.components == null) return;
+            foreach (var component in element.components)
+            {
+                if (component == null || !component.enabled) continue;
+                var type = DesignerUIComponentRegistry.Get(component.typeId);
+                if (type == null || type.Family != DesignerUIComponentFamily.NexUIBase) continue;
+
+                // In custom-element mode the component that became the tag needs no class.
+                if (options.EmitCustomElements && NexUIBaseUxmlTags.TagFor(component.typeId) != null) continue;
+                classes.Add(NexUIBaseUxmlTags.ClassFor(component.typeId));
+            }
+        }
+
+        private static string ClassAttr(DesignerElementMetadata element, UIToolkitGenerationOptions options)
+        {
             var parts = new List<string>();
-            foreach (var c in element.classes)
-                if (!string.IsNullOrEmpty(c)) parts.Add(c);
-            return string.Join(" ", parts);
+            if (element.classes != null)
+                foreach (var c in element.classes)
+                    if (!string.IsNullOrEmpty(c)) parts.Add(c);
+
+            AppendComponentClasses(parts, element, options);
+            return parts.Count == 0 ? string.Empty : string.Join(" ", parts);
         }
 
         private static string Px(float value)

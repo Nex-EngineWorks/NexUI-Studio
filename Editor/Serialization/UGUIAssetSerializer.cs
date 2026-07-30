@@ -204,6 +204,9 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 ApplyAutoLayout(go, element, report);
                 go.SetActive(element.runtimeVisible);
                 ApplyVisualAndText(go, element, report);
+                // Authored components last: they are the element's real identity, so their values win
+                // over anything the preset-derived write above assumed.
+                UGUIComponentWriter.Apply(go, element, report);
                 UGUIControlFactory.EnsureAndApply(go, element, report);
                 ApplyAttachedComponents(go, element, report);
             }
