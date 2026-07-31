@@ -35,10 +35,7 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
         [TestCase("backend", "capabilities")]
         public void SearchKeywordsDiscoverExpectedSection(string query, string expectedId)
         {
-            DesignerInspectorSectionDescriptor match = null;
-            foreach (var section in DesignerInspectorRegistry.All)
-                if (string.Equals(section.Id, expectedId, StringComparison.Ordinal))
-                    match = section;
+            var match = DesignerInspectorRegistry.Get(expectedId);
 
             Assert.IsNotNull(match);
             Assert.IsTrue(match.Matches(query));
@@ -59,18 +56,88 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
                 CreateDescriptor("LAYOUT", "Duplicate", _ => new VisualElement())));
         }
 
+        /// <summary>
+        /// The always-present slots have to stay the Unity ones - transform, the element's own look,
+        /// and the component stack - or the Inspector goes back to listing every feature at once.
+        /// </summary>
         [Test]
-        public void UnifiedInspectorStartsInCompactBuildWorkspaceAndLazilyBuildsOneSection()
+        public void OnlyTransformCoreAndComponentSlotsAreAlwaysPresent()
         {
-            const string workflowPreferenceKey = "NexUI.Designer.Inspector.ActiveWorkflow";
-            var hadWorkflowPreference = EditorPrefs.HasKey(workflowPreferenceKey);
-            var previousWorkflow = EditorPrefs.GetInt(workflowPreferenceKey, (int)DesignerInspectorWorkflow.Build);
-            EditorPrefs.SetInt(workflowPreferenceKey, (int)DesignerInspectorWorkflow.Build);
+            foreach (var section in DesignerInspectorRegistry.All)
+            {
+                if (section.Target == DesignerInspectorTarget.Screen) continue;
+                if (section.Slot == DesignerInspectorSlot.Feature) continue;
+                Assert.That(section.Slot, Is.EqualTo(DesignerInspectorSlot.Transform)
+                        .Or.EqualTo(DesignerInspectorSlot.Core)
+                        .Or.EqualTo(DesignerInspectorSlot.Components),
+                    $"Section '{section.Id}' is always shown; only transform, core and the component stack may be.");
+            }
+        }
+
+        [Test]
+        public void UntouchedElementShowsNoFeatureSections()
+        {
+            var metadata = ScriptableObject.CreateInstance<DesignerMetadataAsset>();
+            var element = new DesignerElementMetadata
+            {
+                stableId = "unity-inspector-stable", elementId = "card", displayName = "Card",
+                elementType = "Panel", rect = new Rect(0, 0, 240, 120)
+            };
+            metadata.elements.Add(element);
+            var context = new NexUIDesignerContext();
+            context.SetMetadata(metadata);
+            context.Select(element);
+            try
+            {
+                foreach (var section in DesignerInspectorRegistry.All)
+                {
+                    if (section.Slot != DesignerInspectorSlot.Feature) continue;
+                    if (!section.AppliesTo(context)) continue;
+                    if (section.IsInUse == null) continue; // Pro-only sections, gated by exposure.
+                    Assert.IsFalse(section.IsInUseBy(context),
+                        $"Feature section '{section.Id}' claims to be in use on an untouched element.");
+                }
+            }
+            finally
+            {
+                context.Dispose();
+                UnityEngine.Object.DestroyImmediate(metadata);
+            }
+        }
+
+        [Test]
+        public void FeatureSectionAppearsOnceTheElementUsesIt()
+        {
+            var metadata = ScriptableObject.CreateInstance<DesignerMetadataAsset>();
+            var element = new DesignerElementMetadata { elementId = "hp", elementType = "Label" };
+            metadata.elements.Add(element);
+            var context = new NexUIDesignerContext();
+            context.SetMetadata(metadata);
+            context.Select(element);
+            try
+            {
+                var binding = DesignerInspectorRegistry.Get("binding");
+                Assert.IsNotNull(binding);
+                Assert.IsFalse(binding.IsInUseBy(context));
+
+                element.binding.textKey = "player.hp";
+                Assert.IsTrue(binding.IsInUseBy(context));
+            }
+            finally
+            {
+                context.Dispose();
+                UnityEngine.Object.DestroyImmediate(metadata);
+            }
+        }
+
+        [Test]
+        public void InspectorBuildsUnityLikeStackWithAddComponentLast()
+        {
             var preferenceKeys = new List<string>();
             var previousValues = new Dictionary<string, bool>();
             foreach (var descriptor in DesignerInspectorRegistry.All)
             {
-                var key = "NexUI.Designer.Inspector.V2.Section." + descriptor.Id;
+                var key = "NexUI.Designer.Inspector.Block." + descriptor.Id;
                 preferenceKeys.Add(key);
                 if (EditorPrefs.HasKey(key)) previousValues[key] = EditorPrefs.GetBool(key);
                 EditorPrefs.DeleteKey(key);
@@ -79,7 +146,7 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
             var metadata = ScriptableObject.CreateInstance<DesignerMetadataAsset>();
             var element = new DesignerElementMetadata
             {
-                stableId = "compact-inspector-stable", elementId = "card", displayName = "Card",
+                stableId = "unity-inspector-stack", elementId = "card", displayName = "Card",
                 elementType = "Panel", rect = new Rect(0, 0, 240, 120)
             };
             metadata.elements.Add(element);
@@ -89,24 +156,25 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
             try
             {
                 var inspector = new NexUIRightInspector(context);
-                var tabs = inspector.Query<Button>(className: "nexui-inspector-workflow-tab").ToList();
-                Assert.AreEqual(6, tabs.Count);
-                var selected = tabs.Find(tab => tab.ClassListContains("is-selected"));
-                Assert.IsNotNull(selected);
-                Assert.AreEqual(DesignerInspectorWorkflow.Build, selected.userData);
-                Assert.IsTrue(tabs.TrueForAll(tab => !string.IsNullOrWhiteSpace(tab.tooltip)));
-                Assert.IsTrue(tabs.TrueForAll(tab => char.IsDigit(tab.text[tab.text.Length - 1])));
 
-                var sections = inspector.Query<Foldout>(className: "nexui-unified-inspector-section").ToList();
-                Assert.Greater(sections.Count, 1);
-                Assert.IsTrue(sections.TrueForAll(section => section.ClassListContains("workflow-build")));
-                Assert.IsTrue(sections.TrueForAll(section =>
-                    !string.IsNullOrWhiteSpace(section.tooltip) && section.tooltip.Split('\n').Length >= 4));
-                Assert.AreEqual(1,
-                    inspector.Query<VisualElement>(className: "nexui-unified-inspector-content").ToList().Count,
-                    "Only the default expanded section should instantiate its heavy Inspector UI.");
-                Assert.IsFalse(string.IsNullOrWhiteSpace(
-                    inspector.Q<Label>(className: "nexui-inspector-workspace-description")?.text));
+                Assert.IsNotNull(inspector.Q<TextField>(className: "nexui-inspector-identity-name"),
+                    "The header should rename the element in place, like Unity's GameObject header.");
+                Assert.IsNotNull(inspector.Q<Toggle>(className: "nexui-inspector-identity-active"));
+                Assert.IsEmpty(inspector.Query<Button>(className: "nexui-inspector-workflow-tab").ToList(),
+                    "Workflow tabs are gone: the stack is ordered by slot instead.");
+
+                var blocks = inspector.Query<NexUIInspectorBlock>().ToList();
+                Assert.IsNotEmpty(blocks);
+                Assert.AreEqual("layout", blocks[0].Id, "The transform block is pinned first, as in Unity.");
+                CollectionAssert.DoesNotContain(blocks.ConvertAll(block => block.Id), "motion",
+                    "An element with no motion should not carry a Motion section.");
+
+                Assert.IsNotNull(inspector.Q<VisualElement>(className: "nexui-inspector-component-stack"),
+                    "The component stack is a top-level stack of cards, not a section inside a foldout.");
+
+                var add = inspector.Q<Button>(className: "nexui-inspector-add-component");
+                Assert.IsNotNull(add, "Add Component belongs under the stack.");
+                Assert.Greater(add.parent.IndexOf(add), add.parent.IndexOf(blocks[0]));
             }
             finally
             {
@@ -117,8 +185,6 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
                     if (previousValues.TryGetValue(key, out var value)) EditorPrefs.SetBool(key, value);
                     else EditorPrefs.DeleteKey(key);
                 }
-                if (hadWorkflowPreference) EditorPrefs.SetInt(workflowPreferenceKey, previousWorkflow);
-                else EditorPrefs.DeleteKey(workflowPreferenceKey);
             }
         }
 
@@ -130,7 +196,7 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
                 id,
                 title,
                 "keywords",
-                DesignerInspectorWorkflow.Build,
+                DesignerInspectorSlot.Feature,
                 DesignerInspectorExposure.Common,
                 DesignerInspectorTarget.Element,
                 factory);

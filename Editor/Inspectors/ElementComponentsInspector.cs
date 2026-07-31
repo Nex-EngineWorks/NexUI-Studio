@@ -23,10 +23,17 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
         private const string CardPrefPrefix = "NexUI.Designer.Inspector.ComponentCard.";
 
         private readonly VisualElement _host;
+        private readonly bool _includeAddButton;
         private bool _writing;
 
-        public ElementComponentsInspector(NexUIDesignerContext context) : base(context, "inspector.elementComponents")
+        /// <param name="includeAddButton">
+        /// False when the Inspector host draws its own Add Component button under the whole stack,
+        /// the way Unity does. True keeps the button attached to this section for standalone use.
+        /// </param>
+        public ElementComponentsInspector(NexUIDesignerContext context, bool includeAddButton = true)
+            : base(context, "inspector.elementComponents")
         {
+            _includeAddButton = includeAddButton;
             _host = new VisualElement();
             Add(_host);
             Subscriptions.Add<IReadOnlyList<DesignerElementMetadata>>(
@@ -79,7 +86,7 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
                          element.components ?? new List<DesignerElementComponent>()))
                 _host.Add(Card(element, component));
 
-            _host.Add(AddComponentButton(element));
+            if (_includeAddButton) _host.Add(AddComponentButton(element));
         }
 
         /// <summary>
@@ -226,6 +233,18 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
         private void ShowAddComponentMenu(DesignerElementMetadata element)
         {
             var menu = new GenericMenu();
+            PopulateAddComponentMenu(menu, element);
+            menu.ShowAsContext();
+        }
+
+        /// <summary>
+        /// Fills <paramref name="menu"/> with everything attachable to <paramref name="element"/>.
+        /// Public so the Inspector host can put these entries under its own Add Component button
+        /// alongside the NexUI feature sections, keeping one menu instead of two.
+        /// </summary>
+        public void PopulateAddComponentMenu(GenericMenu menu, DesignerElementMetadata element)
+        {
+            if (menu == null || element == null) return;
             var backend = Backend;
             var byCategory = new SortedDictionary<string, List<DesignerUIComponentType>>();
 
@@ -260,8 +279,6 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
             menu.AddSeparator("");
             menu.AddItem(new GUIContent(DesignerLocalization.T("inspector.components.addScript")), false,
                 () => DesignerMonoBehaviourPickerWindow.Open(AttachScript));
-
-            menu.ShowAsContext();
         }
 
         /// <summary>

@@ -12,43 +12,37 @@ using UnityEngine.UIElements;
 namespace emiteat.NexUI.Designer.Editor.UI.Shell
 {
     /// <summary>
-    /// The single Inspector host used by NexUI Designer. Sections are supplied by
-    /// <see cref="DesignerInspectorRegistry"/> so selection, search and Beginner/Pro exposure
-    /// rules cannot drift between multiple hard-coded Inspector implementations.
+    /// The single Inspector host used by NexUI Designer, laid out the way Unity lays out a
+    /// GameObject: an identity header, the transform, the element's component stack, and then only
+    /// the features the element actually uses - with Add Component underneath.
     /// </summary>
+    /// <remarks>
+    /// The previous host showed every registered section behind a workflow tab strip, so the same
+    /// content was foldered twice (tab, then foldout) and an untouched element still listed twenty
+    /// sections. Sections now declare a <see cref="DesignerInspectorSlot"/> and, for features, when
+    /// they are in use, so the Inspector is as long as the element is complex.
+    ///
+    /// A feature that is not in use is not gone: Add Component ▸ NexUI Features adds it for the
+    /// session, exactly like adding a component to reveal its fields.
+    /// </remarks>
     public class NexUIRightInspector : VisualElement
     {
-        private const string FoldoutPrefPrefix = "NexUI.Designer.Inspector.V2.Section.";
-        private const string WorkflowPrefKey = "NexUI.Designer.Inspector.ActiveWorkflow";
-        private static readonly DesignerInspectorWorkflow[] WorkflowOrder =
-        {
-            DesignerInspectorWorkflow.All,
-            DesignerInspectorWorkflow.Build,
-            DesignerInspectorWorkflow.Connect,
-            DesignerInspectorWorkflow.Animate,
-            DesignerInspectorWorkflow.Verify,
-            DesignerInspectorWorkflow.Advanced
-        };
+        private const string AddedFeaturesPrefix = "NexUI.Designer.Inspector.Features.";
 
         private readonly NexUIDesignerContext _context;
+        private readonly VisualElement _header;
+        private readonly Toggle _active;
+        private readonly TextField _name;
         private readonly Label _title;
         private readonly Label _subtitle;
-        private readonly Button _mode;
         private readonly ToolbarSearchField _search;
-        private readonly Label _workflowIcon;
-        private readonly Label _workflowTitle;
-        private readonly Label _workflowDescription;
-        private readonly Label _workflowCount;
-        private readonly Dictionary<DesignerInspectorWorkflow, Button> _workflowButtons =
-            new Dictionary<DesignerInspectorWorkflow, Button>();
         private readonly ScrollView _host;
-        private DesignerInspectorWorkflow _activeWorkflow = DesignerInspectorWorkflow.Build;
+        private ElementComponentsInspector _components;
         private string _lastTargetKey;
 
         public NexUIRightInspector(NexUIDesignerContext context)
         {
             _context = context;
-            _activeWorkflow = ReadWorkflowPreference();
             AddToClassList("nexui-right-inspector");
             AddToClassList("nexui-inspector");
             AddToClassList("nexui-unified-inspector");
@@ -58,72 +52,51 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
                 .WithDetachButton(() => NexUIPaneWindow.Open(DesignerPaneKind.Inspector),
                     DesignerLocalization.T("pane.detach.tooltip")));
 
-            var header = new VisualElement();
-            header.AddToClassList("nexui-inspector-header");
-            var heading = new VisualElement();
-            heading.AddToClassList("nexui-inspector-heading");
+            // ---- Identity header, mirroring Unity's GameObject header --------------------------
+            _header = new VisualElement();
+            _header.AddToClassList("nexui-inspector-identity");
+
+            var identityRow = new VisualElement();
+            identityRow.AddToClassList("nexui-inspector-identity-row");
+
+            _active = new Toggle { tooltip = DesignerLocalization.T("inspector.identity.activeTooltip") };
+            _active.AddToClassList("nexui-inspector-identity-active");
+            _active.RegisterValueChangedCallback(evt =>
+            {
+                var element = SingleElement();
+                if (element == null) return;
+                _context.UpdateElement(element, e => e.runtimeVisible = evt.newValue, "Toggle NexUI Element Active");
+            });
+            identityRow.Add(_active);
+
+            _name = new TextField { isDelayed = true, tooltip = DesignerLocalization.T("inspector.identity.nameTooltip") };
+            _name.AddToClassList("nexui-inspector-identity-name");
+            _name.RegisterValueChangedCallback(evt =>
+            {
+                var element = SingleElement();
+                if (element == null || string.IsNullOrWhiteSpace(evt.newValue)) return;
+                _context.UpdateElement(element, e => e.displayName = evt.newValue.Trim(), "Rename NexUI Element");
+            });
+            identityRow.Add(_name);
+
             _title = new Label();
             _title.AddToClassList("nexui-inspector-selection-title");
+            identityRow.Add(_title);
+
+            var overflow = new Button(ShowOverflowMenu) { text = "⋮", tooltip = DesignerLocalization.T("inspector.overflowTooltip") };
+            overflow.AddToClassList("nexui-inspector-overflow");
+            identityRow.Add(overflow);
+            _header.Add(identityRow);
+
             _subtitle = new Label();
             _subtitle.AddToClassList("nexui-inspector-selection-subtitle");
-            heading.Add(_title);
-            heading.Add(_subtitle);
-            header.Add(heading);
+            _header.Add(_subtitle);
+            Add(_header);
 
-            _mode = new Button(ToggleMode);
-            _mode.AddToClassList("nexui-inspector-mode");
-            header.Add(_mode);
-            Add(header);
-
-            var tools = new VisualElement();
-            tools.AddToClassList("nexui-inspector-tools");
             _search = new ToolbarSearchField { tooltip = DesignerLocalization.T("inspector.unified.searchTooltip") };
             _search.AddToClassList("nexui-inspector-search");
             _search.RegisterValueChangedCallback(_ => RebuildSections());
-            tools.Add(_search);
-            Add(tools);
-
-            var workspace = new VisualElement
-            {
-                tooltip = DesignerLocalization.T("inspector.unified.workflowTooltip")
-            };
-            workspace.AddToClassList("nexui-inspector-workspace");
-            var workspaceSummary = new VisualElement { pickingMode = PickingMode.Ignore };
-            workspaceSummary.AddToClassList("nexui-inspector-workspace-summary");
-            _workflowIcon = new Label();
-            _workflowIcon.AddToClassList("nexui-inspector-workspace-icon");
-            workspaceSummary.Add(_workflowIcon);
-            var workspaceCopy = new VisualElement();
-            workspaceCopy.AddToClassList("nexui-inspector-workspace-copy");
-            _workflowTitle = new Label();
-            _workflowTitle.AddToClassList("nexui-inspector-workspace-title");
-            workspaceCopy.Add(_workflowTitle);
-            _workflowDescription = new Label();
-            _workflowDescription.AddToClassList("nexui-inspector-workspace-description");
-            workspaceCopy.Add(_workflowDescription);
-            workspaceSummary.Add(workspaceCopy);
-            _workflowCount = new Label();
-            _workflowCount.AddToClassList("nexui-inspector-workspace-count");
-            workspaceSummary.Add(_workflowCount);
-            workspace.Add(workspaceSummary);
-
-            var workflowTabs = new VisualElement();
-            workflowTabs.AddToClassList("nexui-inspector-workflow-tabs");
-            foreach (var workflow in WorkflowOrder)
-            {
-                var captured = workflow;
-                var tab = new Button(() => SelectWorkflow(captured))
-                {
-                    userData = captured,
-                    tooltip = WorkflowDescription(captured)
-                };
-                tab.AddToClassList("nexui-inspector-workflow-tab");
-                tab.AddToClassList("workflow-" + workflow.ToString().ToLowerInvariant());
-                _workflowButtons.Add(workflow, tab);
-                workflowTabs.Add(tab);
-            }
-            workspace.Add(workflowTabs);
-            Add(workspace);
+            Add(_search);
 
             _host = new ScrollView();
             _host.AddToClassList("nexui-inspector-host");
@@ -132,7 +105,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             var subscriptions = new ContextBoundSubscriptions(this);
             subscriptions.Add<DesignerElementMetadata>(h => context.MetadataSelectionChanged += h,
                 h => context.MetadataSelectionChanged -= h, _ => RebuildForTarget());
-            subscriptions.Add<System.Collections.Generic.IReadOnlyList<DesignerElementMetadata>>(h => context.MultiSelectionChanged += h,
+            subscriptions.Add<IReadOnlyList<DesignerElementMetadata>>(h => context.MultiSelectionChanged += h,
                 h => context.MultiSelectionChanged -= h, _ => RebuildForTarget());
             subscriptions.Add<emiteat.NexUI.Core.UIScreenDefinition>(h => context.ScreenChanged += h,
                 h => context.ScreenChanged -= h, _ => RebuildForTarget());
@@ -142,10 +115,8 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             RebuildForTarget();
         }
 
-        private void ToggleMode()
-        {
-            DesignerEditMode.Current = DesignerEditMode.IsAdvanced ? DesignerMode.Simple : DesignerMode.Advanced;
-        }
+        private DesignerElementMetadata SingleElement()
+            => _context.SelectedElements.Count == 1 ? _context.SelectedElements[0] : null;
 
         private void RebuildForTarget()
         {
@@ -154,30 +125,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             {
                 _lastTargetKey = targetKey;
                 _search.SetValueWithoutNotify(string.Empty);
-                if (!WorkflowAppliesToCurrentTarget(_activeWorkflow))
-                {
-                    _activeWorkflow = DesignerInspectorWorkflow.Build;
-                    SaveWorkflowPreference();
-                }
             }
-            RebuildSections();
-        }
-
-        private bool WorkflowAppliesToCurrentTarget(DesignerInspectorWorkflow workflow)
-        {
-            foreach (var descriptor in DesignerInspectorRegistry.All)
-                if (descriptor.AppliesTo(_context) &&
-                    (workflow == DesignerInspectorWorkflow.All || descriptor.Workflow == workflow))
-                    return true;
-            return false;
-        }
-
-        private void SelectWorkflow(DesignerInspectorWorkflow workflow)
-        {
-            if (_activeWorkflow == workflow) return;
-            _activeWorkflow = workflow;
-            SaveWorkflowPreference();
-            _host.scrollOffset = Vector2.zero;
             RebuildSections();
         }
 
@@ -186,15 +134,18 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             RefreshHeader();
             var scroll = _host.scrollOffset;
             _host.Clear();
+            _components = null;
 
             var query = (_search.value ?? string.Empty).Trim();
+            var searching = !string.IsNullOrEmpty(query);
+            var added = AddedFeatures();
             var shown = 0;
             var hiddenByMode = 0;
-            var defaultExpandedAssigned = false;
-            foreach (var descriptor in DesignerInspectorRegistry.All)
+            var dormantFeatures = 0;
+
+            foreach (var descriptor in Ordered())
             {
                 if (!descriptor.AppliesTo(_context)) continue;
-                if (_activeWorkflow != DesignerInspectorWorkflow.All && descriptor.Workflow != _activeWorkflow) continue;
                 if (!descriptor.Matches(query)) continue;
 
                 if (!DesignerEditMode.IsAdvanced && descriptor.Exposure > DesignerInspectorExposure.Common)
@@ -203,13 +154,21 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
                     continue;
                 }
 
-                var defaultExpanded = !defaultExpandedAssigned && descriptor.Exposure == DesignerInspectorExposure.Essential;
-                if (defaultExpanded) defaultExpandedAssigned = true;
-                _host.Add(BuildSection(descriptor, defaultExpanded, !string.IsNullOrEmpty(query)));
+                // A dormant feature stays off the stack unless the user added it - or is searching
+                // for it, in which case hiding the one thing they asked for would be perverse.
+                var inUse = descriptor.IsInUseBy(_context) || added.Contains(descriptor.Id);
+                if (!inUse && !searching)
+                {
+                    dormantFeatures++;
+                    continue;
+                }
+
+                _host.Add(BuildBlock(descriptor, searching, inUse));
                 shown++;
             }
 
-            RefreshWorkflowWorkspace(shown, query);
+            if (_context.SelectedElements.Count == 1)
+                _host.Add(AddComponentButton(dormantFeatures));
 
             if (hiddenByMode > 0)
             {
@@ -221,60 +180,154 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
                 _host.Add(reveal);
             }
 
-            if (shown == 0 && hiddenByMode == 0)
-            {
-                _host.Add(BuildEmptyState(query));
-            }
+            if (shown == 0 && hiddenByMode == 0) _host.Add(BuildEmptyState(query));
 
             _host.schedule.Execute(() => _host.scrollOffset = scroll);
         }
 
-        private VisualElement BuildSection(DesignerInspectorSectionDescriptor descriptor, bool defaultExpanded, bool expandForSearch)
+        /// <summary>Screen blocks, then transform, core, the component stack, then features.</summary>
+        private IEnumerable<DesignerInspectorSectionDescriptor> Ordered()
         {
-            var preferenceKey = FoldoutPrefPrefix + descriptor.Id;
-            var foldout = new Foldout
+            foreach (var slot in new[]
+                     {
+                         DesignerInspectorSlot.Screen, DesignerInspectorSlot.Transform, DesignerInspectorSlot.Core,
+                         DesignerInspectorSlot.Components, DesignerInspectorSlot.Feature
+                     })
+                foreach (var descriptor in DesignerInspectorRegistry.All)
+                    if (descriptor.Slot == slot)
+                        yield return descriptor;
+        }
+
+        private VisualElement BuildBlock(DesignerInspectorSectionDescriptor descriptor, bool expandForSearch, bool inUse)
+        {
+            // The component stack is not a section with a header: its cards *are* the stack, the
+            // same way Unity draws one card per component rather than a "Components" foldout.
+            if (descriptor.Slot == DesignerInspectorSlot.Components)
             {
-                text = descriptor.Title,
-                value = expandForSearch || EditorPrefs.GetBool(preferenceKey, defaultExpanded)
-            };
-            foldout.AddToClassList("nexui-unified-inspector-section");
-            foldout.AddToClassList("workflow-" + descriptor.Workflow.ToString().ToLowerInvariant());
-            foldout.AddToClassList("exposure-" + descriptor.Exposure.ToString().ToLowerInvariant());
-            foldout.tooltip = DesignerLocalization.T("inspector.unified.sectionTooltip",
-                descriptor.Title, WorkflowDescription(descriptor.Workflow),
-                ExposureTitle(descriptor.Exposure), descriptor.Keywords);
-            var contentBuilt = false;
-            void EnsureContent()
-            {
-                if (contentBuilt) return;
-                contentBuilt = true;
-                var content = descriptor.Create(_context);
-                var duplicateTitle = content.Q<Label>("SectionTitle");
-                duplicateTitle?.RemoveFromHierarchy();
-                var duplicatePanelTitle = content.Q<Label>("PanelTitle");
-                duplicatePanelTitle?.RemoveFromHierarchy();
-                content.RemoveFromClassList("nexui-inspector-section");
-                content.RemoveFromClassList("nexui-panel");
-                content.RemoveFromClassList("nexui-bottom-card");
-                content.style.flexGrow = 0;
-                content.AddToClassList("nexui-unified-inspector-content");
-                foldout.Add(content);
+                _components = new ElementComponentsInspector(_context, includeAddButton: false);
+                _components.Q<Label>("SectionTitle")?.RemoveFromHierarchy();
+                _components.RemoveFromClassList("nexui-inspector-section");
+                _components.AddToClassList("nexui-inspector-component-stack");
+                return _components;
             }
 
-            foldout.RegisterValueChangedCallback(evt =>
-            {
-                EditorPrefs.SetBool(preferenceKey, evt.newValue);
-                if (evt.newValue) EnsureContent();
-            });
-            foldout.RegisterCallback<ContextClickEvent>(evt =>
-            {
-                ShowSectionMenu();
-                evt.StopPropagation();
-            });
+            if (expandForSearch) NexUIInspectorBlock.SetExpanded(descriptor.Id, true);
 
-            if (foldout.value) EnsureContent();
-            return foldout;
+            var block = new NexUIInspectorBlock(
+                descriptor.Id,
+                descriptor.Title,
+                Icon(descriptor.Slot),
+                () => descriptor.Create(_context),
+                // Unity opens every component it draws; a feature only reaches the stack when the
+                // element uses it, so open is the right default for everything but diagnostics.
+                defaultExpanded: descriptor.Exposure != DesignerInspectorExposure.Diagnostic,
+                menu: generic => BuildBlockMenu(generic, descriptor, inUse),
+                tooltipText: DesignerLocalization.T("inspector.unified.sectionTooltip",
+                    descriptor.Title, ExposureTitle(descriptor.Exposure), descriptor.Keywords));
+            block.AddToClassList("slot-" + descriptor.Slot.ToString().ToLowerInvariant());
+            block.AddToClassList("exposure-" + descriptor.Exposure.ToString().ToLowerInvariant());
+            return block;
         }
+
+        private void BuildBlockMenu(GenericMenu menu, DesignerInspectorSectionDescriptor descriptor, bool inUse)
+        {
+            var manual = descriptor.Slot == DesignerInspectorSlot.Feature
+                         && AddedFeatures().Contains(descriptor.Id)
+                         && !descriptor.IsInUseBy(_context);
+            if (manual)
+                menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.inspector.removeSection")), false,
+                    () => RemoveFeature(descriptor.Id));
+            else if (descriptor.Slot == DesignerInspectorSlot.Feature && inUse)
+                // Removing a section the element genuinely uses would hide data, not remove it.
+                menu.AddDisabledItem(new GUIContent(DesignerLocalization.T("ctx.inspector.removeSectionInUse")));
+
+            menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.inspector.expandAll")), false, () => SetAllBlocks(true));
+            menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.inspector.collapseAll")), false, () => SetAllBlocks(false));
+        }
+
+        private VisualElement AddComponentButton(int dormantFeatures)
+        {
+            var button = new Button(ShowAddMenu)
+            {
+                text = DesignerLocalization.T("inspector.components.add"),
+                tooltip = dormantFeatures > 0
+                    ? DesignerLocalization.T("inspector.add.tooltipWithFeatures", dormantFeatures)
+                    : DesignerLocalization.T("tooltip.inspector.addComponent")
+            };
+            button.AddToClassList("nexui-inspector-add-component");
+            return button;
+        }
+
+        /// <summary>
+        /// One menu for both kinds of addition: real components from the component registry, and
+        /// the NexUI feature sections this element is not using yet.
+        /// </summary>
+        private void ShowAddMenu()
+        {
+            var element = SingleElement();
+            if (element == null) return;
+
+            var menu = new GenericMenu();
+            _components?.PopulateAddComponentMenu(menu, element);
+
+            var added = AddedFeatures();
+            var features = new List<DesignerInspectorSectionDescriptor>();
+            foreach (var descriptor in DesignerInspectorRegistry.All)
+            {
+                if (descriptor.Slot != DesignerInspectorSlot.Feature) continue;
+                if (!descriptor.AppliesTo(_context)) continue;
+                if (!DesignerEditMode.IsAdvanced && descriptor.Exposure > DesignerInspectorExposure.Common) continue;
+                if (descriptor.IsInUseBy(_context) || added.Contains(descriptor.Id)) continue;
+                features.Add(descriptor);
+            }
+
+            if (features.Count > 0)
+            {
+                menu.AddSeparator("");
+                var group = DesignerLocalization.T("inspector.add.featureGroup");
+                foreach (var descriptor in features)
+                {
+                    var id = descriptor.Id;
+                    menu.AddItem(new GUIContent(group + "/" + descriptor.Title), false, () => AddFeature(id));
+                }
+            }
+
+            menu.ShowAsContext();
+        }
+
+        // ---- Added-feature set --------------------------------------------------------------
+        // Session-scoped rather than written into the metadata: adding an empty Motion section is a
+        // view decision, and persisting it would dirty the asset for something the user may never
+        // fill in. Once a value is entered the section is in use and shows on its own.
+
+        private HashSet<string> AddedFeatures()
+        {
+            var stored = SessionState.GetString(AddedFeaturesPrefix + CurrentTargetKey(), string.Empty);
+            var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var id in stored.Split(','))
+                if (!string.IsNullOrEmpty(id)) set.Add(id);
+            return set;
+        }
+
+        private void AddFeature(string id)
+        {
+            var set = AddedFeatures();
+            if (!set.Add(id)) return;
+            NexUIInspectorBlock.SetExpanded(id, true);
+            SaveAddedFeatures(set);
+            RebuildSections();
+        }
+
+        private void RemoveFeature(string id)
+        {
+            var set = AddedFeatures();
+            if (!set.Remove(id)) return;
+            SaveAddedFeatures(set);
+            RebuildSections();
+        }
+
+        private void SaveAddedFeatures(HashSet<string> set)
+            => SessionState.SetString(AddedFeaturesPrefix + CurrentTargetKey(), string.Join(",", set));
 
         private VisualElement BuildEmptyState(string query)
         {
@@ -305,93 +358,29 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             return empty;
         }
 
-        private void RefreshWorkflowWorkspace(int visibleSectionCount, string query)
-        {
-            _workflowIcon.text = WorkflowIcon(_activeWorkflow);
-            _workflowTitle.text = WorkflowTitle(_activeWorkflow);
-            _workflowDescription.text = WorkflowDescription(_activeWorkflow);
-            _workflowCount.text = DesignerLocalization.T("inspector.unified.sectionCount", visibleSectionCount);
-            foreach (var pair in _workflowButtons)
-            {
-                var count = CountVisibleSections(pair.Key, query);
-                pair.Value.text = WorkflowIcon(pair.Key) + "  " + WorkflowTitle(pair.Key) + "  " + count;
-                pair.Value.tooltip = DesignerLocalization.T("inspector.unified.workflowTabTooltip",
-                    WorkflowDescription(pair.Key), DesignerLocalization.T("inspector.unified.sectionCount", count));
-                pair.Value.EnableInClassList("is-selected", pair.Key == _activeWorkflow);
-                pair.Value.EnableInClassList("has-results", count > 0);
-            }
-        }
-
-        private int CountVisibleSections(DesignerInspectorWorkflow workflow, string query)
-        {
-            var count = 0;
-            foreach (var descriptor in DesignerInspectorRegistry.All)
-            {
-                if (!descriptor.AppliesTo(_context)) continue;
-                if (workflow != DesignerInspectorWorkflow.All && descriptor.Workflow != workflow) continue;
-                if (!descriptor.Matches(query)) continue;
-                if (!DesignerEditMode.IsAdvanced && descriptor.Exposure > DesignerInspectorExposure.Common) continue;
-                count++;
-            }
-            return count;
-        }
-
-        private static string WorkflowTitle(DesignerInspectorWorkflow workflow)
-            => DesignerLocalization.T("inspector.workflow." + workflow.ToString().ToLowerInvariant());
-
-        private static string WorkflowDescription(DesignerInspectorWorkflow workflow)
-            => DesignerLocalization.T("inspector.workflow." + workflow.ToString().ToLowerInvariant() + "Description");
-
         private static string ExposureTitle(DesignerInspectorExposure exposure)
             => DesignerLocalization.T("inspector.exposure." + exposure.ToString().ToLowerInvariant());
 
-        private static DesignerInspectorWorkflow ReadWorkflowPreference()
+        private static string Icon(DesignerInspectorSlot slot)
         {
-            var value = EditorPrefs.GetInt(WorkflowPrefKey, (int)DesignerInspectorWorkflow.Build);
-            return Enum.IsDefined(typeof(DesignerInspectorWorkflow), value)
-                ? (DesignerInspectorWorkflow)value
-                : DesignerInspectorWorkflow.Build;
-        }
-
-        private void SaveWorkflowPreference()
-            => EditorPrefs.SetInt(WorkflowPrefKey, (int)_activeWorkflow);
-
-        private static string WorkflowIcon(DesignerInspectorWorkflow workflow)
-        {
-            switch (workflow)
+            switch (slot)
             {
-                case DesignerInspectorWorkflow.Build: return "▦";
-                case DesignerInspectorWorkflow.Connect: return "⌁";
-                case DesignerInspectorWorkflow.Animate: return "▶";
-                case DesignerInspectorWorkflow.Verify: return "✓";
-                case DesignerInspectorWorkflow.Advanced: return "◆";
-                default: return "≡";
+                case DesignerInspectorSlot.Screen: return "▤";
+                case DesignerInspectorSlot.Transform: return "⤢";
+                case DesignerInspectorSlot.Core: return "◧";
+                default: return "◆";
             }
         }
 
         /// <summary>
-        /// Right-click menu on a section header. Unity's component headers offer the same kind of
-        /// bulk foldout control; here it also clears the search/workflow filter, which is the
-        /// usual reason a section the user expected is not on screen.
+        /// The ⋮ menu next to the element name: bulk foldout control plus the Normal/Advanced
+        /// switch, which used to sit in the header as a button of its own.
         /// </summary>
-        private void ShowSectionMenu()
+        private void ShowOverflowMenu()
         {
             var menu = new GenericMenu();
-            menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.inspector.expandAll")), false, () => SetAllSections(true));
-            menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.inspector.collapseAll")), false, () => SetAllSections(false));
-            menu.AddSeparator("");
-
-            var hasFilter = !string.IsNullOrEmpty(_search.value) || _activeWorkflow != DesignerInspectorWorkflow.Build;
-            if (hasFilter)
-                menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.inspector.resetFilters")), false, () =>
-                {
-                    _search.SetValueWithoutNotify(string.Empty);
-                    _activeWorkflow = DesignerInspectorWorkflow.Build;
-                    SaveWorkflowPreference();
-                    RebuildSections();
-                });
-            else
-                menu.AddDisabledItem(new GUIContent(DesignerLocalization.T("ctx.inspector.resetFilters")));
+            menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.inspector.expandAll")), false, () => SetAllBlocks(true));
+            menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.inspector.collapseAll")), false, () => SetAllBlocks(false));
 
             menu.AddSeparator("");
             var advanced = DesignerEditMode.IsAdvanced;
@@ -400,26 +389,45 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             menu.AddItem(new GUIContent(DesignerLocalization.T("shell.mode.advanced")), advanced,
                 () => DesignerEditMode.Current = DesignerMode.Advanced);
 
+            menu.AddSeparator("");
+            var hasSearch = !string.IsNullOrEmpty(_search.value);
+            if (hasSearch)
+                menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.inspector.resetFilters")), false, () =>
+                {
+                    _search.SetValueWithoutNotify(string.Empty);
+                    RebuildSections();
+                });
+            else
+                menu.AddDisabledItem(new GUIContent(DesignerLocalization.T("ctx.inspector.resetFilters")));
+
+            var added = AddedFeatures();
+            if (added.Count > 0)
+                menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.inspector.clearAddedSections")), false, () =>
+                {
+                    SaveAddedFeatures(new HashSet<string>());
+                    RebuildSections();
+                });
+            else
+                menu.AddDisabledItem(new GUIContent(DesignerLocalization.T("ctx.inspector.clearAddedSections")));
+
             menu.ShowAsContext();
         }
 
-        private void SetAllSections(bool expanded)
+        private void SetAllBlocks(bool expanded)
         {
             foreach (var descriptor in DesignerInspectorRegistry.All)
-                EditorPrefs.SetBool(FoldoutPrefPrefix + descriptor.Id, expanded);
+                NexUIInspectorBlock.SetExpanded(descriptor.Id, expanded);
             RebuildSections();
         }
 
         private void RefreshHeader()
         {
-            _mode.text = DesignerEditMode.IsAdvanced
-                ? DesignerLocalization.T("inspector.unified.pro")
-                : DesignerLocalization.T("inspector.unified.beginner");
-            _mode.tooltip = DesignerEditMode.IsAdvanced
-                ? DesignerLocalization.T("inspector.unified.proTooltip")
-                : DesignerLocalization.T("inspector.unified.beginnerTooltip");
-
             var count = _context.SelectedElements.Count;
+            var single = count == 1;
+            _active.style.display = single ? DisplayStyle.Flex : DisplayStyle.None;
+            _name.style.display = single ? DisplayStyle.Flex : DisplayStyle.None;
+            _title.style.display = single ? DisplayStyle.None : DisplayStyle.Flex;
+
             if (count == 0)
             {
                 _title.text = _context.CurrentScreen == null
@@ -440,11 +448,13 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
 
             var element = _context.SelectedElements[0];
             var descriptor = DesignerComponentRegistry.Get(element.elementType);
-            _title.text = string.IsNullOrWhiteSpace(element.displayName) ? element.elementId : element.displayName;
+            _active.SetValueWithoutNotify(element.runtimeVisible);
+            _name.SetValueWithoutNotify(string.IsNullOrWhiteSpace(element.displayName) ? element.elementId : element.displayName);
             var support = _context.Backend == emiteat.NexUI.Abstractions.UIRenderBackend.UGUI
                 ? descriptor.UGUISupport
                 : descriptor.UIToolkitSupport;
-            _subtitle.text = DesignerLocalization.T("inspector.unified.elementSubtitle", element.elementType, _context.Backend, support);
+            _subtitle.text = DesignerLocalization.T("inspector.identity.subtitle",
+                element.elementId, element.elementType, _context.Backend, support);
         }
 
         private string CurrentTargetKey()

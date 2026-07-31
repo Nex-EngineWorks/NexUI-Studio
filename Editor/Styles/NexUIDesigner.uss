@@ -1516,21 +1516,39 @@
     min-width: 320px;
 }
 
-.nexui-inspector-header {
-    min-height: 54px;
-    flex-direction: row;
-    align-items: center;
-    padding: 8px 10px;
+.nexui-inspector-identity {
+    padding: 8px 10px 7px 10px;
     border-bottom-width: 1px;
     border-bottom-color: var(--nexui-border);
 }
 
-.nexui-inspector-heading {
+.nexui-inspector-identity-row {
+    flex-direction: row;
+    align-items: center;
+    min-height: 24px;
+}
+
+.nexui-inspector-identity-active {
+    margin-right: 4px;
+    margin-bottom: 0;
+}
+
+.nexui-inspector-identity-name {
     flex-grow: 1;
     min-width: 0;
+    margin: 0;
+}
+
+.nexui-inspector-identity-name > .unity-text-field__input {
+    min-height: 22px;
+    border-radius: 4px;
+    color: var(--nexui-text-primary);
+    font-size: 12px;
+    -unity-font-style: bold;
 }
 
 .nexui-inspector-selection-title {
+    flex-grow: 1;
     color: var(--nexui-text-primary);
     font-size: 13px;
     -unity-font-style: bold;
@@ -1539,208 +1557,119 @@
 }
 
 .nexui-inspector-selection-subtitle {
+    margin-top: 3px;
+    margin-left: 2px;
     color: var(--nexui-text-secondary);
     font-size: 9px;
     white-space: nowrap;
     overflow: hidden;
 }
 
-.nexui-inspector-mode {
-    min-width: 68px;
-    height: 25px;
-    margin-left: 8px;
-    border-radius: 12px;
-    border-width: 1px;
-    border-color: var(--nexui-accent);
-    background-color: var(--nexui-bg-selected);
-    color: var(--nexui-text-primary);
-    font-size: 10px;
+.nexui-inspector-overflow {
+    width: 22px;
+    min-width: 22px;
+    height: 22px;
+    margin-left: 4px;
+    padding: 0;
+    border-width: 0;
+    border-radius: 4px;
+    background-color: transparent;
+    color: var(--nexui-text-secondary);
+    font-size: 13px;
 }
 
-.nexui-inspector-tools {
-    min-height: 36px;
-    flex-direction: row;
-    align-items: center;
-    padding: 5px 8px;
-    border-bottom-width: 1px;
-    border-bottom-color: var(--nexui-border);
+.nexui-inspector-overflow:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: var(--nexui-text-primary);
 }
 
 .nexui-inspector-search {
-    flex-grow: 1;
+    margin: 6px 8px;
     min-width: 110px;
-    margin-right: 0;
-}
-
-.nexui-inspector-workspace {
-    margin: 7px 7px 0 7px;
-    padding: 7px;
-    border-width: 1px;
-    border-radius: 8px;
-    border-color: rgba(255, 255, 255, 0.08);
-    background-color: rgba(255, 255, 255, 0.025);
-}
-
-.nexui-inspector-workspace-summary {
-    min-height: 42px;
-    margin-bottom: 6px;
-    flex-direction: row;
-    align-items: center;
-}
-
-.nexui-inspector-workspace-icon {
-    width: 32px;
-    min-width: 32px;
-    height: 32px;
-    margin-right: 7px;
-    border-radius: 7px;
-    color: rgb(205, 220, 245);
-    background-color: rgba(91, 111, 145, 0.24);
-    font-size: 15px;
-    -unity-font-style: bold;
-    -unity-text-align: middle-center;
-}
-
-.nexui-inspector-workspace-copy {
-    flex-grow: 1;
-    min-width: 0;
-}
-
-.nexui-inspector-workspace-title {
-    color: var(--nexui-text-primary);
-    font-size: 11px;
-    -unity-font-style: bold;
-}
-
-.nexui-inspector-workspace-description {
-    margin-top: 1px;
-    color: var(--nexui-text-secondary);
-    font-size: 8px;
-    white-space: normal;
-}
-
-.nexui-inspector-workspace-count {
-    min-width: 28px;
-    height: 18px;
-    margin-left: 5px;
-    padding-left: 5px;
-    padding-right: 5px;
-    border-radius: 9px;
-    color: rgba(203, 217, 238, 0.92);
-    background-color: rgba(91, 111, 145, 0.22);
-    font-size: 8px;
-    -unity-text-align: middle-center;
-}
-
-.nexui-inspector-workflow-tabs {
-    flex-direction: row;
-    flex-wrap: wrap;
-    margin-left: -2px;
-    margin-right: -2px;
-}
-
-.nexui-inspector-workflow-tab {
-    width: 31%;
-    flex-grow: 1;
-    min-height: 25px;
-    margin: 2px;
-    padding-left: 4px;
-    padding-right: 4px;
-    border-width: 1px;
-    border-radius: 6px;
-    border-color: rgba(255, 255, 255, 0.07);
-    color: rgba(183, 191, 205, 0.88);
-    background-color: rgba(0, 0, 0, 0.12);
-    font-size: 8px;
-    opacity: 0.56;
-}
-
-.nexui-inspector-workflow-tab.has-results,
-.nexui-inspector-workflow-tab.is-selected {
-    opacity: 1;
-}
-
-.nexui-inspector-workflow-tab:hover {
-    border-color: rgba(126, 151, 190, 0.45);
-    color: var(--nexui-text-primary);
-    background-color: rgba(91, 111, 145, 0.14);
-}
-
-.nexui-inspector-workflow-tab.is-selected {
-    border-color: rgba(126, 151, 190, 0.68);
-    color: rgb(225, 234, 248);
-    background-color: rgba(91, 111, 145, 0.28);
-    -unity-font-style: bold;
-}
-
-.nexui-inspector-workflow-tab.workflow-connect.is-selected {
-    border-color: rgba(56, 189, 248, 0.66);
-    color: rgb(190, 234, 253);
-    background-color: rgba(56, 189, 248, 0.15);
-}
-
-.nexui-inspector-workflow-tab.workflow-animate.is-selected {
-    border-color: rgba(167, 139, 250, 0.70);
-    color: rgb(224, 214, 255);
-    background-color: rgba(139, 101, 255, 0.17);
-}
-
-.nexui-inspector-workflow-tab.workflow-verify.is-selected {
-    border-color: rgba(245, 158, 11, 0.68);
-    color: rgb(255, 221, 166);
-    background-color: rgba(245, 158, 11, 0.14);
-}
-
-.nexui-inspector-workflow-tab.workflow-advanced.is-selected {
-    border-color: rgba(244, 114, 182, 0.68);
-    color: rgb(255, 207, 233);
-    background-color: rgba(244, 114, 182, 0.14);
 }
 
 .nexui-inspector-host {
     padding: 7px 7px 10px 7px;
 }
 
-.nexui-unified-inspector-section {
-    margin-bottom: 6px;
-    border-left-width: 2px;
-    border-left-color: #596273;
-    border-radius: 6px;
-    background-color: #15171b;
+.nexui-inspector-block {
+    margin-bottom: 4px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.06);
+    border-radius: 5px;
+    background-color: #1c1f25;
 }
 
-.nexui-unified-inspector-section.workflow-connect {
-    border-left-color: #38bdf8;
-}
-
-.nexui-unified-inspector-section.workflow-animate {
-    border-left-color: #a78bfa;
-}
-
-.nexui-unified-inspector-section.workflow-verify {
-    border-left-color: #f59e0b;
-}
-
-.nexui-unified-inspector-section.workflow-advanced {
-    border-left-color: #f472b6;
-}
-
-.nexui-unified-inspector-section > .unity-foldout__toggle {
-    min-height: 28px;
-    padding-left: 6px;
-    color: var(--nexui-text-primary);
-    -unity-font-style: bold;
-}
-
-.nexui-unified-inspector-section > .unity-foldout__content {
-    padding: 0 8px 8px 8px;
-}
-
-.nexui-unified-inspector-content {
+.nexui-inspector-block > .nexui-inspector-block__menu {
+    position: absolute;
+    right: 2px;
+    top: 2px;
+    width: 20px;
+    min-width: 20px;
+    height: 20px;
     padding: 0;
     margin: 0;
     border-width: 0;
     background-color: transparent;
+    color: var(--nexui-text-secondary);
+    font-size: 12px;
+}
+
+.nexui-inspector-block > .nexui-inspector-block__menu:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: var(--nexui-text-primary);
+}
+
+.nexui-inspector-block__foldout > .unity-foldout__toggle {
+    min-height: 24px;
+    margin: 0;
+    padding-left: 4px;
+    padding-right: 24px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(0, 0, 0, 0.25);
+    background-color: rgba(255, 255, 255, 0.035);
+    color: var(--nexui-text-primary);
+    -unity-font-style: bold;
+}
+
+.nexui-inspector-block__foldout > .unity-foldout__content {
+    margin-left: 0;
+    padding: 6px 8px 8px 8px;
+}
+
+.nexui-inspector-block.exposure-diagnostic > .nexui-inspector-block__foldout > .unity-foldout__toggle {
+    color: var(--nexui-text-secondary);
+}
+
+.nexui-inspector-block__content {
+    padding: 0;
+    margin: 0;
+    border-width: 0;
+    background-color: transparent;
+}
+
+/* The component stack is drawn as bare cards, the way Unity draws components: no outer
+   container, so nothing is foldered twice. */
+.nexui-inspector-component-stack {
+    padding: 0;
+    margin: 0;
+    border-width: 0;
+    background-color: transparent;
+}
+
+.nexui-inspector-add-component {
+    height: 26px;
+    margin: 8px 24px 4px 24px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.12);
+    border-radius: 4px;
+    background-color: #2b3038;
+    color: var(--nexui-text-primary);
+    font-size: 11px;
+}
+
+.nexui-inspector-add-component:hover {
+    background-color: #353b45;
 }
 
 .nexui-inspector-reveal-pro {
@@ -3936,13 +3865,15 @@
    library, where cards are fixed 48% x 78px tiles. Reusing it here trapped every
    component's fields inside a 78px box and painted them over the sections below. */
 
+/* Component cards sit in the same stack as the Inspector blocks, so they share its chrome:
+   one continuous column of components, exactly like Unity's Inspector. */
 .nexui-element-component-card {
-    margin: 3px 2px;
-    padding: 3px 4px 5px 4px;
-    border-radius: 6px;
+    margin-bottom: 4px;
+    padding: 2px 4px 5px 4px;
+    border-radius: 5px;
     border-width: 1px;
     border-color: rgba(255, 255, 255, 0.06);
-    background-color: rgba(255, 255, 255, 0.035);
+    background-color: #1c1f25;
 }
 
 .nexui-element-component-card > .unity-foldout {
