@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using emiteat.NexUI.Components;
 using emiteat.NexUI.Designer.Editor.Components;
+using emiteat.NexUI.Integrations.UGUI;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
@@ -32,7 +34,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         {
             if (parent == null) return null;
             var control = DesignerComponentRegistry.Get(parentTypeId).UGUIControl;
-            if (control == "ScrollView")
+            if (control == "ScrollView" || control == "CollectionView")
             {
                 var viewport = parent.transform.Find("Viewport");
                 var content = viewport != null ? viewport.Find("Content") : null;
@@ -121,6 +123,10 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 case "ScrollView":
                     var scroll = go.GetComponent<ScrollRect>();
                     if (scroll != null) scroll.verticalNormalizedPosition = 1f - Mathf.InverseLerp(min, max, element.previewValue);
+                    break;
+
+                case "CollectionView":
+                    ApplyCollection(go, element, report);
                     break;
             }
 
@@ -558,8 +564,88 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 case "InputField": return DefaultControls.CreateInputField(Resources);
                 case "InputFieldTMP": return TMP_DefaultControls.CreateInputField(TmpResources);
                 case "ScrollView": return DefaultControls.CreateScrollView(Resources);
+                case "CollectionView": return CreateCollectionView();
                 default: return CreateSimple(control);
             }
+        }
+
+        /// <summary>
+        /// A collection is Unity's own ScrollView plus <see cref="NXCollectionView"/> on the root.
+        /// </summary>
+        /// <remarks>
+        /// Built from <c>DefaultControls.CreateScrollView</c> rather than assembled by hand, so the
+        /// result is the hierarchy every Unity user already knows - Viewport/Content, a working
+        /// mask, real scrollbars - and any project code that expects a ScrollRect keeps working.
+        /// The content is anchored to the top-left because the collection positions items itself.
+        /// </remarks>
+        private static GameObject CreateCollectionView()
+        {
+            var go = DefaultControls.CreateScrollView(Resources);
+            var scroll = go.GetComponent<ScrollRect>();
+            if (scroll != null && scroll.content != null)
+            {
+                var content = scroll.content;
+                content.anchorMin = new Vector2(0f, 1f);
+                content.anchorMax = new Vector2(1f, 1f);
+                content.pivot = new Vector2(0f, 1f);
+                content.sizeDelta = Vector2.zero;
+                content.anchoredPosition = Vector2.zero;
+            }
+            if (go.GetComponent<NXCollectionView>() == null) go.AddComponent<NXCollectionView>();
+            return go;
+        }
+
+        /// <summary>
+        /// Writes the authored collection settings onto the prefab's runtime component, and points it
+        /// at the authored item template and state roots.
+        /// </summary>
+        private static void ApplyCollection(GameObject go, DesignerElementMetadata element, DesignerSaveReport report)
+        {
+            var view = go.GetComponent<NXCollectionView>();
+            if (view == null) return;
+
+            var options = DesignerCollectionOptions.Read(element);
+            view.ApplyAuthoredOptions(options);
+
+            var problems = new List<string>();
+            if (!options.Validate(problems))
+                foreach (var problem in problems)
+                    report.MarkPreviewOnly("Collection options", $"'{element.elementId}': {problem}", element.elementId);
+
+            // The template is whichever child the Designer placed in the template slot. It is left
+            // inactive so the pool clones it rather than showing it as a real row.
+            var scroll = go.GetComponent<ScrollRect>();
+            var content = scroll != null ? scroll.content : null;
+            if (content == null) return;
+
+            var template = FindTemplateChild(content);
+            if (template != null)
+            {
+                view.ItemTemplate = template;
+                template.gameObject.SetActive(false);
+            }
+            else
+            {
+                report.MarkSkipped($"'{element.elementId}' has no item template child, so the collection " +
+                                   "will run with no rows. Add a child in the Item Template slot.");
+            }
+
+            view.SetStateViews(FindChild(go.transform, "loading"), FindChild(go.transform, "empty"),
+                FindChild(go.transform, "error"));
+            EditorUtility.SetDirty(view);
+        }
+
+        /// <summary>
+        /// The first child of Content is the template: the Designer writes exactly one element into
+        /// the template slot, and Validation reports it when there is more than one.
+        /// </summary>
+        private static RectTransform FindTemplateChild(RectTransform content)
+            => content.childCount > 0 ? content.GetChild(0) as RectTransform : null;
+
+        private static GameObject FindChild(Transform root, string name)
+        {
+            var child = root.Find(name);
+            return child != null ? child.gameObject : null;
         }
 
         private static void SetLayerRecursively(GameObject go, int layer)
@@ -579,7 +665,8 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 "ToggleGroup" => typeof(ToggleGroup), "Slider" => typeof(Slider), "Scrollbar" => typeof(Scrollbar),
                 "Dropdown" => typeof(Dropdown), "DropdownTMP" => typeof(TMP_Dropdown),
                 "InputField" => typeof(InputField), "InputFieldTMP" => typeof(TMP_InputField),
-                "ScrollView" => typeof(ScrollRect), "Mask" => typeof(Mask), "RectMask2D" => typeof(RectMask2D),
+                "ScrollView" => typeof(ScrollRect), "CollectionView" => typeof(NXCollectionView),
+                "Mask" => typeof(Mask), "RectMask2D" => typeof(RectMask2D),
                 "HorizontalLayoutGroup" => typeof(HorizontalLayoutGroup),
                 "VerticalLayoutGroup" => typeof(VerticalLayoutGroup), "GridLayoutGroup" => typeof(GridLayoutGroup),
                 "Canvas" => typeof(Canvas), _ => null

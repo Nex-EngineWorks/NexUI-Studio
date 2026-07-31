@@ -125,6 +125,13 @@ namespace emiteat.NexUI.Designer.Editor
                 asset.schemaVersion = 5;
             }
 
+            if (asset.schemaVersion < 6)
+            {
+                foreach (var element in asset.elements)
+                    MigrateToUniversalComponents(element);
+                asset.schemaVersion = 6;
+            }
+
             DesignerHierarchyUtility.NormalizeSiblingIndices(asset);
 
             asset.schemaVersion = DesignerMetadataAsset.CurrentSchemaVersion;
@@ -134,6 +141,69 @@ namespace emiteat.NexUI.Designer.Editor
                 Debug.Log($"[NexUI Designer] Migrated metadata '{asset.name}' schema v{originalVersion} → v{asset.schemaVersion}. Use Undo to restore the pre-migration state.");
             }
             return true;
+        }
+
+        /// <summary>
+        /// v6: folds the type-name-only <c>attachedComponents</c> list into the real component stack,
+        /// so a project MonoBehaviour and a uGUI Image are the same kind of thing to everything
+        /// downstream - one Inspector, one writer, one validator.
+        /// </summary>
+        /// <remarks>
+        /// The old list is <b>not</b> cleared. A screen migrated here still opens in a Designer build
+        /// that predates the universal component system, and the components are still on it - the old
+        /// build simply ignores the richer entries. The parallel write is removed one release later,
+        /// once no supported build reads the old list.
+        ///
+        /// Entries whose type cannot be resolved are migrated anyway: the qualified name is kept so
+        /// the component is reported as missing rather than quietly disappearing when a script is
+        /// renamed or an assembly fails to compile.
+        /// </remarks>
+        private static void MigrateToUniversalComponents(DesignerElementMetadata element)
+        {
+            if (element == null) return;
+            element.components ??= new List<DesignerElementComponent>();
+
+            // Existing stack entries predate `source`; infer it from the registry's id namespace.
+            foreach (var component in element.components)
+            {
+                if (component == null || string.IsNullOrEmpty(component.typeId)) continue;
+                component.source = SourceForTypeId(component.typeId);
+            }
+
+            if (element.attachedComponents == null || element.attachedComponents.Count == 0) return;
+
+            foreach (var attached in element.attachedComponents)
+            {
+                if (attached == null || string.IsNullOrWhiteSpace(attached.typeName)) continue;
+
+                var typeId = DesignerProjectComponentIds.FromQualifiedName(attached.typeName);
+                if (AlreadyInStack(element.components, typeId)) continue;
+
+                element.components.Add(new DesignerElementComponent
+                {
+                    typeId = typeId,
+                    source = DesignerComponentSource.Project,
+                    assemblyQualifiedTypeName = attached.typeName,
+                    enabled = true
+                });
+            }
+        }
+
+        private static bool AlreadyInStack(List<DesignerElementComponent> stack, string typeId)
+        {
+            foreach (var component in stack)
+                if (component != null && component.typeId == typeId) return true;
+            return false;
+        }
+
+        private static DesignerComponentSource SourceForTypeId(string typeId)
+        {
+            if (typeId.StartsWith("UGUI.", StringComparison.Ordinal)) return DesignerComponentSource.UGUI;
+            if (typeId.StartsWith("UITK.", StringComparison.Ordinal)) return DesignerComponentSource.UIToolkit;
+            if (typeId.StartsWith(DesignerProjectComponentIds.Prefix, StringComparison.Ordinal))
+                return DesignerComponentSource.Project;
+            if (typeId.StartsWith("Unity.", StringComparison.Ordinal)) return DesignerComponentSource.Unity;
+            return DesignerComponentSource.NexUI;
         }
 
         private static float ShapeRadius(DesignerElementMetadata element)

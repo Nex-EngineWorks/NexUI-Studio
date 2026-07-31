@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using emiteat.NexUI.Abstractions;
+using emiteat.NexUI.Components;
 using emiteat.NexUI.Core;
 using emiteat.NexUI.Designer.Editor.Backend;
 using emiteat.NexUI.Designer.Editor.Components;
@@ -55,6 +56,7 @@ namespace emiteat.NexUI.Designer.Editor.Validation
             ValidateHierarchy(metadata, screenId, issues);
             ValidateOrphans(metadata, screenId, backendNames, issues);
             ValidateReferences(metadata, screenId, issues);
+            ValidateCollections(metadata, screenId, issues);
             ValidateMotion(metadata, screenId, issues);
             ValidatePrefabComponents(screen, metadata, screenId, issues);
             DesignerComponentValidation.Validate(metadata, screenId, issues);
@@ -472,6 +474,61 @@ namespace emiteat.NexUI.Designer.Editor.Validation
                             $"'{parent.elementId}' template slot '{slot.SlotId}' has {count} children; only the first is used as the item template.",
                             "Keep a single element in the template slot.", screenId, parent.elementId));
                 }
+            }
+        }
+
+        /// <summary>
+        /// Rules for the CollectionView system and every preset of it.
+        /// </summary>
+        /// <remarks>
+        /// A collection fails in ways that look like "the UI is broken" at runtime rather than at
+        /// author time: no template means no rows, no source key means an eternally empty list, and
+        /// an unsupported option combination means the layout quietly does something else. Each of
+        /// these is cheap to detect from metadata alone, so none of them should reach a build.
+        /// </remarks>
+        private static void ValidateCollections(DesignerMetadataAsset metadata, string screenId,
+            List<DesignerValidationIssue> issues)
+        {
+            foreach (var element in metadata.elements)
+            {
+                if (element == null || string.IsNullOrEmpty(element.elementId)) continue;
+                if (!DesignerCollectionOptions.IsCollection(element)) continue;
+
+                var options = DesignerCollectionOptions.Read(element);
+
+                if (DesignerCollectionOptions.FindTemplate(metadata, element) == null)
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error, "collection-template-missing",
+                        $"'{element.elementId}' has no item template, so it will show no items at runtime.",
+                        "Add a child element and place it in the collection's template slot.", screenId, element.elementId));
+
+                if (string.IsNullOrEmpty(DesignerCollectionOptions.SourceKey(element))
+                    && string.IsNullOrEmpty(element.binding?.valueKey))
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "collection-source-missing",
+                        $"'{element.elementId}' has no Items Source Key and no value binding, so nothing will populate it.",
+                        "Set Items Source Key, or bind the Value channel to a runtime state key.", screenId, element.elementId));
+
+                foreach (var problem in DesignerCollectionOptions.Problems(element))
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "collection-options-conflict",
+                        $"'{element.elementId}': {problem}",
+                        "Adjust the collection options so the combination can be honoured.", screenId, element.elementId));
+
+                if (DesignerCollectionOptions.ShowsEmptyState(element)
+                    && DesignerCollectionOptions.FindStateChild(metadata, element, "empty") == null)
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Info, "collection-empty-state-missing",
+                        $"'{element.elementId}' shows an empty state but has no element in the Empty State slot.",
+                        "Add an element to the Empty State slot, or turn Show Empty State off.", screenId, element.elementId));
+
+                if (options.Selection == NXSelectionMode.None
+                    && (options.Interactions & NXCollectionInteractions.Reorder) != 0)
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "collection-selection-conflict",
+                        $"'{element.elementId}' is reorderable but its Selection Mode is None, so the user cannot pick what to move.",
+                        "Set Selection Mode to Single or Multiple.", screenId, element.elementId));
+
+                if (options.Paging == NXPagingMode.Infinite
+                    && options.Virtualization == NXVirtualizationMode.None)
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "collection-virtualization-conflict",
+                        $"'{element.elementId}' loads pages forever with virtualization off, so every loaded item stays realized.",
+                        "Set Virtualization to Fixed Size or Dynamic Size.", screenId, element.elementId));
             }
         }
 

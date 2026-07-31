@@ -25,6 +25,13 @@ namespace emiteat.NexUI.Designer.Editor.Components
     {
         private static readonly string[] Directions = { "LeftToRight", "RightToLeft", "BottomToTop", "TopToBottom" };
         private static readonly string[] SelectionModes = { "None", "Single", "Multiple" };
+
+        // These four mirror the runtime enums in emiteat.NexUI.Components one-for-one; the writers
+        // convert by index, so the order here is part of the contract.
+        private static readonly string[] CollectionLayouts = { "Vertical", "Horizontal", "Grid", "Wrap" };
+        private static readonly string[] VirtualizationModes = { "None", "FixedSize", "DynamicSize" };
+        private static readonly string[] PagingModes = { "None", "Infinite", "Pagination", "Snap" };
+
         private static readonly string[] Orientations = { "Horizontal", "Vertical" };
         private static readonly string[] ScrollModes = { "Auto", "AlwaysVisible", "Hidden" };
         private static readonly string[] MovementTypes = { "Unrestricted", "Elastic", "Clamped" };
@@ -99,21 +106,58 @@ namespace emiteat.NexUI.Designer.Editor.Components
                 "Seconds the fill takes to catch up to a new value."));
         }
 
+        /// <summary>
+        /// The CollectionView option vocabulary. These keys are what the backend writers turn into a
+        /// runtime <c>NXCollectionOptions</c>, so what a designer sets here is what actually runs.
+        /// </summary>
+        /// <remarks>
+        /// <c>items.virtualize</c> (bool) predates <c>items.layout</c>/<c>items.virtualization</c> and
+        /// is kept so screens authored before the CollectionView unification keep loading. The
+        /// writers read the enum and fall back to the old bool when the enum was never set - see
+        /// <see cref="DesignerCollectionOptions"/>.
+        /// </remarks>
         private static void AddCollection(List<DesignerComponentProperty> properties)
         {
             properties.Add(Text("items.source", "Items Source Key", "", Group.Data,
                 description: "Runtime state key that supplies the items."));
-            properties.Add(Enum("items.selection", "Selection Mode", SelectionModes, 1, Group.Data));
-            properties.Add(Bool("items.virtualize", "Virtualize", true, Group.Data, Exposure.Advanced,
-                "Only build views for visible items."));
-            properties.Add(Float("items.itemSize", "Item Size", 0f, Group.Data, Exposure.Advanced, 0f, 512f,
-                "Fixed item height/width used by virtualization. 0 measures each item."));
+            properties.Add(Enum("items.layout", "Layout", CollectionLayouts, 0, Group.Layout,
+                description: "Vertical, Horizontal, Grid, or Wrap (columns derived from the width).",
+                uxml: "layout-mode"));
+            properties.Add(Enum("items.selection", "Selection Mode", SelectionModes, 1, Group.Data,
+                uxml: "selection-mode"));
+            properties.Add(Enum("items.virtualization", "Virtualization", VirtualizationModes, 1, Group.Data,
+                description: "None builds every item; Fixed Size and Dynamic Size build only what is on screen."));
+            properties.Add(Float("items.itemSize", "Item Size", 64f, Group.Data, Exposure.Advanced, 0f, 1024f,
+                "Item extent along the scroll axis, and the estimate for un-measured items.", uxml: "item-size"));
+            properties.Add(Float("items.itemCrossSize", "Item Cross Size", 64f, Group.Layout, Exposure.Advanced, 0f, 1024f,
+                "Item extent across the scroll axis. Grid and Wrap derive their columns from it."));
             properties.Add(Float("items.spacing", "Item Spacing", 4f, Group.Layout, Exposure.Advanced, 0f, 64f));
-            properties.Add(Enum("items.orientation", "Orientation", Orientations, 1, Group.Layout, Exposure.Advanced));
+            properties.Add(Float("items.crossSpacing", "Column Spacing", 4f, Group.Layout, Exposure.Advanced, 0f, 64f));
+            properties.Add(Int("items.columns", "Columns", 4, Group.Layout, Exposure.Advanced, 1f, 32f,
+                "Grid column count. Ignored while Auto Columns is on.", uxml: "column-count"));
+            properties.Add(Bool("items.autoColumns", "Auto Columns", false, Group.Layout, Exposure.Advanced,
+                "Derive the column count from the available width instead."));
+            properties.Add(Int("items.overscan", "Overscan Rows", 2, Group.Data, Exposure.Advanced, 0f, 8f,
+                "Rows kept alive beyond the viewport, to hide pop-in while scrolling fast."));
+            properties.Add(Enum("items.paging", "Paging", PagingModes, 0, Group.Data, Exposure.Advanced,
+                "Infinite asks the source for more near the end; Snap settles on item boundaries."));
+            properties.Add(Bool("items.activate", "Activate On Click", true, Group.Interaction, Exposure.Advanced));
             properties.Add(Bool("items.reorderable", "Reorderable", false, Group.Data, Exposure.Advanced));
+            properties.Add(Bool("items.dragAndDrop", "Drag And Drop", false, Group.Interaction, Exposure.Advanced,
+                "Items may be dragged to another drop target."));
+            properties.Add(Bool("items.contextRequest", "Context Menu", false, Group.Interaction, Exposure.Advanced));
+            properties.Add(Bool("items.scrollSelectionIntoView", "Scroll Selection Into View", true,
+                Group.Interaction, Exposure.Advanced));
             properties.Add(Bool("items.showEmptyState", "Show Empty State", true, Group.Data, Exposure.Advanced));
             properties.Add(Int("items.previewCount", "Preview Item Count", 0, Group.Data, Exposure.Advanced, 0f, 64f,
                 "Generated items shown on the canvas only."));
+
+            // Superseded by items.virtualization; still written so a screen saved by this build can be
+            // opened by an older one without losing the setting.
+            properties.Add(Bool("items.virtualize", "Virtualize (legacy)", true, Group.Data, Exposure.Advanced,
+                "Replaced by Virtualization. Kept for screens authored before the CollectionView unification."));
+            properties.Add(Enum("items.orientation", "Orientation (legacy)", Orientations, 1, Group.Layout, Exposure.Advanced,
+                "Replaced by Layout."));
         }
 
         private static void AddText(List<DesignerComponentProperty> properties)

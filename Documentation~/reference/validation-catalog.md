@@ -109,6 +109,13 @@ Global Toolbar의 **Validate** 또는 `Tools > NexUI > Designer > Validate Curre
 | `component-origin-missing` | Info | Detach된 element의 출처 Definition이 사라짐 | 참조 정리 또는 Definition 복구 | 없음 |
 | `component-definition-recovered` | Info | 저장된 GUID는 사라졌지만 `componentId`로 Definition을 찾음 | 저장하면 새 GUID가 기록됩니다 | 없음 |
 
+| `collection-template-missing` | Error | CollectionView에 아이템 템플릿이 없음 | 템플릿 슬롯에 자식 추가 | 없음 |
+| `collection-source-missing` | Warning | Items Source Key도 Value 바인딩도 없음 | 소스 키 지정 또는 Value 채널 바인딩 | 없음 |
+| `collection-options-conflict` | Warning | 지원 불가능한 옵션 조합 (예: Wrap + Dynamic Size) | 메시지가 지목한 옵션 변경 | 없음 |
+| `collection-empty-state-missing` | Info | Empty 상태를 켰으나 Empty 슬롯이 비어 있음 | Empty 슬롯에 요소 추가 또는 옵션 끄기 | 없음 |
+| `collection-selection-conflict` | Warning | Reorder인데 Selection Mode가 None | Selection Mode를 Single/Multiple로 | 없음 |
+| `collection-virtualization-conflict` | Warning | 무한 페이징인데 가상화가 없음 | Virtualization을 Fixed/Dynamic Size로 | 없음 |
+
 `component-issue`는 위에 매핑되지 않은 전개 오류를 위한 방어적 Fallback Code입니다. 실제로 표시된다면 Code 매핑 누락이므로 버그로 보고해 주세요.
 
 자세한 내용은 [재사용 Component](../advanced/reusable-components.md)를 참고하세요.

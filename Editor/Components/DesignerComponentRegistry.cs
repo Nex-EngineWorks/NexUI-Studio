@@ -34,6 +34,12 @@ namespace emiteat.NexUI.Designer.Editor.Components
             DesignerComponentState.Normal | DesignerComponentState.Loading |
             DesignerComponentState.Empty | DesignerComponentState.Error;
 
+        /// <summary>
+        /// UXML tag for the runtime collection element. Fully qualified because a custom element is
+        /// resolved by type name, not by the <c>ui:</c> engine namespace.
+        /// </summary>
+        internal const string UIToolkitCollectionTag = "emiteat.NexUI.Integrations.UIToolkit.NXCollectionViewElement";
+
         private const DesignerBindingChannel B_Text = DesignerBindingChannel.Text;
         private const DesignerBindingChannel B_Value = DesignerBindingChannel.Value;
         private const DesignerBindingChannel B_Vis = DesignerBindingChannel.Visibility;
@@ -387,12 +393,37 @@ namespace emiteat.NexUI.Designer.Editor.Components
             };
 
             // ---- Data & Collections -------------------------------------------------------
+            // The one collection system. List, Grid, InventoryGrid, Carousel, SelectionList and the
+            // several dozen game-specific lists are presets of this: same runtime
+            // (NXCollectionView / NXCollectionViewElement), different options and item template.
+            yield return new DesignerComponentDescriptor
+            {
+                TypeId = "CollectionView", DisplayName = "Collection View", LocalizationKey = "component.collectionView",
+                Category = DesignerComponentCategory.Data, Icon = "▤",
+                Kind = DesignerComponentKind.Core,
+                PaletteGroup = DesignerPaletteGroup.Data, PaletteOrder = -1,
+                UGUIControl = "CollectionView", UxmlTag = UIToolkitCollectionTag,
+                Description = "Virtualized, selectable collection with item template and content/loading/empty/error states.",
+                ElementIdPrefix = "collection",
+                DefaultSize = new Vector2(360, 420), DefaultColor = new Color(0.11f, 0.15f, 0.22f, 1f),
+                CanHaveChildren = true, IsContainer = true, IsCollectionComponent = true,
+                DefaultAccessibilityRole = AccessibilityRole.List,
+                SupportedStates = CollectionStates, SupportedBindings = B_Value | B_Vis | B_Class,
+                SupportedEvents = { "ItemSelected", "ItemActivated", "Reordered", "ContextRequested", "ScrolledToEnd" },
+                Slots =
+                {
+                    Slot("item", "Item Template", 0, 1, template: true),
+                    Slot("header", "Header", 0, 1), Slot("footer", "Footer", 0, 1),
+                    Slot("empty", "Empty State", 0, 1), Slot("loading", "Loading State", 0, 1), Slot("error", "Error State", 0, 1)
+                },
+                UGUISupport = DesignerBackendSupport.Full, UIToolkitSupport = DesignerBackendSupport.Full
+            };
             yield return new DesignerComponentDescriptor
             {
                 TypeId = "List", DisplayName = "List", LocalizationKey = "component.list",
+                Kind = DesignerComponentKind.Preset, BaseTypeId = "CollectionView",
                 Category = DesignerComponentCategory.Data, Icon = "≡",
                 PaletteGroup = DesignerPaletteGroup.Data, PaletteOrder = 0,
-                UxmlTag = "ui:ListView",
                 Description = "Collection-bound list with item template and empty/loading/error states.",
                 DefaultSize = new Vector2(360, 420), DefaultColor = new Color(0.11f, 0.15f, 0.22f, 1f),
                 CanHaveChildren = true, IsContainer = true, IsCollectionComponent = true,
@@ -410,6 +441,7 @@ namespace emiteat.NexUI.Designer.Editor.Components
             yield return new DesignerComponentDescriptor
             {
                 TypeId = "Grid", DisplayName = "Grid", LocalizationKey = "component.grid",
+                Kind = DesignerComponentKind.Preset, BaseTypeId = "CollectionView",
                 Category = DesignerComponentCategory.Data, Icon = "▦",
                 PaletteGroup = DesignerPaletteGroup.Data, PaletteOrder = 1,
                 Description = "Collection-bound grid sharing List's template/state system.",

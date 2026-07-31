@@ -35,6 +35,27 @@ namespace emiteat.NexUI.Designer.Editor.Components
     }
 
     /// <summary>
+    /// What a palette entry actually is, so a list of five hundred names reads as a handful of
+    /// systems with configurations rather than five hundred separate things to learn.
+    /// </summary>
+    /// <remarks>
+    /// The distinction is about implementation, not importance: a Preset is a Core component with
+    /// different settings and a different template, and a Recipe is a whole authored screen region.
+    /// Type ids never change when an entry is reclassified, so existing screens keep loading.
+    /// </remarks>
+    public enum DesignerComponentKind
+    {
+        /// <summary>A system with its own runtime implementation - CollectionView, OverlayHost, StateView.</summary>
+        Core,
+
+        /// <summary>A Core component with fixed settings and a template. InventoryGrid is CollectionView.</summary>
+        Preset,
+
+        /// <summary>A composed arrangement of several components, such as a shop panel.</summary>
+        Recipe
+    }
+
+    /// <summary>
     /// Preview/interaction states a component can express. Not every component supports every
     /// state - each <see cref="DesignerComponentDescriptor"/> declares its supported subset.
     /// Forced preview state is a per-screen preview setting, never persisted on the element.
@@ -138,6 +159,16 @@ namespace emiteat.NexUI.Designer.Editor.Components
         public DesignerComponentFamily Family = DesignerComponentFamily.NexUI;
         public string Icon;            // DesignerIcons key or unicode glyph
         public string Description;
+
+        /// <summary>Whether this entry is a system, a configuration of one, or a composed region.</summary>
+        public DesignerComponentKind Kind = DesignerComponentKind.Core;
+
+        /// <summary>
+        /// For <see cref="DesignerComponentKind.Preset"/>: the Core component whose runtime actually
+        /// runs this entry. Null on a Core component. Backend writers follow this to decide what to
+        /// emit, which is what stops a preset needing its own writer.
+        /// </summary>
+        public string BaseTypeId;
 
         // Palette placement. Group is a localization key from DesignerPaletteGroup; Order sorts
         // entries inside the group (equal values fall back to registration order).

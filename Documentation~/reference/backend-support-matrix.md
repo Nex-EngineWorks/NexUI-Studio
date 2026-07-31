@@ -12,6 +12,7 @@
 | Progress | 지원 | 지원 | 부분 지원 | Metadata만 | 부분 지원 | Track/Label/애니메이션 |
 | Button | 지원 | 지원 | 지원 | Metadata만 | 지원 | Event 연결 |
 | Binding / Command Key | 지원 | 지원 | Metadata만 | Metadata만 | Metadata만 | Runtime Registry 필수 |
+| CollectionView | 부분 지원 | 지원 | 지원 | Metadata만 | 지원 | Item Source 연결 필요 |
 | Auto Layout | 지원 | 지원 | 부분 지원 | Metadata만 | 부분 지원 | Backend별 계산 차이 |
 | Constraints | 지원 | 지원 | 부분 지원 | Metadata만 | 부분 지원 | 해상도별 확인 |
 | Theme | 부분 지원 | 지원 | Metadata만 | Metadata만 | 부분 지원 | Runtime Theme 연결 |

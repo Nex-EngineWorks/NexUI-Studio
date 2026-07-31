@@ -28,7 +28,8 @@
 | Label/Image/Button | Yes | Yes | Yes | Partial | Partial | Yes | Partial | Partial |
 | Toggle/Checkbox/Radio/Slider | Partial | Partial | Partial | Partial | Partial | Partial | No | Partial |
 | Progress/Stat/Radial fill | Yes | Yes | Partial | Partial | Partial | Partial | Partial | Partial |
-| Scroll/List/Grid/Choice | Yes | Yes | Partial | Partial | Partial | Partial | No | Partial |
+| CollectionView (List/Grid/preset 공통) | Yes | Partial | Yes | Yes | Yes | Yes | Yes | Beta |
+| Scroll/Choice | Yes | Yes | Partial | Partial | Partial | Partial | No | Partial |
 | Modal/Tooltip/Toast | Yes | Yes | Partial | Partial | Yes | Partial | Partial | Partial |
 | Auto Layout Row/Column/Grid | Yes | Yes | Yes | Yes | N/A | Partial | Yes | Beta |
 | Constraints/anchors | Yes | Yes | Partial | Partial | N/A | Partial | Yes | Partial |

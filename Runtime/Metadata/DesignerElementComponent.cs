@@ -17,6 +17,28 @@ namespace emiteat.NexUI.Designer
     /// "NX.RoundedRect"). Values live in the same schema-keyed bag used elsewhere, so only what the
     /// user changed is stored and unknown keys survive a round trip through an older build.
     /// </remarks>
+    /// <summary>
+    /// Which library a component came from. Decides how it is written to a backend and how it is
+    /// grouped in Add Component.
+    /// </summary>
+    public enum DesignerComponentSource
+    {
+        /// <summary>NexUI's own components, backend-agnostic.</summary>
+        NexUI,
+
+        /// <summary>Unity's uGUI controls - Image, Button, ScrollRect.</summary>
+        UGUI,
+
+        /// <summary>UI Toolkit elements and manipulators.</summary>
+        UIToolkit,
+
+        /// <summary>Unity engine components that are not UI-specific - Animator, CanvasGroup.</summary>
+        Unity,
+
+        /// <summary>A MonoBehaviour from the user's own project.</summary>
+        Project
+    }
+
     [Serializable]
     public sealed class DesignerElementComponent
     {
@@ -25,6 +47,24 @@ namespace emiteat.NexUI.Designer
 
         /// <summary>Component type id from the Designer's component registry.</summary>
         public string typeId;
+
+        /// <summary>
+        /// Where the type comes from. Defaults to <see cref="DesignerComponentSource.NexUI"/> so
+        /// components authored before the universal system keep behaving exactly as they did.
+        /// </summary>
+        public DesignerComponentSource source = DesignerComponentSource.NexUI;
+
+        /// <summary>
+        /// Assembly-qualified name of the real runtime type, for components that are not in the
+        /// Designer's own registry.
+        /// </summary>
+        /// <remarks>
+        /// Registry components are found by <see cref="typeId"/> and leave this empty. A project
+        /// MonoBehaviour has no registry entry, so the only way back to its <c>System.Type</c> is the
+        /// qualified name - and keeping it means a script that is temporarily missing (renamed,
+        /// moved to another assembly, not yet compiled) is reported rather than silently dropped.
+        /// </remarks>
+        public string assemblyQualifiedTypeName;
 
         /// <summary>Mirrors Unity's per-component enable checkbox.</summary>
         public bool enabled = true;
@@ -51,6 +91,8 @@ namespace emiteat.NexUI.Designer
             {
                 instanceId = Guid.NewGuid().ToString("N"),
                 typeId = typeId,
+                source = source,
+                assemblyQualifiedTypeName = assemblyQualifiedTypeName,
                 enabled = enabled,
                 fromPreset = fromPreset
             };

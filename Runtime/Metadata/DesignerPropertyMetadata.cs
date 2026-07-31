@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace emiteat.NexUI.Designer
@@ -80,7 +81,13 @@ namespace emiteat.NexUI.Designer
         RuntimeVisible
     }
 
-    public enum DesignerPropertyValueType { None, Float, Integer, Boolean, String, Color, Vector2, AssetReference, Enum }
+    /// <summary>
+    /// How a <see cref="DesignerPropertyValue"/> is stored. The first nine are the typed fields that
+    /// predate the universal component system; <see cref="Serialized"/> covers everything else -
+    /// Vector3, Rect, AnimationCurve, arrays, nested [Serializable] types, and values whose type this
+    /// build does not know.
+    /// </summary>
+    public enum DesignerPropertyValueType { None, Float, Integer, Boolean, String, Color, Vector2, AssetReference, Enum, Serialized, ElementReference }
     public enum DesignerOverflowMode { Visible, Hidden }
     public enum DesignerLayoutWrap { NoWrap, Wrap }
     public enum DesignerLayoutAlignment { Start, Center, End, Stretch }
@@ -103,7 +110,40 @@ namespace emiteat.NexUI.Designer
         public Vector2 vector2Value;
         public UnityEngine.Object assetValue;
 
+        /// <summary>
+        /// Serialized form of a value the seven typed fields above cannot express - Vector3, Rect,
+        /// AnimationCurve, an array, a nested [Serializable] class, or a type this build does not
+        /// recognise at all.
+        /// </summary>
+        /// <remarks>
+        /// Kept as text rather than growing a field per type: a value carries one shape, and adding
+        /// nine more fields would serialize nine empty ones on every entry. It also means a value
+        /// written by a newer Designer survives a round trip through an older one instead of being
+        /// dropped - the field is simply carried through untouched.
+        /// </remarks>
+        public string json;
+
+        /// <summary>
+        /// Object references that go with <see cref="json"/>: an array of Sprites, or the targets of
+        /// a nested class. Unity cannot serialize an Object reference inside a JSON string, so the
+        /// json holds indices into this list.
+        /// </summary>
+        public List<UnityEngine.Object> objectValues = new List<UnityEngine.Object>();
+
+        /// <summary>
+        /// Set when the property points at another element on this screen rather than at an asset.
+        /// Stored by stable id so duplication and Definition instancing can re-map it.
+        /// </summary>
+        public DesignerObjectReference reference = new DesignerObjectReference();
+
         public DesignerPropertyValue Clone() => JsonUtility.FromJson<DesignerPropertyValue>(JsonUtility.ToJson(this));
+
+        /// <summary>True when nothing was ever written into this value.</summary>
+        public bool IsEmpty => type == DesignerPropertyValueType.None
+                               && string.IsNullOrEmpty(json)
+                               && string.IsNullOrEmpty(stringValue)
+                               && assetValue == null
+                               && (objectValues == null || objectValues.Count == 0);
     }
 
     [Serializable]

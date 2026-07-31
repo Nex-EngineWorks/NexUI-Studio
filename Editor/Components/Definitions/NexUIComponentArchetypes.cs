@@ -125,11 +125,17 @@ namespace emiteat.NexUI.Designer.Editor.Components
                 container: children, canHaveChildren: children, interactive: interactive, valueComponent: value,
                 overlay: overlay, slots: slots, uxml: uxml, uxmlText: uxmlText);
 
-        /// <summary>Collection bound to an items source, with an item template slot.</summary>
+        /// <summary>
+        /// Collection bound to an items source, with an item template slot. Every entry made this
+        /// way is a preset of the <c>CollectionView</c> Core component: it runs on the same
+        /// <c>NXCollectionView</c> at runtime and differs only in options and template, which is why
+        /// a new kind of list is a catalog line rather than another virtualized list to maintain.
+        /// </summary>
         internal static DesignerComponentDescriptor Collection(string id, string name, string group, float w, float h,
             string description, string templateSlotId, string templateSlotName, bool overlay = false,
             DesignerElementShape shape = DesignerElementShape.Rounded)
-            => Make(id, name, group, DesignerComponentCategory.Data, w, h, description,
+        {
+            var descriptor = Make(id, name, group, DesignerComponentCategory.Data, w, h, description,
                 color: Surface, shape: shape, role: AccessibilityRole.List,
                 states: CollectionStates, bindings: B_Value | B_Vis | B_Class,
                 container: true, canHaveChildren: true, collection: true, overlay: overlay,
@@ -139,6 +145,10 @@ namespace emiteat.NexUI.Designer.Editor.Components
                     Slot(templateSlotId, templateSlotName, 0, 1, template: true),
                     Slot("empty", "Empty State", 0, 1)
                 });
+            descriptor.Kind = DesignerComponentKind.Preset;
+            descriptor.BaseTypeId = "CollectionView";
+            return descriptor;
+        }
 
         /// <summary>Modal/overlay surface.</summary>
         internal static DesignerComponentDescriptor Dialog(string id, string name, float w, float h, string description,

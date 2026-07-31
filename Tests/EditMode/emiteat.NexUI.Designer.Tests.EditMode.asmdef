@@ -3,6 +3,7 @@
     "rootNamespace": "emiteat.NexUI.Designer.Tests.EditMode",
     "references": [
         "emiteat.NexUI.Abstractions",
+        "emiteat.NexUI.Components",
         "emiteat.NexUI.Core",
         "emiteat.NexUI.MotionClip",
         "emiteat.NexUI.Accessibility",
