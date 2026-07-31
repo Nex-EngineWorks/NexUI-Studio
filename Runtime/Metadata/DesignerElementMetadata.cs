@@ -5,16 +5,6 @@ using UnityEngine;
 
 namespace emiteat.NexUI.Designer
 {
-    [Serializable]
-    public sealed class DesignerAttachedComponentMetadata
-    {
-        /// <summary>
-        /// Assembly-qualified MonoBehaviour type name. The Designer resolves this lazily so screen
-        /// metadata can still load when an optional gameplay assembly or package is unavailable.
-        /// </summary>
-        public string typeName;
-    }
-
     /// <summary>
     /// uGUI anchor preset for a Designer element. Runtime-safe (no UnityEditor dependency)
     /// so it can live on <see cref="DesignerElementMetadata"/> and be shared by the editor
@@ -36,11 +26,9 @@ namespace emiteat.NexUI.Designer
     }
 
     /// <summary>
-    /// Designer-canvas corner shape for an element's preview box. Rounded is value 0 so
-    /// elements authored before this field existed deserialize to the historical fixed-8px-
-    /// radius look. Purely a Designer preview concern - it does not change how the backend
-    /// (UXML/prefab) actually renders the element; USS/uGUI sprite radius is still up to the
-    /// user's own authored asset.
+    /// Coarse silhouette of an element, used for canvas previews and as the corner-radius
+    /// fallback while <see cref="DesignerVisualStyleMetadata.hasOverrides"/> is off. Rounded is
+    /// value 0 because it is the historical default for every authored element.
     /// </summary>
     public enum DesignerElementShape
     {
@@ -50,138 +38,126 @@ namespace emiteat.NexUI.Designer
         Circle
     }
 
+    /// <summary>
+    /// A MonoBehaviour the user attached to an element through the Designer's Add Component flow.
+    /// Only the type identity is stored: the component itself lives on the generated GameObject,
+    /// and an unresolvable <see cref="typeName"/> is preserved rather than dropped so a screen
+    /// authored against a script that is temporarily missing survives a round trip.
+    /// </summary>
+    [Serializable]
+    public sealed class DesignerAttachedComponentMetadata
+    {
+        public string typeName;
+    }
+
+    /// <summary>
+    /// The authoring record for one element on a Designer screen: identity, placement, the
+    /// component stack attached to it, and the sparse style / behaviour overrides layered on top.
+    /// </summary>
+    /// <remarks>
+    /// Runtime-safe on purpose (no UnityEditor types), so the same record is shared by the
+    /// canvas, the uGUI / UI Toolkit backends and the JSON serializer. Cloning goes through
+    /// <c>DesignerMetadataUtility.Clone</c>, which round-trips this type via
+    /// <see cref="JsonUtility"/> - every field here must therefore stay Unity-serializable.
+    ///
+    /// <see cref="elementId"/> is the user-facing, renameable id used by bindings and focus
+    /// navigation; <see cref="stableId"/> is the identity that survives a rename and is what
+    /// motion clips, variants and responsive overrides key off.
+    /// </remarks>
     [Serializable]
     public sealed class DesignerElementMetadata
     {
-        /// <summary>
-        /// Immutable backend identity. Unlike <see cref="elementId"/>, this value is not renamed
-        /// by the user and lets serializers reconnect metadata to the same backend object.
-        /// </summary>
+        /// <summary>Rename-proof identity. Generated once and never reused by a clone.</summary>
         public string stableId = Guid.NewGuid().ToString("N");
+
+        /// <summary>User-facing id referenced by bindings, focus links and generated code.</summary>
         public string elementId;
+
+        /// <summary>Parent element's <see cref="elementId"/>, or null/empty for a root element.</summary>
         public string parentId;
-        /// <summary>
-        /// Order of this element among its siblings (elements sharing the same
-        /// <see cref="parentId"/>). Lower draws/lists first. Defaults to 0 so metadata authored
-        /// before this field existed deserializes safely; <see cref="DesignerHierarchyUtility"/>
-        /// normalizes ambiguous/duplicate values (falling back to the stable
-        /// <see cref="DesignerMetadataAsset.elements"/> order) on load.
-        /// </summary>
+
+        /// <summary>Draw / hierarchy order inside the parent. Normalized by DesignerHierarchyUtility.</summary>
         public int siblingIndex;
-        /// <summary>
-        /// Which named slot of the parent this element occupies (e.g. Modal "header"/"content"/
-        /// "footer", Button "icon"/"content"). Empty/null is treated as the default
-        /// <c>"content"</c> slot, so metadata authored before slots existed loads unchanged.
-        /// </summary>
+
+        /// <summary>Slot of the parent component instance this element is placed into, when any.</summary>
         public string parentSlotId;
+
         public string displayName;
         public string elementType = "Panel";
+
+        /// <summary>Absolute canvas-space rect (top-left origin, y growing downward).</summary>
         public Rect rect = new Rect(64, 64, 240, 96);
+
         public DesignerAnchorPreset anchorPreset = DesignerAnchorPreset.TopLeft;
         public DesignerElementShape shape = DesignerElementShape.Rounded;
-        /// <summary>
-        /// 0-100 preview fill amount for value-driven component types (ProgressBar, StatBar,
-        /// RadialFill) so the Designer canvas shows an actual filled bar/ring instead of a bare
-        /// box - purely a Designer preview value, distinct from binding.valueKey (the runtime
-        /// UIStateStore key that drives the real value in-game).
-        /// </summary>
+
+        /// <summary>Design-time value for fill-driven previews (ProgressBar, StatBar, RadialFill...).</summary>
         public float previewValue = 60f;
-        /// <summary>
-        /// Number of generated preview items a collection component (List/Grid/Hotbar) shows on the
-        /// canvas. 0 ⇒ the renderer's default count. Generated items are virtual - never stored as
-        /// authored elements. Also doubles as the Hotbar slot count.
-        /// </summary>
+
+        /// <summary>Design-time item count for list / grid previews.</summary>
         public int previewItemCount;
-        /// <summary>
-        /// Inline option labels for a ChoiceList preview (empty ⇒ placeholder rows). Preview-only;
-        /// the real options come from the runtime collection binding at play time.
-        /// </summary>
+
+        /// <summary>Design-time entries for choice-list previews.</summary>
         public List<string> previewOptions = new List<string>();
+
         public DesignerFillMetadata fill = new DesignerFillMetadata();
-        /// <summary>
-        /// Sprite used by Image/IconButton elements. The Designer renders it in the canvas and
-        /// the uGUI serializer writes it to the generated <c>UnityEngine.UI.Image</c>. Using a
-        /// Sprite (instead of an arbitrary Texture2D) prevents editor/theme textures from being
-        /// assigned accidentally and preserves the source sprite rect for atlased images.
-        /// </summary>
+
+        /// <summary>Design-time sprite for Image / IconButton previews.</summary>
         public Sprite previewImage;
+
         public string text;
         public Color tint = new Color(0.15f, 0.22f, 0.34f, 1f);
         public Color textColor = Color.white;
         public int fontSize = 14;
         public List<string> classes = new List<string>();
+
         public DesignerBindingMetadata binding = new DesignerBindingMetadata();
         public DesignerMotionMetadata motion = new DesignerMotionMetadata();
         public DesignerThemeMetadata theme = new DesignerThemeMetadata();
         public DesignerAutoLayoutMetadata autoLayout = new DesignerAutoLayoutMetadata();
         public DesignerConstraintMetadata constraint = new DesignerConstraintMetadata();
         public DesignerFocusMetadata focus = new DesignerFocusMetadata();
+
+        /// <summary>Sparse layout overrides; inert while <c>hasOverrides</c> is false.</summary>
         public DesignerLayoutStyleMetadata layoutStyle = new DesignerLayoutStyleMetadata();
+
+        /// <summary>Sparse visual overrides; inert while <c>hasOverrides</c> is false.</summary>
         public DesignerVisualStyleMetadata visualStyle = new DesignerVisualStyleMetadata();
+
+        /// <summary>Sparse typography overrides; inert while <c>hasOverrides</c> is false.</summary>
         public DesignerTypographyMetadata typography = new DesignerTypographyMetadata();
-        /// <summary>
-        /// Reusable-component reference. Meaningful only when its <c>definitionGuid</c> is set, in
-        /// which case this element is a component instance: authored children below it are slot
-        /// content and the definition sub-tree is expanded underneath at preview/serialize time.
-        /// Always non-null so schema-v3 metadata (authored before components existed) loads unchanged.
-        /// </summary>
+
+        /// <summary>Set when this element is an instance of a component definition.</summary>
         public DesignerComponentInstanceMetadata componentInstance = new DesignerComponentInstanceMetadata();
 
-        /// <summary>
-        /// MonoBehaviours requested through Add Component. They are materialized on the matching
-        /// generated uGUI GameObject; UI Toolkit keeps the entries and reports them as uGUI-only.
-        /// </summary>
-        public List<DesignerAttachedComponentMetadata> attachedComponents = new List<DesignerAttachedComponentMetadata>();
+        /// <summary>MonoBehaviours the user attached on top of what the element itself stamps.</summary>
+        public List<DesignerAttachedComponentMetadata> attachedComponents =
+            new List<DesignerAttachedComponentMetadata>();
 
-        /// <summary>
-        /// Values for the component type's own properties (a Slider's whole-numbers, a Scroll Area's
-        /// inertia). Keyed by the schema the component declares in the editor; only values the user
-        /// changed are stored, everything else falls back to the schema default. Unknown keys are
-        /// preserved so a screen authored with a newer component library still round-trips here.
-        /// </summary>
-        public List<DesignerComponentPropertyEntry> componentProperties = new List<DesignerComponentPropertyEntry>();
+        /// <summary>Exposed component-definition property values for this instance.</summary>
+        public List<DesignerComponentPropertyEntry> componentProperties =
+            new List<DesignerComponentPropertyEntry>();
 
-        /// <summary>
-        /// Components attached to this element, in inspector order - the element's actual identity,
-        /// the same way a GameObject's components are. <see cref="elementType"/> only records which
-        /// palette preset stamped them, and detaching from that preset ("decompose") clears it without
-        /// touching anything here.
-        /// </summary>
+        /// <summary>The element's own component stack - what the element actually *is*.</summary>
         public List<DesignerElementComponent> components = new List<DesignerElementComponent>();
 
-        /// <summary>
-        /// Sparse Unity-like transform overrides for named internal component parts. Authored child
-        /// elements still live in the normal hierarchy; this list is only for library-owned parts
-        /// such as a Slider track/handle or Toggle checkmark.
-        /// </summary>
+        /// <summary>Per-part transform deltas from the component library's default hierarchy.</summary>
         public List<DesignerComponentPartOverrideMetadata> componentPartOverrides =
             new List<DesignerComponentPartOverrideMetadata>();
 
         public bool locked;
-        /// <summary>Editor-only canvas visibility. Never changes generated/runtime visibility.</summary>
+
+        /// <summary>Hidden on the Designer canvas only; has no effect at runtime.</summary>
         public bool hiddenInDesigner;
-        /// <summary>Visibility written to the backend and used at runtime.</summary>
+
+        /// <summary>Initial active state of the generated GameObject / VisualElement.</summary>
         public bool runtimeVisible = true;
 
-        /// <summary>
-        /// When true, the Designer canvas clips child previews to this element's content bounds
-        /// (a container concern - Panel/Card/Modal/List/Grid). Default false preserves the
-        /// historical un-clipped preview for elements authored before this field existed.
-        /// </summary>
         public bool clipChildren;
 
-        /// <summary>
-        /// Inner padding (left, top, right, bottom) reserved inside a container for laying out /
-        /// clipping children. Zero by default. Consumed by Auto Layout and clip/overflow preview;
-        /// leaf elements ignore it.
-        /// </summary>
-        // Keep the default null. Constructing RectOffset from a serialized object's field
-        // initializer can execute native Unity code while the serializer is running and emits
-        // "CreateObject is not allowed during serialization" on domain reload. All consumers
-        // treat null as zero padding, preserving existing metadata behaviour.
-        public RectOffset contentPadding;
+        /// <summary>Padding applied to children, independent of auto-layout padding.</summary>
+        public RectOffset contentPadding = new RectOffset();
 
-        /// <summary>Screen-reader-facing label. Falls back to <see cref="text"/> or <see cref="displayName"/> at runtime when empty.</summary>
         public string accessibilityLabel;
         public AccessibilityRole accessibilityRole = AccessibilityRole.None;
     }

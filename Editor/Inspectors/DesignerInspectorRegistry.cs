@@ -8,14 +8,11 @@ using UnityEngine.UIElements;
 
 namespace emiteat.NexUI.Designer.Editor.Inspectors
 {
-    public enum DesignerInspectorExposure
-    {
-        Essential,
-        Common,
-        Advanced,
-        Diagnostic
-    }
-
+    /// <summary>
+    /// Task the user is currently on. Sections declare the workflow they belong to so the
+    /// Inspector can show one focused workspace at a time instead of every section at once.
+    /// <see cref="All"/> is not a section value: it is the "show everything" tab.
+    /// </summary>
     public enum DesignerInspectorWorkflow
     {
         All,
@@ -26,6 +23,20 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
         Advanced
     }
 
+    /// <summary>
+    /// How prominent a section is. Ordered from most to least commonly needed: everything above
+    /// <see cref="Common"/> is hidden unless the user turns on advanced edit mode, and the first
+    /// <see cref="Essential"/> section of a workspace is the one expanded by default.
+    /// </summary>
+    public enum DesignerInspectorExposure
+    {
+        Essential,
+        Common,
+        Advanced,
+        Diagnostic
+    }
+
+    /// <summary>What a section inspects, used to decide whether it applies to the selection.</summary>
     public enum DesignerInspectorTarget
     {
         Screen,
