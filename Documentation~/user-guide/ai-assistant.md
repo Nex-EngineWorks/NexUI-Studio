@@ -1,17 +1,17 @@
 # AI 어시스턴트
 
-NexUI AI 어시스턴트는 Unity Editor 안에서 현재 Designer 화면을 대화로 수정하는 도구입니다. AI가 화면을 직접 무제한 조작하는 방식이 아니라, 현재 Screen/Metadata를 읽어 제한된 작업 계획을 만들고 사용자가 검토한 뒤 적용하는 방식입니다.
+NexUI AI 어시스턴트는 Unity Editor 안에서 현재 Studio 화면을 대화로 수정하는 도구입니다. AI가 화면을 직접 무제한 조작하는 방식이 아니라, 현재 Screen/Metadata를 읽어 제한된 작업 계획을 만들고 사용자가 검토한 뒤 적용하는 방식입니다.
 
 ## 열기
 
 다음 중 편한 경로를 사용합니다.
 
-- Designer 상단 Toolbar의 **AI**
-- `Tools > NexUI > Designer > AI Assistant`
+- Studio 상단 Toolbar의 **AI**
+- `Tools > NexUI > Studio > AI Assistant`
 - Utilities의 **AI Assistant**
 - Command Palette에서 **Open AI Assistant** 검색
 
-여러 Designer 창을 열었다면 마지막으로 포커스한 Designer의 화면을 사용합니다. 요청을 보낸 뒤 활성 화면이 바뀌면 이전 계획은 적용되지 않습니다.
+여러 Studio 창을 열었다면 마지막으로 포커스한 Studio의 화면을 사용합니다. 요청을 보낸 뒤 활성 화면이 바뀌면 이전 계획은 적용되지 않습니다.
 
 ## API 키 연결
 
@@ -36,7 +36,7 @@ API 키를 소스 코드나 Git 저장소에 넣지 마세요. 공식 지침은 
 
 ## 기본 사용 흐름
 
-1. NexUI Designer에서 Screen과 Metadata를 엽니다.
+1. NexUI Studio에서 Screen과 Metadata를 엽니다.
 2. 필요한 Element를 선택합니다. 선택은 AI에게 전달되는 컨텍스트에 포함됩니다.
 3. AI 창에 원하는 결과를 자연어로 입력하고 **Send**를 누릅니다. `Ctrl+Enter`도 사용할 수 있습니다.
 4. **Proposed changes**에서 실제로 실행될 작업과 Validation 오류를 확인합니다.
@@ -54,7 +54,7 @@ API 키를 소스 코드나 Git 저장소에 넣지 마세요. 공식 지침은 
 
 ## AI가 할 수 있는 작업
 
-AI 결과는 다음 Designer 명령만 사용할 수 있습니다.
+AI 결과는 다음 Studio 명령만 사용할 수 있습니다.
 
 | 명령 | 역할 |
 |---|---|
@@ -74,7 +74,7 @@ AI 출력은 C#이나 Shell을 실행할 수 없고 임의 파일 작성, Packag
 
 기본값은 제공자별로 OpenAI `gpt-5.6-sol`, Anthropic `claude-sonnet-5`, Gemini `gemini-3.5-flash`이며 **Connection & context > Model**에서 계정이 사용할 수 있는 모델로 바꿀 수 있습니다. API 사용에는 네트워크 연결, 해당 모델 권한과 제공자별 과금 설정이 필요합니다. 각 소비자용 구독과 개발자 API 과금은 별도일 수 있습니다.
 
-AI 응답은 초안입니다. 적용 전 계획을 확인하고, 적용 후에는 Designer Preview와 Validation을 확인한 다음 Save/Publish하세요. AI가 제안한 배치가 실제 런타임 Backend에서 동일하게 보이는지는 기존 Backend 지원 범위를 따릅니다.
+AI 응답은 초안입니다. 적용 전 계획을 확인하고, 적용 후에는 Studio Preview와 Validation을 확인한 다음 Save/Publish하세요. AI가 제안한 배치가 실제 런타임 Backend에서 동일하게 보이는지는 기존 Backend 지원 범위를 따릅니다.
 
 ## 문제 해결
 
@@ -92,7 +92,7 @@ Unity를 완전히 종료한 뒤 선택한 제공자의 환경변수를 설정�
 
 ### 원하는 파일이나 C#까지 만들어 주지 않습니다
 
-현재 AI 어시스턴트는 Designer Metadata 편집 전용입니다. 상용 에셋에서 예측 가능한 Undo와 검토 흐름을 유지하기 위해 코드 실행과 임의 파일 변경은 의도적으로 지원하지 않습니다.
+현재 AI 어시스턴트는 Studio Metadata 편집 전용입니다. 상용 에셋에서 예측 가능한 Undo와 검토 흐름을 유지하기 위해 코드 실행과 임의 파일 변경은 의도적으로 지원하지 않습니다.
 
 ## 다중 AI 제공자
 
@@ -115,9 +115,9 @@ Unity를 완전히 종료한 뒤 선택한 제공자의 환경변수를 설정�
 | Selected Subtree | 선택 요소와 그 하위 요소만 전송하고 수정 허용 |
 | Current Screen | 현재 화면 전체를 전송하고 수정 허용 |
 
-권한은 콘텐츠, 레이아웃, 시각 스타일/타이포그래피, 바인딩, 계층, 요소 생성/삭제, 모션, 재사용/부착 컴포넌트, 프로젝트 에셋 생성으로 나뉩니다. `Inspect Only`, `Selected Safe`, `Screen Design`, `Full Designer` 프리셋을 사용하거나 각각 직접 켤 수 있습니다. 삭제는 **Delete Elements** 권한과 **Allow destructive actions**가 모두 켜져야 하며 적용할 때 다시 확인합니다.
+권한은 콘텐츠, 레이아웃, 시각 스타일/타이포그래피, 바인딩, 계층, 요소 생성/삭제, 모션, 재사용/부착 컴포넌트, 프로젝트 에셋 생성으로 나뉩니다. `Inspect Only`, `Selected Safe`, `Screen Design`, `Full Studio` 프리셋을 사용하거나 각각 직접 켤 수 있습니다. 삭제는 **Delete Elements** 권한과 **Allow destructive actions**가 모두 켜져야 하며 적용할 때 다시 확인합니다.
 
-## 확장된 Designer 액션
+## 확장된 Studio 액션
 
 기존 생성·속성·좌표·계층·클래스 액션에 다음 액션이 추가됩니다.
 
@@ -127,7 +127,7 @@ Unity를 완전히 종료한 뒤 선택한 제공자의 환경변수를 설정�
 - `instantiate_component`: NexUI Built-In 레시피 또는 프로젝트의 커스텀 컴포넌트를 배치합니다.
 - `set_component_variant` / `set_component_property`: 재사용 컴포넌트가 공개한 variant와 exposed property를 편집합니다.
 - `attach_component` / `detach_component`: 해석 가능한 Unity/프로젝트 MonoBehaviour를 uGUI 생성 대상에 연결하거나 제거합니다.
-- `set`: Layout Style, Visual Style, Typography를 포함한 넓은 Designer 속성을 편집합니다.
+- `set`: Layout Style, Visual Style, Typography를 포함한 넓은 Studio 속성을 편집합니다.
 
 `apply_transition`과 `create_motion_clip`은 프로젝트에 에셋을 만들기 때문에 Motion과 Asset Creation 권한이 모두 필요합니다. 커스텀 클립은 안전한 에셋 이름, 30초 이하 길이, 트랙당 2~64개 및 전체 512개 이하 키프레임으로 제한됩니다. 모든 계획은 최대 64개 액션으로 제한되며, 적용 직전에 현재 화면과 대상 범위를 다시 검증합니다.
 

@@ -232,7 +232,7 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
         [Test]
         public void EveryPaletteComponentIsNamedInBothLanguages()
         {
-            const string root = "Packages/com.emiteat.nexui.designer/Localization/";
+            const string root = "Packages/com.nexengineworks.nexui.studio/Localization/";
             var korean = System.IO.File.ReadAllText(root + "ko-KR.json");
             var english = System.IO.File.ReadAllText(root + "en-US.json");
 
@@ -502,42 +502,73 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
         }
 
         [Test]
-        public void AttachedComponentInspectorVisualizesTypeDescriptionAndRuntimeMetadata()
+        public void TheTypeIndexCarriesTheAttributesAddComponentNeedsToShow()
         {
-            var metadata = ScriptableObject.CreateInstance<DesignerMetadataAsset>();
-            var element = new DesignerElementMetadata
+            var entry = StudioComponentTypeIndex.Find(typeof(AnnotatedAttachedBehaviour));
+
+            Assert.IsNotNull(entry, "An attachable project MonoBehaviour must be in the index.");
+            Assert.AreEqual("Annotated Behaviour", entry.DisplayName);
+            Assert.AreEqual("NexUI Tests", entry.Category);
+            Assert.IsTrue(entry.DisallowMultiple);
+            StringAssert.Contains("Canvas Group", entry.Requirements);
+            Assert.AreEqual(StudioComponentOrigin.Project, entry.Origin);
+        }
+
+        [Test]
+        public void TheIndexExcludesTypesThatCannotLiveOnAPrefab()
+        {
+            foreach (var entry in StudioComponentTypeIndex.All)
             {
-                elementId = "health", displayName = "Health Bar", elementType = "ProgressBar",
-                attachedComponents = new List<DesignerAttachedComponentMetadata>
-                {
-                    new DesignerAttachedComponentMetadata
-                    {
-                        typeName = typeof(AnnotatedAttachedBehaviour).FullName + ", " +
-                                   typeof(AnnotatedAttachedBehaviour).Assembly.GetName().Name
-                    }
-                }
-            };
-            metadata.elements.Add(element);
-            var context = new NexUIDesignerContext();
-            context.SetMetadata(metadata);
-            context.Select(element);
-            try
-            {
-                var inspector = new AttachedComponentsInspector(context);
-                Assert.IsNotNull(inspector.Q<VisualElement>(className: "nexui-attached-overview"));
-                var card = inspector.Q<VisualElement>(className: "nexui-attached-card");
-                Assert.IsNotNull(card);
-                StringAssert.Contains("Annotated Behaviour", card.Q<Label>(className: "nexui-attached-card-title").text);
-                StringAssert.Contains("gameplay state", card.Q<Label>(className: "nexui-attached-card-description").text);
-                StringAssert.Contains("Canvas Group", card.Q<Label>(className: "nexui-attached-card-requires").text);
-                StringAssert.Contains("uGUI", card.tooltip);
-                Assert.IsNotNull(inspector.Q<Button>(className: "nexui-attached-add"));
+                Assert.IsFalse(entry.Type.IsAbstract, $"{entry.Type} is abstract.");
+                Assert.IsFalse(entry.Type.ContainsGenericParameters, $"{entry.Type} is an open generic.");
+                Assert.IsFalse(entry.AssemblyName.EndsWith(".Editor", StringComparison.OrdinalIgnoreCase),
+                    $"{entry.Type} comes from an editor assembly and would not exist in a player.");
             }
-            finally
-            {
-                context.Dispose();
-                UnityEngine.Object.DestroyImmediate(metadata);
-            }
+        }
+
+        [Test]
+        public void SearchMatchesOnNameNamespaceAndAssembly()
+        {
+            var byName = new List<Type>();
+            foreach (var entry in StudioComponentTypeIndex.Search("annotated behaviour")) byName.Add(entry.Type);
+            CollectionAssert.Contains(byName, typeof(AnnotatedAttachedBehaviour));
+
+            var nonsense = new List<Type>();
+            foreach (var entry in StudioComponentTypeIndex.Search("zzz-no-such-component")) nonsense.Add(entry.Type);
+            CollectionAssert.IsEmpty(nonsense);
+        }
+
+        [Test]
+        public void AddingAProjectScriptGoesIntoTheOneComponentStack()
+        {
+            var element = new DesignerElementMetadata { elementId = "health", elementType = "ProgressBar" };
+
+            var component = DesignerElementComponentAccess.AttachProject(element, typeof(AnnotatedAttachedBehaviour));
+
+            Assert.IsNotNull(component);
+            Assert.AreSame(component, element.components[element.components.Count - 1],
+                "A project script is an ordinary entry in element.components.");
+            Assert.AreEqual(DesignerComponentSource.Project, component.source);
+            Assert.AreEqual(StudioComponentTypeIndex.Identity(typeof(AnnotatedAttachedBehaviour)),
+                component.assemblyQualifiedTypeName);
+            Assert.IsFalse(string.IsNullOrEmpty(component.instanceId));
+            Assert.IsEmpty(element.attachedComponents,
+                "The legacy list is read-only now; nothing may be written into it.");
+        }
+
+        [Test]
+        public void DisallowMultipleComponentIsRefusedWithAReason()
+        {
+            var element = new DesignerElementMetadata { elementId = "health", elementType = "ProgressBar" };
+            DesignerElementComponentAccess.AttachProject(element, typeof(AnnotatedAttachedBehaviour));
+
+            var reason = DesignerElementComponentAccess.ProjectAttachBlockedReason(
+                element, typeof(AnnotatedAttachedBehaviour));
+
+            Assert.IsNotNull(reason);
+            StringAssert.Contains("DisallowMultipleComponent", reason);
+            Assert.IsNull(DesignerElementComponentAccess.AttachProject(element, typeof(AnnotatedAttachedBehaviour)));
+            Assert.AreEqual(1, element.components.Count);
         }
 
         [Test]

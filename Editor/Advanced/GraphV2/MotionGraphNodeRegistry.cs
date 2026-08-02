@@ -79,7 +79,8 @@ namespace emiteat.NexUI.Designer.Editor.GraphV2
                 {
                     NodeType = "Flow.Parallel",
                     DisplayName = "Parallel",
-                    SupportsDynamicFlowOutputs = true
+                    SupportsDynamicFlowOutputs = true,
+                    DataInputs = new[] { new GraphNodeDataInput("Completion Policy", UIGraphValueType.String) }
                 },
                 new GraphNodeDescriptor
                 {

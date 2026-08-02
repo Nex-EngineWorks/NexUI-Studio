@@ -1,6 +1,7 @@
 using System.Linq;
 using emiteat.NexUI.MotionClip;
 using emiteat.NexUI.Abstractions;
+using emiteat.NexUI.Designer.Editor.Commands;
 using emiteat.NexUI.Designer.Editor.Localization;
 using UnityEditor;
 using UnityEngine;
@@ -67,7 +68,7 @@ namespace emiteat.NexUI.Designer.Editor.Productivity
                 using (new EditorGUI.DisabledScope(previewClose == null))
                     if (GUILayout.Button("닫기 미리보기")) DesignerTransitionPresetService.Preview(context, previewClose);
             }
-            EditorGUILayout.HelpBox("적용하면 기존 Motion Clip 모델로 Open/Close 에셋을 만들고 Screen Motion에 연결합니다. Ctrl+Z로 연결을 되돌릴 수 있습니다.", MessageType.None);
+            EditorGUILayout.HelpBox($"적용하면 기존 Motion Clip 모델로 Open/Close 에셋을 만들고 Screen Motion에 연결합니다. {UIDesignerShortcut.PrimaryModifierLabel}+Z로 연결을 되돌릴 수 있습니다.", MessageType.None);
             using (new EditorGUI.DisabledScope(context.SelectedElements.Count == 0))
                 if (GUILayout.Button("생성하고 화면 전환으로 연결", GUILayout.Height(32))) Apply();
         }

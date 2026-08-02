@@ -138,7 +138,7 @@ namespace emiteat.NexUI.Designer.Editor
             if (recordUndo)
             {
                 EditorUtility.SetDirty(asset);
-                Debug.Log($"[NexUI Designer] Migrated metadata '{asset.name}' schema v{originalVersion} → v{asset.schemaVersion}. Use Undo to restore the pre-migration state.");
+                Debug.Log($"[NexUI Studio] Migrated metadata '{asset.name}' schema v{originalVersion} → v{asset.schemaVersion}. Use Undo to restore the pre-migration state.");
             }
             return true;
         }
@@ -184,7 +184,10 @@ namespace emiteat.NexUI.Designer.Editor
                     typeId = typeId,
                     source = DesignerComponentSource.Project,
                     assemblyQualifiedTypeName = attached.typeName,
-                    enabled = true
+                    enabled = true,
+                    // The old list stored no values at all, so the migrated entry starts empty and
+                    // will be filled by the generic inspector - which keys by property path.
+                    valueFormat = DesignerComponentValueFormat.PropertyPath
                 });
             }
         }

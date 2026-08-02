@@ -1,6 +1,6 @@
 {
-  "name": "com.emiteat.nexui.designer",
-  "displayName": "NexUI Designer",
+  "name": "com.nexengineworks.nexui.studio",
+  "displayName": "NexUI Studio",
   "version": "0.1.0",
   "license": "MIT",
   "unity": "6000.4",
@@ -20,16 +20,16 @@
     "ugui"
   ],
   "author": {
-    "name": "emiteat",
-    "url": "https://github.com/swallow-smoke"
+    "name": "OffByJun",
+    "url": "https://github.com/OffByJun"
   },
   "dependencies": {
-    "com.emiteat.nexui": "0.1.0",
+    "com.nexengineworks.nexui": "0.1.0",
     "com.unity.ugui": "2.0.0"
   },
   "samples": [
     {
-      "displayName": "Designer Sample",
+      "displayName": "NexUI Studio Sample",
       "description": "Sample screens and metadata for NexUI Designer.",
       "path": "Samples~/DesignerSample"
     }

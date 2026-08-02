@@ -81,6 +81,32 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
         }
 
         [Test]
+        public void BackslashAssetPathsAreCanonicalizedForMacAndLinux()
+        {
+            var path = Folder.Replace('/', '\\') + "\\Portable.g.uxml";
+            var result = new GeneratedAssetWriter().Write(new[] { new GeneratedAssetFile(path, Uxml) });
+
+            Assert.That(result.Success, Is.True, string.Join("\n", result.Errors));
+            CollectionAssert.Contains(result.ChangedPaths, Folder + "/Portable.g.uxml");
+            Assert.That(File.Exists(Folder + "/Portable.g.uxml"), Is.True);
+        }
+
+        [Test]
+        public void FileSystemContainmentHonorsHostCaseRulesAndSegmentBoundaries()
+        {
+            var root = Path.GetFullPath(Path.Combine("Temp", "NexUI", "Assets"));
+            var child = Path.Combine(root, "UI", "Screen.uxml");
+            var siblingPrefix = Path.GetFullPath(Path.Combine("Temp", "NexUI", "AssetsBackup", "Screen.uxml"));
+
+            Assert.IsTrue(DesignerPlatformUtility.IsSameOrChildPath(root, child, System.StringComparison.Ordinal));
+            Assert.IsFalse(DesignerPlatformUtility.IsSameOrChildPath(root, siblingPrefix, System.StringComparison.Ordinal));
+            Assert.IsTrue(DesignerPlatformUtility.IsSameOrChildPath(
+                root.ToUpperInvariant(), child.ToLowerInvariant(), System.StringComparison.OrdinalIgnoreCase));
+            Assert.IsFalse(DesignerPlatformUtility.IsSameOrChildPath(
+                root.ToUpperInvariant(), child.ToLowerInvariant(), System.StringComparison.Ordinal));
+        }
+
+        [Test]
         public void StructuredSaveReport_SeparatesEveryImpactCategory()
         {
             var report = new DesignerSaveReport { IsPreview = true };

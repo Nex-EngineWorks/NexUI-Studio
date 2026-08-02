@@ -20,11 +20,11 @@ Motion Clip Editor([문서](motion-clip-editor.md))와는 별개의, 더 오래�
 
 ## 여는 방법
 
-- Legacy Graph는 NexUI Designer에서 Element를 선택하고 Motion Inspector에 Motion Preset을 할당한 뒤
+- Legacy Graph는 NexUI Studio에서 Element를 선택하고 Motion Inspector에 Motion Preset을 할당한 뒤
   **"Open Motion Graph"** 버튼을 누르면 해당 프리셋이 미리 채워진 채로 열립니다.
-- 별도의 typed Graph는 `Tools > NexUI > Designer > Advanced > Motion Graph (v2)`에서 열고 `UIMotionGraphAsset`을 선택합니다. Event Node, Flow 연결, Auto Layout과 Entry Event Preview를 제공합니다.
+- 별도의 typed Graph는 `Tools > NexUI > Studio > Advanced > Motion Graph (v2)`에서 열고 `UIMotionGraphAsset`을 선택합니다. Event Node, Flow 연결, Auto Layout과 Entry Event Preview를 제공합니다.
 
-메인 Designer 창과 독립된 별도 창입니다(도킹되어 있지 않음) — 여러 프리셋을 동시에 다른
+메인 Studio 창과 독립된 별도 창입니다(도킹되어 있지 않음) — 여러 프리셋을 동시에 다른
 창에서 열어볼 수 있습니다.
 
 ## 노드 편집

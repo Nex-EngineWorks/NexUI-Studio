@@ -1,17 +1,17 @@
-# Designer Sample 둘러보기
+# Studio Sample 둘러보기
 
 ## Import
 
 1. Unity의 `Window > Package Manager`를 엽니다.
-2. **NexUI Designer**를 선택합니다.
-3. **Samples**에서 **Designer Sample**의 **Import**를 누릅니다.
-4. Project 창에서 `Assets/Samples/NexUI Designer/0.1.0/Designer Sample`을 찾습니다.
+2. **NexUI Studio**를 선택합니다.
+3. **Samples**에서 **Studio Sample**의 **Import**를 누릅니다.
+4. Project 창에서 `Assets/Samples/NexUI Studio/0.1.0/Studio Sample`을 찾습니다.
 
-표시 경로는 Package Manager가 버전 폴더를 포함하므로 설치 버전에 따라 달라질 수 있습니다. `Packages/com.emiteat.nexui.designer/Samples~` 원본을 직접 수정하지 말고 Import된 `Assets/Samples` 복사본을 수정하세요.
+표시 경로는 Package Manager가 버전 폴더를 포함하므로 설치 버전에 따라 달라질 수 있습니다. `Packages/com.nexengineworks.nexui.studio/Samples~` 원본을 직접 수정하지 말고 Import된 `Assets/Samples` 복사본을 수정하세요.
 
 ## 무엇부터 열어야 하나요?
 
-`Tools > NexUI > Designer`를 연 뒤 Global Toolbar의 **Screen**에 `*.UIToolkit.asset` 또는 `*.UGUI.asset`을 지정합니다. Left Sidebar의 **Metadata**에는 같은 폴더의 `*.Metadata.asset`을 지정합니다. `Rebuild` 후 Canvas와 Layers가 나타나면 연결이 정상입니다.
+`Tools > NexUI > Studio`를 연 뒤 Global Toolbar의 **Screen**에 `*.UIToolkit.asset` 또는 `*.UGUI.asset`을 지정합니다. Left Sidebar의 **Metadata**에는 같은 폴더의 `*.Metadata.asset`을 지정합니다. `Rebuild` 후 Canvas와 Layers가 나타나면 연결이 정상입니다.
 
 | Sample | 보여주는 기능 | 먼저 열 파일 | 함께 볼 파일 |
 |---|---|---|---|
@@ -21,7 +21,7 @@
 | Loading | Loading 화면과 두 Backend 에셋 | `Screens/Loading/Loading.UIToolkit.asset` | `Loading.Metadata.asset`, `Loading.UGUI.asset` |
 | HUD | HUD Layer와 화면 배치 | `Screens/HUD/HUD.UIToolkit.asset` | `HUD.Metadata.asset`, `HUD.UGUI.asset` |
 
-각 Screen 폴더의 `UIToolkit/*.uxml`, `*.uss`와 `UGUI/*.prefab`이 실제 Backend Asset입니다. JSON 파일은 Metadata 교환/검토용 Companion 데이터이며 Designer의 기본 편집 에셋은 `.Metadata.asset`입니다.
+각 Screen 폴더의 `UIToolkit/*.uxml`, `*.uss`와 `UGUI/*.prefab`이 실제 Backend Asset입니다. JSON 파일은 Metadata 교환/검토용 Companion 데이터이며 Studio의 기본 편집 에셋은 `.Metadata.asset`입니다.
 
 ## Inventory Runtime 예제
 

@@ -42,25 +42,28 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             var pending = new List<GeneratedAssetFile>();
             try
             {
-                var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var paths = new HashSet<string>(DesignerPlatformUtility.FileSystemComparer);
                 foreach (var file in files)
                 {
-                    ValidatePath(file.Path);
-                    if (!paths.Add(file.Path)) throw new InvalidOperationException("Duplicate generated path: " + file.Path);
-                    ValidateContent(file);
-                    if (File.Exists(file.Path))
+                    var normalizedFile = new GeneratedAssetFile(
+                        DesignerPlatformUtility.NormalizeAssetPath(file.Path), file.Content);
+                    ValidatePath(normalizedFile.Path);
+                    if (!paths.Add(normalizedFile.Path))
+                        throw new InvalidOperationException("Duplicate generated path: " + normalizedFile.Path);
+                    ValidateContent(normalizedFile);
+                    if (File.Exists(normalizedFile.Path))
                     {
-                        var existing = File.ReadAllText(file.Path);
+                        var existing = File.ReadAllText(normalizedFile.Path);
                         if (!existing.Contains(GeneratedMarker))
-                            throw new InvalidOperationException("Refusing to overwrite a file without the generated marker: " + file.Path);
-                        if (Normalize(existing) == Normalize(file.Content))
+                            throw new InvalidOperationException("Refusing to overwrite a file without the generated marker: " + normalizedFile.Path);
+                        if (Normalize(existing) == Normalize(normalizedFile.Content))
                         {
-                            result.UnchangedPaths.Add(file.Path);
+                            result.UnchangedPaths.Add(normalizedFile.Path);
                             continue;
                         }
                     }
-                    pending.Add(file);
-                    result.ChangedPaths.Add(file.Path);
+                    pending.Add(normalizedFile);
+                    result.ChangedPaths.Add(normalizedFile.Path);
                 }
 
                 if (dryRun || pending.Count == 0) { result.Success = true; return result; }
@@ -90,8 +93,8 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         private static void StageAndCommit(List<GeneratedAssetFile> files)
         {
             var staged = new List<string>();
-            var backups = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            var created = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var backups = new Dictionary<string, string>(DesignerPlatformUtility.FileSystemComparer);
+            var created = new HashSet<string>(DesignerPlatformUtility.FileSystemComparer);
             try
             {
                 foreach (var file in files)
@@ -156,9 +159,10 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 if (segment == "." || segment == "..")
                     throw new UnauthorizedAccessException("Generated asset paths cannot traverse directories: " + path);
             var projectRoot = Directory.GetParent(Application.dataPath)?.FullName;
-            var assetsRoot = Path.GetFullPath(Application.dataPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            var assetsRoot = Path.GetFullPath(Application.dataPath);
             var fullPath = Path.GetFullPath(Path.Combine(projectRoot ?? string.Empty, normalized));
-            if (!fullPath.StartsWith(assetsRoot, StringComparison.OrdinalIgnoreCase))
+            if (!DesignerPlatformUtility.IsSameOrChildPath(assetsRoot, fullPath,
+                    DesignerPlatformUtility.FileSystemComparison))
                 throw new UnauthorizedAccessException("Generated asset resolved outside the project Assets folder: " + path);
             if (Path.GetFileName(path).IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
                 throw new ArgumentException("Generated asset has an invalid file name: " + path);
@@ -187,5 +191,56 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         }
 
         private static string Normalize(string value) => (value ?? string.Empty).Replace("\r\n", "\n");
+    }
+
+    /// <summary>Filesystem rules shared by Studio features that accept native or Unity asset paths.</summary>
+    public static class DesignerPlatformUtility
+    {
+        public static StringComparison FileSystemComparison
+            => Application.platform == RuntimePlatform.WindowsEditor
+                ? StringComparison.OrdinalIgnoreCase
+                : StringComparison.Ordinal;
+
+        public static StringComparer FileSystemComparer
+            => FileSystemComparison == StringComparison.OrdinalIgnoreCase
+                ? StringComparer.OrdinalIgnoreCase
+                : StringComparer.Ordinal;
+
+        public static string NormalizeAssetPath(string path) => (path ?? string.Empty).Replace('\\', '/');
+
+        public static bool IsSameOrChildPath(string root, string candidate, StringComparison comparison)
+        {
+            if (string.IsNullOrWhiteSpace(root) || string.IsNullOrWhiteSpace(candidate)) return false;
+            var normalizedRoot = Path.GetFullPath(root)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var normalizedCandidate = Path.GetFullPath(candidate)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            if (string.Equals(normalizedRoot, normalizedCandidate, comparison)) return true;
+            return normalizedCandidate.Length > normalizedRoot.Length &&
+                   normalizedCandidate.StartsWith(normalizedRoot, comparison) &&
+                   (normalizedCandidate[normalizedRoot.Length] == Path.DirectorySeparatorChar ||
+                    normalizedCandidate[normalizedRoot.Length] == Path.AltDirectorySeparatorChar);
+        }
+
+        public static bool TryAbsoluteToAssetPath(string absolutePath, out string assetPath)
+        {
+            assetPath = null;
+            if (string.IsNullOrWhiteSpace(absolutePath)) return false;
+            var assetsRoot = Path.GetFullPath(Application.dataPath);
+            var candidate = Path.GetFullPath(absolutePath);
+            if (!IsSameOrChildPath(assetsRoot, candidate, FileSystemComparison)) return false;
+            if (string.Equals(assetsRoot.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+                    candidate.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+                    FileSystemComparison))
+            {
+                assetPath = "Assets";
+                return true;
+            }
+            var relative = candidate.Substring(assetsRoot.TrimEnd(
+                Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar).Length)
+                .TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            assetPath = "Assets/" + NormalizeAssetPath(relative);
+            return true;
+        }
     }
 }

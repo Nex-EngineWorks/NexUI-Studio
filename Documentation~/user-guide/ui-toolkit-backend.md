@@ -6,7 +6,7 @@ UI Toolkit Screen의 Backend Asset은 `VisualTreeAsset`입니다. Metadata `elem
 
 별도 **UI Toolkit Generation** 도구는 Metadata에서 `.g.uxml`과 `.g.uss`를 생성합니다. 생성 결과는 사용자 작성 파일과 분리되며 Generated Marker 없는 파일을 덮어쓰지 않습니다. Dry Run, Diff 확인, Copy, 폴더 열기와 대상 Import를 지원합니다.
 
-UI Builder는 세밀한 UXML/USS 제작에, Designer는 Screen 계약·Metadata·Binding·Motion과 Validation에 적합합니다. VisualElement Type, 복잡한 USS Selector, Custom Control과 Runtime Data Source는 수동 구현이 필요할 수 있습니다.
+UI Builder는 세밀한 UXML/USS 제작에, Studio는 Screen 계약·Metadata·Binding·Motion과 Validation에 적합합니다. VisualElement Type, 복잡한 USS Selector, Custom Control과 Runtime Data Source는 수동 구현이 필요할 수 있습니다.
 
 > [!WARNING]
 > Toolbar의 일반 Save는 연결된 Generated 파일만 갱신합니다. 별도 Generation 도구는 새 경로, Dry Run과 Diff를 다루는 작업입니다.

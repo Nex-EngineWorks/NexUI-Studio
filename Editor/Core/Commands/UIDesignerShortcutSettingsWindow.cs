@@ -11,7 +11,7 @@ namespace emiteat.NexUI.Designer.Editor.Commands
     {
         private Vector2 scroll;
 
-        [MenuItem("Tools/NexUI/Preferences/Shortcuts", priority = NexUIDesignerMenu.PriorityPreferences)]
+        [MenuItem("Tools/Nex/NexUI Studio/Preferences/Shortcuts", priority = NexUIDesignerMenu.PriorityPreferences)]
         public static void Open() => GetWindow<UIDesignerShortcutSettingsWindow>(T("shortcuts.window.title"));
 
         private static string T(string key) => DesignerLocalization.T(key);
@@ -29,7 +29,7 @@ namespace emiteat.NexUI.Designer.Editor.Commands
                 {
                     EditorGUILayout.LabelField(item.commandId, GUILayout.Width(170));
                     item.key = (KeyCode)EditorGUILayout.EnumPopup(item.key, GUILayout.Width(140));
-                    item.ctrl = GUILayout.Toggle(item.ctrl, "Ctrl", GUILayout.Width(48));
+                    item.ctrl = GUILayout.Toggle(item.ctrl, UIDesignerShortcut.PrimaryModifierLabel, GUILayout.Width(72));
                     item.shift = GUILayout.Toggle(item.shift, "Shift", GUILayout.Width(52));
                     item.alt = GUILayout.Toggle(item.alt, "Alt", GUILayout.Width(42));
                 }
@@ -51,7 +51,6 @@ namespace emiteat.NexUI.Designer.Editor.Commands
             }
         }
 
-        private static string Signature(UIDesignerShortcut x)
-            => $"{(x.ctrl ? "Ctrl+" : "")}{(x.shift ? "Shift+" : "")}{(x.alt ? "Alt+" : "")}{x.key}";
+        private static string Signature(UIDesignerShortcut x) => x.DisplayString();
     }
 }

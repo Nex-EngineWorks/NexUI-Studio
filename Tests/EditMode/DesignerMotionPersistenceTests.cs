@@ -389,18 +389,16 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
             var metadata = ScriptableObject.CreateInstance<DesignerMetadataAsset>();
             metadata.schemaVersion = DesignerMetadataAsset.CurrentSchemaVersion;
             metadata.screenId = "stock-controls";
-            metadata.elements.Add(new DesignerElementMetadata
+            var toggleMetadata = new DesignerElementMetadata
             {
                 stableId = "toggle-stable", elementId = "sound", elementType = "UGUI.Toggle", text = "Sound",
-                previewValue = 1f, rect = new Rect(10, 10, 160, 20),
-                attachedComponents = new System.Collections.Generic.List<DesignerAttachedComponentMetadata>
-                {
-                    new DesignerAttachedComponentMetadata
-                    {
-                        typeName = typeof(emiteat.NexUI.Integrations.UGUI.UGUIIntegrationBootstrap).AssemblyQualifiedName
-                    }
-                }
-            });
+                previewValue = 1f, rect = new Rect(10, 10, 160, 20)
+            };
+            // Scripts live in the one component stack from schema v6 onward; the legacy
+            // attachedComponents list is read for migration only and is no longer written.
+            emiteat.NexUI.Designer.Editor.Components.DesignerElementComponentAccess.AttachProject(
+                toggleMetadata, typeof(emiteat.NexUI.Integrations.UGUI.UGUIIntegrationBootstrap));
+            metadata.elements.Add(toggleMetadata);
             var sliderMetadata = new DesignerElementMetadata
             {
                 stableId = "slider-stable", elementId = "volume", elementType = "Slider",

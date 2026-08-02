@@ -15,7 +15,7 @@ namespace emiteat.NexUI.Designer.Editor
             if (Context == null) Context = new NexUIDesignerContext();
             DesignerSessions.Registry.Register(this, Context);
             Context.DirtyStateChanged += OnDirtyStateChanged;
-            saveChangesMessage = "NexUI Designer에 저장하지 않은 변경 사항이 있습니다.";
+            saveChangesMessage = "NexUI Studio에 저장하지 않은 변경 사항이 있습니다.";
             rootVisualElement.RegisterCallback<KeyDownEvent>(OnKeyDown);
             EditorApplication.delayCall += RestoreLastSession;
             // Every localized string (panel titles, tooltips, ...) is only read at construction

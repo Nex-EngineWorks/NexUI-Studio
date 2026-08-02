@@ -17,7 +17,7 @@ Expansion 결과가 사용자 자산에 절대 기록되지 않습니다.
 
 ## 패키지 Built-In 레시피
 
-Designer 팔레트의 **NexUI / 기본 제공 레시피**에는 패키지가 소유하는 복합 UI 300개가 포함됩니다.
+Studio 팔레트의 **NexUI / 기본 제공 레시피**에는 패키지가 소유하는 복합 UI 300개가 포함됩니다.
 25개 실사용 아키타입(내비게이션, 콘텐츠, 폼, 상점, 게임 UI, 피드백)을 12개 시각 테마로
 제공하며, 각각 여러 element와 편집 가능한 텍스트, content slot, Disabled variant를 갖습니다.
 
@@ -170,4 +170,4 @@ GUID가 바뀐 경우(프로젝트 간 이동 등)에는 `componentId`로 복구
 * Instance rect를 definition root 크기와 다르게 지정해도 **자식은 재배치되지 않습니다**.
   root만 instance 크기를 따르며, 자식 재배치가 필요하면 definition root에 Auto Layout을 켜세요.
 * Definition 편집은 현재 Inspector(ScriptableObject 기본 UI)에서 수행합니다. 전용 편집 모드는 다음 단계 작업입니다.
-* Definition 자체를 Designer 캔버스에서 여는 기능은 아직 없습니다.
+* Definition 자체를 Studio 캔버스에서 여는 기능은 아직 없습니다.

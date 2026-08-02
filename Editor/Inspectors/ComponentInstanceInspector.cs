@@ -171,7 +171,7 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
         {
             if (!DesignerPropertyRegistry.TryParse(exposed.propertyId, raw, out var value, out var error))
             {
-                UnityEngine.Debug.LogWarning($"[NexUI Designer] '{raw}' is not a valid {exposed.propertyId} value: {error}");
+                UnityEngine.Debug.LogWarning($"[NexUI Studio] '{raw}' is not a valid {exposed.propertyId} value: {error}");
                 Refresh();
                 return;
             }
@@ -226,7 +226,7 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
 
         private static void Report(DesignerComponentOperationResult result)
         {
-            var message = "[NexUI Designer] " + result.Message;
+            var message = "[NexUI Studio] " + result.Message;
             foreach (var warning in result.Warnings) message += "\n  • " + warning;
             if (!result.Success) UnityEngine.Debug.LogError(message);
             else if (result.Warnings.Count > 0) UnityEngine.Debug.LogWarning(message);

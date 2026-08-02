@@ -75,14 +75,13 @@ namespace emiteat.NexUI.Designer.Editor.Properties
             Add(DesignerPropertyId.Sprite, "sprite", DesignerPropertyValueType.AssetReference);
             Add(DesignerPropertyId.Texture, "texture", DesignerPropertyValueType.AssetReference, DesignerPropertyBackendSupport.Fallback, DesignerPropertyBackendSupport.Supported,
                 uguiFallback: "Texture is applied through RawImage when no Sprite is supplied.");
-            Add(DesignerPropertyId.Gradient, "gradient", DesignerPropertyValueType.AssetReference, DesignerPropertyBackendSupport.Unsupported, DesignerPropertyBackendSupport.Unsupported,
-                "Requires a custom uGUI material.", "Unity USS has no portable serialized Gradient value.");
+            Add(DesignerPropertyId.Gradient, "gradient", DesignerPropertyValueType.AssetReference, DesignerPropertyBackendSupport.Supported, DesignerPropertyBackendSupport.Fallback,
+                uiToolkitFallback: "Generated UI Toolkit output uses NXGradientElement or a documented class fallback.");
             Add(DesignerPropertyId.BorderWidth, "border.width", DesignerPropertyValueType.Float, DesignerPropertyBackendSupport.Fallback, DesignerPropertyBackendSupport.Supported,
                 uguiFallback: "Approximated with Outline; it is not an inset border.");
             Add(DesignerPropertyId.BorderColor, "border.color", DesignerPropertyValueType.Color, DesignerPropertyBackendSupport.Fallback, DesignerPropertyBackendSupport.Supported,
                 uguiFallback: "Approximated with Outline.");
-            Add(DesignerPropertyId.CornerRadius, "cornerRadius", DesignerPropertyValueType.Float, DesignerPropertyBackendSupport.Fallback, DesignerPropertyBackendSupport.Supported,
-                uguiFallback: "Requires a sliced/rounded source sprite; numeric radius is reported only.");
+            Add(DesignerPropertyId.CornerRadius, "cornerRadius", DesignerPropertyValueType.Float, DesignerPropertyBackendSupport.Supported, DesignerPropertyBackendSupport.Supported);
             Add(DesignerPropertyId.DropShadow, "shadow.drop", DesignerPropertyValueType.Boolean, DesignerPropertyBackendSupport.Supported, DesignerPropertyBackendSupport.Fallback,
                 uiToolkitFallback: "Text shadow is supported; box shadow is reported as unsupported fallback.");
             Add(DesignerPropertyId.InnerShadow, "shadow.inner", DesignerPropertyValueType.Boolean, DesignerPropertyBackendSupport.Unsupported, DesignerPropertyBackendSupport.Unsupported);

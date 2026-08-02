@@ -97,6 +97,56 @@ namespace emiteat.NexUI.Designer.Editor.Components
             return component;
         }
 
+        /// <summary>
+        /// Why <paramref name="type"/> cannot be attached to <paramref name="element"/>, or null when
+        /// it can. Mirrors <see cref="AttachBlockedReason"/> for types that have no registry entry.
+        /// </summary>
+        public static string ProjectAttachBlockedReason(DesignerElementMetadata element, System.Type type)
+        {
+            if (type == null) return "Unknown component type.";
+            if (System.Attribute.GetCustomAttribute(type, typeof(DisallowMultipleComponent)) == null) return null;
+
+            var typeId = DesignerProjectComponentIds.FromQualifiedName(StudioComponentTypeIndex.Identity(type));
+            return Has(element, typeId)
+                ? $"{type.Name} is marked [DisallowMultipleComponent] and is already on this element."
+                : null;
+        }
+
+        /// <summary>
+        /// Adds a project or engine MonoBehaviour to the element's one component stack.
+        /// </summary>
+        /// <remarks>
+        /// This is the whole point of the universal model: a user script lands in the same list as a
+        /// uGUI Image, carrying its own <c>instanceId</c>, enable state and property bag, so the
+        /// Inspector, the writer and the validator each have one path instead of two.
+        /// </remarks>
+        public static DesignerElementComponent AttachProject(DesignerElementMetadata element, System.Type type)
+        {
+            if (element == null || type == null) return null;
+            if (ProjectAttachBlockedReason(element, type) != null) return null;
+
+            element.components ??= new List<DesignerElementComponent>();
+            var qualifiedName = StudioComponentTypeIndex.Identity(type);
+            var component = new DesignerElementComponent
+            {
+                typeId = DesignerProjectComponentIds.FromQualifiedName(qualifiedName),
+                source = StudioComponentTypeIndex.OriginOf(type) switch
+                {
+                    StudioComponentOrigin.NexUI => DesignerComponentSource.NexUI,
+                    StudioComponentOrigin.UGUI => DesignerComponentSource.UGUI,
+                    StudioComponentOrigin.Unity => DesignerComponentSource.Unity,
+                    _ => DesignerComponentSource.Project
+                },
+                assemblyQualifiedTypeName = qualifiedName,
+                enabled = true,
+                // The generic inspector edits through SerializedObject, so its values are keyed by
+                // Unity's property paths from the moment the component is added.
+                valueFormat = DesignerComponentValueFormat.PropertyPath
+            };
+            element.components.Add(component);
+            return component;
+        }
+
         /// <summary>Removes a component unless it is essential or something still requires it.</summary>
         public static bool Detach(DesignerElementMetadata element, string instanceId, out string blockedReason)
         {

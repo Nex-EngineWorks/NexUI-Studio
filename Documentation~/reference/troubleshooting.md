@@ -2,15 +2,15 @@
 
 각 문제에서 Console의 **첫 오류**를 먼저 해결하세요. 뒤의 오류는 첫 컴파일 실패에서 파생될 수 있습니다.
 
-## Designer 메뉴가 보이지 않음 / Core 또는 UniTask를 찾지 못함
+## Studio 메뉴가 보이지 않음 / Core 또는 UniTask를 찾지 못함
 
 **가능한 원인:** Unity 버전 미달, Core/UniTask 누락, compile error입니다.
 
-**해결 순서:** Unity 6000.4 이상인지 확인하고 UniTask 2.5.10, Core 0.1.0, Designer 0.1.0 순서로 설치합니다. Package Manager와 `Packages/manifest.json`을 확인한 뒤 Domain Reload를 기다립니다.
+**해결 순서:** Unity 6000.4 이상인지 확인하고 UniTask 2.5.10, Core 0.1.0, Studio 0.1.0 순서로 설치합니다. Package Manager와 `Packages/manifest.json`을 확인한 뒤 Domain Reload를 기다립니다.
 
-**정상 확인:** `Tools > NexUI > Designer`가 보입니다. 계속되면 Unity 버전, package 목록, manifest와 Console 첫 오류를 수집합니다.
+**정상 확인:** `Tools > NexUI > Studio`가 보입니다. 계속되면 Unity 버전, package 목록, manifest와 Console 첫 오류를 수집합니다.
 
-## Designer 창 또는 Preview가 비어 있음
+## Studio 창 또는 Preview가 비어 있음
 
 Screen, Metadata, Backend Asset이 모두 선택되었는지 확인하고 **Rebuild Preview**를 누릅니다. Screen/Metadata Screen ID와 Backend Asset 형식을 Validate합니다. 정상이라면 Layers와 Canvas에 Metadata Element가 표시됩니다.
 
@@ -30,7 +30,7 @@ Validation 결과의 Element로 이동합니다. Duplicate ID는 고유하게 �
 
 uGUI Backend인지, Prefab이 연결됐는지 확인합니다. Save Report의 **Skipped**와 **Error**를 읽으세요. Preview-only 또는 미지원 속성은 Prefab에 쓰이지 않습니다.
 
-연결은 Element 이름이 아니라 **Stable ID**로 이루어집니다. `duplicate-prefab-stable-id` 오류가 보이면 Prefab 안에 Identity Tag가 중복된 것입니다(대개 Designer가 만든 Object를 Prefab에서 복제한 경우). 복제본의 Tag를 제거하거나 재생성한 뒤 다시 저장하세요. Designer는 잘못된 Object에 쓰지 않기 위해 해당 Element를 건너뜁니다.
+연결은 Element 이름이 아니라 **Stable ID**로 이루어집니다. `duplicate-prefab-stable-id` 오류가 보이면 Prefab 안에 Identity Tag가 중복된 것입니다(대개 Studio가 만든 Object를 Prefab에서 복제한 경우). 복제본의 Tag를 제거하거나 재생성한 뒤 다시 저장하세요. Studio는 잘못된 Object에 쓰지 않기 위해 해당 Element를 건너뜁니다.
 
 ## UI Toolkit Save 후 UXML이 바뀌지 않음
 
@@ -46,7 +46,7 @@ Definition을 복구하면 그대로 돌아옵니다. 복구할 수 없다면 In
 
 ## Definition을 고쳤는데 Instance가 그대로임
 
-Definition Asset을 저장했는지 확인하세요(Project 창에서 편집한 경우 Unity가 자동 저장하지 않을 수 있습니다). Designer 창을 다시 그리려면 아무 편집이나 하거나 **Rebuild Preview**를 누릅니다.
+Definition Asset을 저장했는지 확인하세요(Project 창에서 편집한 경우 Unity가 자동 저장하지 않을 수 있습니다). Studio 창을 다시 그리려면 아무 편집이나 하거나 **Rebuild Preview**를 누릅니다.
 
 Instance가 해당 값을 **Override**하고 있으면 Definition 값이 보이지 않습니다. Inspector에서 해당 Property의 **Reset**을 누르세요.
 
@@ -62,7 +62,7 @@ Texture를 끌었는데 적용되지 않으면 Texture Type이 `Sprite`가 아�
 
 ## Sync Conflict
 
-Generated 파일과 Designer가 마지막 Publish 이후 모두 바뀐 상태입니다. Diff를 보고 **Designer 사용** 또는 **Backend 사용**을 선택합니다. 자동 Merge는 제공되지 않습니다. [Asset Ownership](asset-ownership.md)을 참고하세요.
+Generated 파일과 Studio가 마지막 Publish 이후 모두 바뀐 상태입니다. Diff를 보고 **Studio 사용** 또는 **Backend 사용**을 선택합니다. 자동 Merge는 제공되지 않습니다. [Asset Ownership](asset-ownership.md)을 참고하세요.
 
 ## Motion Preview 미적용 / Motion 대상 누락
 
@@ -78,7 +78,7 @@ Scenario 값 형식과 Metadata Binding Channel을 확인합니다. Number만 �
 
 ## Undo 후 Preview 불일치 / Domain Reload 후 상태 문제
 
-먼저 Rebuild Preview를 실행합니다. Screen과 Metadata 선택, 선택 Element ID, Zoom/Tab 복원 상태를 확인합니다. 재현되면 수행한 Undo 단계, 열린 Designer 창 수, Reload 직전 Dirty 상태, Console log와 관련 Asset을 수집합니다.
+먼저 Rebuild Preview를 실행합니다. Screen과 Metadata 선택, 선택 Element ID, Zoom/Tab 복원 상태를 확인합니다. 재현되면 수행한 Undo 단계, 열린 Studio 창 수, Reload 직전 Dirty 상태, Console log와 관련 Asset을 수집합니다.
 
 ## 읽기 전용 Package 경로 오류
 

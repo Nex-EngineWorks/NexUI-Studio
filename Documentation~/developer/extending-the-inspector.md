@@ -1,6 +1,6 @@
 # Inspector 확장
 
-NexUI Designer의 Right Inspector는 `DesignerInspectorRegistry`를 단일 진입점으로 사용합니다. 새 기능이 별도 Inspector 창이나 탭을 만들지 않도록, 선택 대상에 맞는 `VisualElement` Section을 Registry에 등록하세요.
+NexUI Studio의 Right Inspector는 `DesignerInspectorRegistry`를 단일 진입점으로 사용합니다. 새 기능이 별도 Inspector 창이나 탭을 만들지 않도록, 선택 대상에 맞는 `VisualElement` Section을 Registry에 등록하세요.
 
 ```csharp
 DesignerInspectorRegistry.Register(new DesignerInspectorSectionDescriptor(

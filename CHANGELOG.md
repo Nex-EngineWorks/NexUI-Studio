@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### 2026-08-02 completion sweep
+- Completed imported-Prefab component adoption, ownership-safe removal, stack ordering, and first-save round-trip coverage.
+- Added `[SerializeReference]`, `ExposedReference`, and `Hash128` property preservation.
+- Added two-way Binding metadata, converter keys, live capability-contract validation, and Motion Graph parallel completion policies.
+- Added reusable Component Definition editing and expanded the Assets panel with list/grid, multi-select drag, create, rename, duplicate, and confirmed Trash deletion.
+- Added uGUI rounded-rectangle, gradient, and soft-shadow output through NexUI graphics components.
+- Added Windows, macOS, and Linux support checks, portable generated-asset paths, stable Figma credential keys, and platform-correct Ctrl/Command shortcuts.
+
 ### Editable component structure
 - Added a Component Structure Inspector that separates real authored children from library-owned internal parts.
 - Toggle Group and other containers can create/select real child elements; those children use the standard Layout, Style, Binding and Motion inspectors.
@@ -42,7 +50,7 @@
 - 새 팔레트 폴더 제목을 ko/en 양쪽에 추가했습니다. 번역이 빠지면 팔레트에 `palette.group.charts` 같은 키가 그대로 노출되므로, 이를 막는 테스트도 함께 추가했습니다.
 
 ### 전체 개요 문서
-- `Documentation~/overview.md`를 추가했습니다. 프로젝트를 만든 이유(웹의 React 수준 UI 제작 경험을 Unity에서), 런타임/Designer 전체 기능, 컴포넌트 라이브러리, 백엔드 출력 파이프라인, 현재 상태와 남은 일, 그리고 기존 문서 전체로 가는 지도를 한 문서에 모았습니다. 흩어진 문서를 먼저 다 읽지 않아도 프로젝트 전체를 파악할 수 있게 하는 것이 목적입니다.
+- `Documentation~/overview.md`를 추가했습니다. 프로젝트를 만든 이유(웹의 React 수준 UI 제작 경험을 Unity에서), 런타임/Studio 전체 기능, 컴포넌트 라이브러리, 백엔드 출력 파이프라인, 현재 상태와 남은 일, 그리고 기존 문서 전체로 가는 지도를 한 문서에 모았습니다. 흩어진 문서를 먼저 다 읽지 않아도 프로젝트 전체를 파악할 수 있게 하는 것이 목적입니다.
 - 문서 index 상단에서 이 개요를 첫 진입점으로 안내합니다.
 
 ### Unity 기본 컴포넌트를 팔레트에 추가
@@ -52,17 +60,17 @@
 - **NexUI 자체 컴포넌트 52종**(선택·입력·내비게이션·데이터·게임 HUD 계열)을 추가해 팔레트 항목이 132종이 되었습니다.
 - 계열이 맞지 않는 백엔드에서는 Preview-only로 처리합니다. 캔버스에는 보이고, 저장 리포트가 "이 백엔드에는 쓰지 않았다"고 밝힙니다.
 - 새 타입 대부분에 캔버스 프리뷰 렌더러를 붙여, 슬라이더·체크박스·표·트리·탭이 빈 상자가 아니라 형태로 보입니다.
-- 요소에 임의 MonoBehaviour를 부착하는 **Add Component**를 추가했습니다. 메타데이터에는 타입 이름만 저장하고, Designer가 붙인 컴포넌트만 추적해 사용자가 프리팹에 직접 붙인 같은 타입 컴포넌트를 지우지 않습니다.
+- 요소에 임의 MonoBehaviour를 부착하는 **Add Component**를 추가했습니다. 메타데이터에는 타입 이름만 저장하고, Studio가 붙인 컴포넌트만 추적해 사용자가 프리팹에 직접 붙인 같은 타입 컴포넌트를 지우지 않습니다.
 
 ### Panes can be pulled out and docked anywhere
 - Each region (Explorer, Inspector, Output) has a **⧉** button that opens it as its own `EditorWindow`. Rather than building a bespoke docking system, the pane becomes a normal editor window — so Unity's docking, tabbing, floating, multi-monitor placement and layout saving all apply for free, and the arrangement survives restarts and layout switches.
-- Closing a detached window docks the pane back into the Designer, and the shell re-lays itself out around whatever is currently detached. The canvas is never detachable, since it is what the Designer window is.
+- Closing a detached window docks the pane back into the Studio, and the shell re-lays itself out around whatever is currently detached. The canvas is never detachable, since it is what the Studio window is.
 - The canvas column instance is preserved across re-layouts, so rearranging panes does not throw away the viewport and its scroll/zoom/guides.
-- Detached panes follow the active Designer window's context, so focusing a different screen re-points them instead of leaving a stale view.
-- Added `Tools/NexUI/Panels/…` to open any panel directly, including Hierarchy, Library and Project Assets as extra windows, plus `Dock All Back Into Designer` as the way back from a layout the user has lost track of.
+- Detached panes follow the active Studio window's context, so focusing a different screen re-points them instead of leaving a stale view.
+- Added `Tools/NexUI/Panels/…` to open any panel directly, including Hierarchy, Library and Project Assets as extra windows, plus `Dock All Back Into Studio` as the way back from a layout the user has lost track of.
 
 ### Every pane is now labelled
-- Added a one-line caption to each region of the Designer window (sidebar, canvas, inspector, output drawer). The five regions previously looked alike with nothing naming them, which is what made "where is this feature" a hunt.
+- Added a one-line caption to each region of the Studio window (sidebar, canvas, inspector, output drawer). The five regions previously looked alike with nothing naming them, which is what made "where is this feature" a hunt.
 - The caption states the pane name *and* what the current view is for, so it adds information rather than repeating the tab label directly underneath it: the sidebar reads `EXPLORER — Structure of the open screen` and changes with the active tab, and the canvas caption carries the open screen's id.
 - Kept to a single 18px row, and hidden on the output drawer while it is collapsed so it never eats the one row left visible on purpose.
 
@@ -74,7 +82,7 @@
 
 ### Fixes found while building the above
 - Smart guides never snapped one element's edge against its neighbour's opposite edge — only like-for-like edges and centres. Butting two elements together, the most common layout move, therefore did not snap at all. Added the two adjacency pairs on each axis.
-- Several EditMode tests read grid size and snapping straight out of `EditorPrefs`, which are shared with whatever was last set in the Designer window. The suite's pass/fail set changed depending on the machine. `DesignerUIStateTests`, `DesignerUndoConsistencyTests` and `NexUIAIServiceTests` now pin known values and restore the user's settings afterwards.
+- Several EditMode tests read grid size and snapping straight out of `EditorPrefs`, which are shared with whatever was last set in the Studio window. The suite's pass/fail set changed depending on the machine. `DesignerUIStateTests`, `DesignerUndoConsistencyTests` and `NexUIAIServiceTests` now pin known values and restore the user's settings afterwards.
 
 ### Canvas ergonomics (follow-up)
 - Guides can now be **grabbed and moved**. Each one carries an 11px transparent grab band around its 1px line — a hair-line is effectively unhittable with a mouse, which is why guides were previously create-and-delete only. Hovering thickens the line so the target is visible, and dragging honours Grid Snap.
@@ -101,7 +109,7 @@
 - Added reusable components and the Assets panel to the concepts, terminology, feature status, known limitations, parity matrix, workflows, canvas, inspector and architecture docs.
 
 ### Assets panel
-- Added a Project-window-style **Assets** tab to the Designer sidebar: folder navigation with breadcrumbs, recursive search, kind filtering (Image/Font/Material/Prefab/UXML/USS/Asset), thumbnails, click-to-ping and double-click-to-open. This replaces the placeholder tab that previously only had a "Show Project Assets" button.
+- Added a Project-window-style **Assets** tab to the Studio sidebar: folder navigation with breadcrumbs, recursive search, kind filtering (Image/Font/Material/Prefab/UXML/USS/Asset), thumbnails, click-to-ping and double-click-to-open. This replaces the placeholder tab that previously only had a "Show Project Assets" button.
 - Added asset drag-and-drop onto the canvas: a sprite sets an element's image (or creates an Image element on empty canvas), a font or material assigns to the hovered element, and a component definition places an instance. Payloads with no defined behaviour are rejected rather than guessed at, and every drop is a single Undo step.
 - Drops from Unity's own Project window work identically, since both paths use `UnityEditor.DragAndDrop`.
 - The panel stays read-only by design — rename/move/delete/create remain the Project window's job, so their reference-fixup and `.meta` safety rules are not duplicated.
@@ -123,8 +131,8 @@
 - Replaced the split Design/Prototype/Motion Inspector with one searchable, foldout-based Inspector using workflow filters and Beginner/Pro progressive disclosure.
 - Added a public Inspector section registry and compatibility wrapper so Inspector extensions share one rendering path.
 - Added Setup Doctor for dependency, project asset, scene backend and writable-path checks.
-- Consolidated screen creation under `Tools/NexUI/Designer` and grouped beta graph tools as experimental utilities.
-- Added explicit Loaded/Unsaved/Saved and validation state to the Designer toolbar.
+- Consolidated screen creation under `Tools/NexUI/Studio` and grouped beta graph tools as experimental utilities.
+- Added explicit Loaded/Unsaved/Saved and validation state to the Studio toolbar.
 - Removed placeholder Assets and Timeline tabs; Unity's Project window and the Motion Clip Editor are now the single entry points.
 - Added package manifest documentation links, install-order guidance and a release readiness checklist.
 
@@ -137,7 +145,7 @@
 - Completed AnimationClip import/export for supported RectTransform, Transform and CanvasGroup curves, including Editor and Assets menu actions.
 - Added Grid Auto Layout serialization for uGUI and UI Toolkit, including column/cell metadata and generated USS wrapping.
 - Completed Sprite/List Scenario Timeline editing and preview context capture for resolution, input device and theme.
-- Added live Preview Snapshot capture/diff and a configurable Designer shortcut settings window.
+- Added live Preview Snapshot capture/diff and a configurable Studio shortcut settings window.
 - Added first-frame Figma import for hierarchy, coordinates, text, solid fills and Auto Layout with Undo.
 - Added `DesignerMotionTriggerRuntime` for backend-neutral Click/Pointer/Focus subscription, lifecycle dispatch, Reduced Motion selection and deterministic disposal.
 
@@ -154,7 +162,7 @@
 ### Stabilized
 - Added a focus-aware `DesignerSessionRegistry` and removed satellite-window context discovery through `Resources.FindObjectsOfTypeAll`.
 - Added panel-lifetime event subscriptions so rebuilt/closed VisualElements do not accumulate Context callbacks.
-- Persisted screen and element Motion Clip bindings, Reduced Motion alternatives, Motion State Machine and Motion Graph references in Designer metadata.
+- Persisted screen and element Motion Clip bindings, Reduced Motion alternatives, Motion State Machine and Motion Graph references in Studio metadata.
 - Added Motion binding Undo/Redo, element-id reference migration, save synchronization and validation for missing targets/clips and invalid keyframes.
 - Added dirty-state handling, Ctrl+S and Undo/Redo preview refresh.
 - Restored recent screen, metadata, valid selection and canvas scroll state by asset GUID after reload.
@@ -165,9 +173,9 @@
 
 ### Added
 - **Motion Clip Editor**: new standalone `Tools/NexUI/Utilities > Motion Clip Editor` window for
-  authoring multi-element, multi-property, keyframe-based `UIMotionClip` assets, with a Designer
+  authoring multi-element, multi-property, keyframe-based `UIMotionClip` assets, with a Studio
   selection-linked entry point ("Open Motion Clip Editor") from the Motion inspector. Includes a
-  minimal timeline view (draggable keyframes), live preview against the Designer's preview
+  minimal timeline view (draggable keyframes), live preview against the Studio's preview
   surface, and Play/Stop. See `Documentation~/motion/motion-clip-editor.md`.
 - `UnityAnimationClipAdapter` (preview an existing `AnimationClip` via `SampleAnimation`) and
   implemented `UIMotionClipImporter`/`UIMotionClipExporter` conversion services.
@@ -178,14 +186,14 @@
   with a connected `start`/`end` node pair.
 - Shared IMGUI chrome for all `NexUIToolWindow`-based satellite tool windows (header band,
   accent section headers, status badges) driven by an expanded `DesignerColors` token set, so
-  their look now tracks the main Designer's dark UI Toolkit theme instead of default Editor
+  their look now tracks the main Studio's dark UI Toolkit theme instead of default Editor
   styling.
 
 ### Fixed
-- Main Designer window's bottom panel (`State`/`Command`/`Screen Graph` cards) was clipped at a
+- Main Studio window's bottom panel (`State`/`Command`/`Screen Graph` cards) was clipped at a
   fixed 34px/28px height that didn't fit its own content; increased to 64px/56px.
 - `MotionGraphWindow` (Motion Graph popout) now applies the shared `NexUIDesigner.uss`
-  stylesheet and button classes, matching the rest of the Designer.
+  stylesheet and button classes, matching the rest of the Studio.
 
 ### Known limitations
 - Motion Clip `AnchoredPosition`/`LocalPosition` currently resolve to the same underlying value.
@@ -195,5 +203,5 @@
 
 ## 0.1.0
 
-- Initial NexUI Designer extension package.
+- Initial NexUI Studio extension package.
 - Added metadata assets, localized Editor window shell, backend abstraction, tools, inspectors, graph panels, serializers, and documentation.

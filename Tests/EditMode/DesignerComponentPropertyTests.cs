@@ -63,7 +63,7 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
         [Test]
         public void PropertyLabelsAreTranslatedInBothLanguages()
         {
-            const string root = "Packages/com.emiteat.nexui.designer/Localization/";
+            const string root = "Packages/com.nexengineworks.nexui.studio/Localization/";
             var korean = System.IO.File.ReadAllText(root + "ko-KR.json");
             var english = System.IO.File.ReadAllText(root + "en-US.json");
 

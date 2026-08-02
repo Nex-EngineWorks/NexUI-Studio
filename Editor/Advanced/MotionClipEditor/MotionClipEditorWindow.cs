@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using emiteat.NexUI.Abstractions;
+using emiteat.NexUI.Designer.Editor.Commands;
 using emiteat.NexUI.Designer.Editor.Localization;
 using emiteat.NexUI.MotionClip;
 using UnityEditor;
@@ -100,7 +101,7 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
             root.AddToClassList("nexui-designer-root");
             root.AddToClassList("nexui-tool-window-root");
             var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(
-                "Packages/com.emiteat.nexui.designer/Editor/Styles/NexUIDesigner.uss");
+                "Packages/com.nexengineworks.nexui.studio/Editor/Styles/NexUIDesigner.uss");
             if (styleSheet != null && !root.styleSheets.Contains(styleSheet))
                 root.styleSheets.Add(styleSheet);
 
@@ -150,7 +151,8 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
             toolbar.Add(clipField);
 
             var createButton = MakeButton(CreateClip, DesignerLocalization.T("motionClip.toolbar.createClip"), "nexui-button-secondary");
-            DesignerTooltip.Set(createButton, "tooltip.motionClip.createClip", "Ctrl+N");
+            DesignerTooltip.Set(createButton, "tooltip.motionClip.createClip",
+                UIDesignerShortcut.PrimaryModifierLabel + "+N");
             toolbar.Add(createButton);
 
             var importButton = MakeButton(() =>
@@ -244,7 +246,8 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
                 toolbar.Add(autoKey);
 
                 var saveButton = MakeButton(() => AssetDatabase.SaveAssets(), DesignerLocalization.T("motionClip.toolbar.save"), "nexui-button-secondary");
-                DesignerTooltip.Set(saveButton, "tooltip.motionClip.save", "Ctrl+S");
+                DesignerTooltip.Set(saveButton, "tooltip.motionClip.save",
+                    UIDesignerShortcut.PrimaryModifierLabel + "+S");
                 toolbar.Add(saveButton);
 
                 var exportButton = MakeButton(() => MotionClipConversionMenu.Export(_clip), "AnimationClip 내보내기", "nexui-button-secondary");
@@ -397,7 +400,7 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
 
             if (!connected)
             {
-                var openButton = MakeButton(() => EditorApplication.ExecuteMenuItem("Tools/NexUI/Designer"),
+                var openButton = MakeButton(() => EditorApplication.ExecuteMenuItem("Tools/Nex/NexUI Studio"),
                     DesignerLocalization.T("motionClip.status.openDesigner"), "nexui-button-secondary");
                 DesignerTooltip.Set(openButton, "tooltip.motionClip.openDesigner");
                 _statusRow.Add(openButton);

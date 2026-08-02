@@ -47,7 +47,7 @@ namespace emiteat.NexUI.Designer.Editor.Backend
                 Badge(T("uxmlGen.status.disconnected"), BadgeKind.Warning);
                 EditorGUILayout.HelpBox(T("uxmlGen.help.noScreen"), MessageType.Info);
                 if (GUILayout.Button(T("uxmlGen.status.openDesigner"), GUILayout.ExpandWidth(false)))
-                    EditorApplication.ExecuteMenuItem("Tools/NexUI/Designer");
+                    EditorApplication.ExecuteMenuItem("Tools/Nex/NexUI Studio");
                 return;
             }
 
@@ -132,7 +132,7 @@ namespace emiteat.NexUI.Designer.Editor.Backend
             {
                 var written = AssetDatabase.LoadAssetAtPath<Object>(uxmlPath);
                 if (written != null) EditorGUIUtility.PingObject(written);
-                Debug.Log($"[NexUI] Generated {uxmlPath} + {ussPath}");
+                Debug.Log($"[NexUI Studio] Generated {uxmlPath} + {ussPath}");
             }
         }
 

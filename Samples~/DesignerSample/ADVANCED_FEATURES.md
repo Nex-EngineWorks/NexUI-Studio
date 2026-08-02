@@ -1,6 +1,6 @@
 # 고급 기능 샘플
 
-이 샘플은 디자이너 메타데이터가 런타임 코드에 에디터 전용 로직을 섞지 않고도 더 큰 제작 흐름을 지원하는 방식을 보여줍니다.
+이 샘플은 스튜디오 메타데이터가 런타임 코드에 에디터 전용 로직을 섞지 않고도 더 큰 제작 흐름을 지원하는 방식을 보여줍니다.
 
 ## 예시 흐름
 
@@ -12,7 +12,7 @@
 
 ## 유용한 메뉴
 
-- `Tools/NexUI/Designer`
+- `Tools/NexUI/Studio`
 - `Tools/NexUI/Screen/Rebuild Preview`
 - `Tools/NexUI/Screen/Validate Screen`
 - `Tools/NexUI/Screen/Save Screen`

@@ -5,7 +5,7 @@
 `MainMenu` 화면에 Background, 게임 제목과 세 Button을 배치합니다. Button은 Vertical Auto Layout Container 아래에 두고 `menu.start`, `menu.settings`, `menu.quit` Command Key를 저장합니다.
 
 <!-- TODO Screenshot:
-화면: 완성된 MainMenu Designer Canvas
+화면: 완성된 MainMenu Studio Canvas
 표시할 항목: 전체 Background, Title, 세로 정렬된 Start/Settings/Quit Button, Layers 계층
 권장 해상도: 1600×900
 파일 제안: images/tutorial-main-menu-result.png
@@ -14,7 +14,7 @@
 ## 필요한 사전 준비
 
 - Unity 6000.4 이상
-- NexUI Core와 NexUI Designer 0.1.0
+- NexUI Core와 NexUI Studio 0.1.0
 - `Assets/UI/Screens`처럼 Package 밖의 쓰기 가능한 폴더
 - [인터페이스 둘러보기](interface-tour.md)를 한 번 읽은 상태
 
@@ -24,7 +24,7 @@ UI Toolkit은 `MainMenu.asset`, `MainMenu.Metadata.asset`, `MainMenu.uxml`, `Mai
 
 ## 1. UIScreenDefinition 생성
 
-Global Toolbar의 **+ 새 화면**을 누르거나 `Tools > NexUI > Designer > New Screen`을 엽니다. 화면 이름은 `Main Menu`, Screen ID는 `MainMenu`, 템플릿은 `FullScreen`, 저장 폴더는 `Assets/UI/Screens/MainMenu`로 입력합니다.
+Global Toolbar의 **+ 새 화면**을 누르거나 `Tools > NexUI > Studio > New Screen`을 엽니다. 화면 이름은 `Main Menu`, Screen ID는 `MainMenu`, 템플릿은 `FullScreen`, 저장 폴더는 `Assets/UI/Screens/MainMenu`로 입력합니다.
 
 Screen ID는 Runtime이 화면을 찾는 계약입니다. 문자 또는 `_`로 시작하고 문자, 숫자, `_`, `-`만 사용하세요. 중복 ID나 기존 파일이 있으면 생성 버튼이 비활성화됩니다.
 
@@ -37,7 +37,7 @@ Backend에서 `UIToolkit` 또는 `UGUI`를 선택합니다. 처음 따라 한다
 
 ## 3. Backend Asset 준비
 
-**Designer Metadata 생성**, **Root 요소 생성**을 켭니다. **기본 열기/닫기 전환 생성**은 선택 사항이며, 처음에는 꺼도 됩니다. **생성하고 Designer에서 열기**를 누릅니다.
+**Studio Metadata 생성**, **Root 요소 생성**을 켭니다. **기본 열기/닫기 전환 생성**은 선택 사항이며, 처음에는 꺼도 됩니다. **생성하고 Studio에서 열기**를 누릅니다.
 
 정상적으로 완료되면 Screen이 Global Toolbar에, Metadata가 Left Sidebar에 자동 연결되고 Backend 배지가 선택한 Backend를 표시합니다. 실패하면 저장 폴더가 `Assets/` 아래인지, 같은 이름의 파일과 Screen ID가 이미 있는지 확인하세요.
 
@@ -95,7 +95,7 @@ Layers에서 세 Button을 `menuButtons` 아래로 옮깁니다. 형제 순서�
 
 ## 13. Command Key 연결
 
-Button을 하나씩 선택하고 Inspector의 **Connect > Binding**에서 Command Key에 위 표의 값을 입력하거나 Command Picker에서 선택합니다. Designer는 Key 문자열을 저장합니다. 게임 동작은 Runtime의 `UIActionResolver` 등록이 담당합니다.
+Button을 하나씩 선택하고 Inspector의 **Connect > Binding**에서 Command Key에 위 표의 값을 입력하거나 Command Picker에서 선택합니다. Studio는 Key 문자열을 저장합니다. 게임 동작은 Runtime의 `UIActionResolver` 등록이 담당합니다.
 
 컴파일 가능한 Runtime 예제는 [Binding](../user-guide/binding.md)에 있습니다. 등록하지 않은 Key는 Play Mode에서 동작하지 않습니다.
 
@@ -124,7 +124,7 @@ Skipped가 있다고 무조건 실패는 아닙니다. 어떤 값이 제외됐�
 
 Runtime에서 `MainMenu` Screen을 등록하고 `UIActionResolver`에 세 Command Key를 등록한 뒤 화면을 엽니다. Button 클릭이 등록한 Action으로 연결되고 Text/Layout이 실제 Backend에서 맞게 보이는지 확인합니다.
 
-Designer Preview와 Play Mode가 다르면 Canvas Scaler/Panel Settings, Font, Runtime Binding 타입과 Backend Asset을 확인하세요.
+Studio Preview와 Play Mode가 다르면 Canvas Scaler/Panel Settings, Font, Runtime Binding 타입과 Backend Asset을 확인하세요.
 
 ## 완성 구조
 
@@ -142,7 +142,7 @@ background
 - Canvas가 비어 있음: Screen, Metadata, Backend Asset 연결 후 Rebuild합니다.
 - ID mismatch: Screen과 Metadata의 `MainMenu` ID를 맞춥니다.
 - Button이 정렬되지 않음: `menuButtons` Parent와 Auto Layout Enabled를 확인합니다.
-- Command가 실행되지 않음: Designer Preview가 아니라 Play Mode에서 `UIActionResolver.Contains(key)`와 등록 코드를 확인합니다.
+- Command가 실행되지 않음: Studio Preview가 아니라 Play Mode에서 `UIActionResolver.Contains(key)`와 등록 코드를 확인합니다.
 - UXML이 바뀌지 않음: Generated Marker가 없는 사용자 파일인지 확인합니다.
 
 ## 다음에 해볼 것

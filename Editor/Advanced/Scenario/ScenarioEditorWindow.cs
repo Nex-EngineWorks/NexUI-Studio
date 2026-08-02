@@ -133,7 +133,7 @@ namespace emiteat.NexUI.Designer.Editor.Scenario
             {
                 Badge(T("scenario.status.disconnected"), BadgeKind.Warning);
                 if (GUILayout.Button(T("scenario.status.openDesigner"), GUILayout.ExpandWidth(false)))
-                    EditorApplication.ExecuteMenuItem("Tools/NexUI/Designer");
+                    EditorApplication.ExecuteMenuItem("Tools/Nex/NexUI Studio");
             }
         }
 

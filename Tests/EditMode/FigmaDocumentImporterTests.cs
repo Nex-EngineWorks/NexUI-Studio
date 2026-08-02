@@ -7,6 +7,20 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
     public sealed class FigmaDocumentImporterTests
     {
         [Test]
+        public void CredentialProjectKeyIsStableAcrossSeparatorStyles()
+        {
+            var windowsStyle = FigmaCredentials.ProjectKeyFor(@"C:\Work\NexUI\Assets", true);
+            var unityStyle = FigmaCredentials.ProjectKeyFor("c:/work/nexui/assets/", true);
+            Assert.AreEqual(windowsStyle, unityStyle);
+            Assert.AreEqual(32, windowsStyle.Length);
+
+            Assert.AreNotEqual(
+                FigmaCredentials.ProjectKeyFor("/work/NexUI/Assets", false),
+                FigmaCredentials.ProjectKeyFor("/work/nexui/Assets", false),
+                "Linux and case-sensitive macOS volumes must keep distinct project identities.");
+        }
+
+        [Test]
         public void ImportFirstFrame_MapsHierarchyTextFillAndAutoLayout()
         {
             const string json = "{\"document\":{\"type\":\"DOCUMENT\",\"children\":[{\"type\":\"CANVAS\",\"children\":[{" +

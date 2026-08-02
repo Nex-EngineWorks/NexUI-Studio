@@ -104,7 +104,43 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             if (source == null) return null;
             var json = JsonUtility.ToJson(source);
             var clone = JsonUtility.FromJson<DesignerElementMetadata>(json);
+            RefreshComponentIdentities(clone);
             return clone;
+        }
+
+        /// <summary>
+        /// Gives every component on a freshly cloned element its own identity.
+        /// </summary>
+        /// <remarks>
+        /// A copy is a different attachment, so it needs a different <c>instanceId</c>. Sharing one
+        /// would make the prefab writer's ownership tracking point two elements at the same component
+        /// and destroy one of them on the next save.
+        /// </remarks>
+        public static void RefreshComponentIdentities(DesignerElementMetadata clone)
+        {
+            if (clone?.components == null) return;
+            foreach (var component in clone.components)
+                if (component != null) component.instanceId = Guid.NewGuid().ToString("N");
+        }
+
+        /// <summary>
+        /// Re-points component references that targeted an element inside the copied set.
+        /// </summary>
+        /// <remarks>
+        /// Without this, every duplicate of a health bar would drive the <i>original</i> bar's fill
+        /// image. A reference to something outside the copied set is deliberately left alone: pointing
+        /// at the original is the right answer when the target was never copied.
+        /// </remarks>
+        public static void RemapComponentReferences(DesignerElementMetadata clone,
+            IReadOnlyDictionary<string, string> stableIdMap)
+        {
+            if (clone?.components == null || stableIdMap == null || stableIdMap.Count == 0) return;
+            foreach (var component in clone.components)
+            {
+                if (component?.properties == null) continue;
+                foreach (var entry in component.properties)
+                    entry?.value?.reference?.Remap(stableIdMap);
+            }
         }
 
         /// <summary>Returns element ids that appear more than once.</summary>

@@ -13,7 +13,7 @@ namespace emiteat.NexUI.Designer.Editor.Utilities
     /// </summary>
     public sealed class NexUIUtilitiesWindow : EditorWindow
     {
-        private const string StylePath = "Packages/com.emiteat.nexui.designer/Editor/Styles/NexUIDesigner.uss";
+        private const string StylePath = "Packages/com.nexengineworks.nexui.studio/Editor/Styles/NexUIDesigner.uss";
 
         private readonly List<ToolEntry> _tools = new()
         {
@@ -78,7 +78,7 @@ namespace emiteat.NexUI.Designer.Editor.Utilities
             Repaint();
         }
 
-        [MenuItem("Tools/NexUI/Utilities", priority = NexUIDesignerMenu.PriorityWindows + 1)]
+        [MenuItem("Tools/Nex/NexUI Studio/Utilities", priority = NexUIDesignerMenu.PriorityWindows + 1)]
         public static void Open()
         {
             var window = GetWindow<NexUIUtilitiesWindow>();

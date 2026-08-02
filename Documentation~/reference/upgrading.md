@@ -1,6 +1,6 @@
 # Upgrading
 
-NexUI Designer와 Core는 `UIScreenDefinition`, Binding과 Backend 계약을 함께 사용하므로 같은 호환 버전으로 업데이트해야 합니다.
+NexUI Studio와 Core는 `UIScreenDefinition`, Binding과 Backend 계약을 함께 사용하므로 같은 호환 버전으로 업데이트해야 합니다.
 
 ## 업데이트 전
 
@@ -10,7 +10,7 @@ NexUI Designer와 Core는 `UIScreenDefinition`, Binding과 Backend 계약을 함
 
 ## Package Manager 업데이트
 
-Core를 먼저 업데이트하고 Designer를 업데이트합니다. Git dependency라면 두 package URL의 revision을 같은 검증된 commit/tag로 맞춥니다. Console compile error가 없는지 확인한 뒤 Unity를 다시 엽니다.
+Core를 먼저 업데이트하고 Studio를 업데이트합니다. Git dependency라면 두 package URL의 revision을 같은 검증된 commit/tag로 맞춥니다. Console compile error가 없는지 확인한 뒤 Unity를 다시 엽니다.
 
 ## 데이터와 생성물 확인
 

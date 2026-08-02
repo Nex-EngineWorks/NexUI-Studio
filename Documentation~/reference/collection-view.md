@@ -16,7 +16,7 @@
 | 데이터 공급 | `INXCollectionSource`, `NXCollectionSource<T>` | `emiteat.NexUI.Components` |
 | uGUI 어댑터 | `NXCollectionView` (ScrollRect 위) | `emiteat.NexUI.Integrations.UGUI` |
 | UI Toolkit 어댑터 | `NXCollectionViewElement` | `emiteat.NexUI.Integrations.UIToolkit` |
-| 저장 설정 읽기 | `DesignerCollectionOptions` | `emiteat.NexUI.Designer.Editor` |
+| 저장 설정 읽기 | `DesignerCollectionOptions` | `emiteat.NexUI.Studio.Editor` |
 
 엔진에는 UnityEngine 타입이 없다. 가상화 범위 계산·선택·상태 전환이 씬 없이 EditMode에서 검증되는
 이유이고(`CollectionControllerTests`), 두 백엔드가 같은 산술을 쓰는 이유이기도 하다.
@@ -51,10 +51,10 @@
 O = 동작함, △ = 부분, ✗ = 미구현(옵션은 있으나 동작 없음)
 
 지원하지 않는 조합은 근사하지 않고 보고한다. `NXCollectionOptions.Validate(problems)`가 이유를
-문자열로 돌려주고, Designer는 이를 `collection-options-conflict` 이슈로 띄운다. 예: Wrap +
+문자열로 돌려주고, Studio는 이를 `collection-options-conflict` 이슈로 띄운다. 예: Wrap +
 DynamicSize는 Wrap이 균일 셀을 쓰므로 거부된다.
 
-## Designer 속성
+## Studio 속성
 
 `items.*` 키가 그대로 런타임 `NXCollectionOptions`가 된다.
 
@@ -121,5 +121,5 @@ ScrollView(Viewport/Content/스크롤바) 위에 `NXCollectionView`를 얹는다
 
 ## 관련 문서
 
-- 샘플: `com.emiteat.nexui/Samples~/CollectionDemo/README.md`
-- 테스트: `com.emiteat.nexui/Tests/EditMode/CollectionControllerTests.cs`
+- 샘플: `com.nexengineworks.nexui/Samples~/CollectionDemo/README.md`
+- 테스트: `com.nexengineworks.nexui/Tests/EditMode/CollectionControllerTests.cs`

@@ -1,4 +1,5 @@
 using System;
+using emiteat.NexUI.State;
 
 namespace emiteat.NexUI.Designer
 {
@@ -11,5 +12,9 @@ namespace emiteat.NexUI.Designer
         public string classKey;
         public string commandKey;
         public string interactableKey;
+        public UIBindingMode textMode = UIBindingMode.OneWay;
+        public UIBindingMode valueMode = UIBindingMode.OneWay;
+        public string textConverterKey;
+        public string valueConverterKey;
     }
 }

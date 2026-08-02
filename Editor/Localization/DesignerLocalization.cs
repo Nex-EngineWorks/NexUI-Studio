@@ -10,7 +10,7 @@ namespace emiteat.NexUI.Designer.Editor.Localization
     public static class DesignerLocalization
     {
         private const string PrefKey = "NexUI.Designer.Language";
-        private const string PackageRoot = "Packages/com.emiteat.nexui.designer/Localization";
+        private const string PackageRoot = "Packages/com.nexengineworks.nexui.studio/Localization";
         private static readonly Dictionary<string, string> Current = new Dictionary<string, string>();
         private static readonly Dictionary<string, string> English = new Dictionary<string, string>();
         private static DesignerLanguage _language;
@@ -65,7 +65,7 @@ namespace emiteat.NexUI.Designer.Editor.Localization
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[NexUI Designer] Failed to load localization file '{path}': {ex.Message}");
+                Debug.LogError($"[NexUI Studio] Failed to load localization file '{path}': {ex.Message}");
             }
         }
 

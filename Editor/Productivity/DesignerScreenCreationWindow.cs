@@ -1,5 +1,6 @@
 using emiteat.NexUI.Abstractions;
 using emiteat.NexUI.Designer.Editor.Localization;
+using emiteat.NexUI.Designer.Editor.Serialization;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,7 +11,7 @@ namespace emiteat.NexUI.Designer.Editor.Productivity
     {
         [SerializeField] private DesignerScreenCreationRequest request = new DesignerScreenCreationRequest();
 
-        [MenuItem("Tools/NexUI/Screen/New Screen", priority = NexUIDesignerMenu.PriorityScreen)]
+        [MenuItem("Tools/Nex/NexUI Studio/Screen/New Screen", priority = NexUIDesignerMenu.PriorityScreen)]
         public static void Open()
         {
             var window = GetWindow<DesignerScreenCreationWindow>(true, DesignerLocalization.T("productivity.newScreen"), true);
@@ -55,10 +56,8 @@ namespace emiteat.NexUI.Designer.Editor.Productivity
         {
             var absolute = EditorUtility.OpenFolderPanel("화면 저장 폴더", Application.dataPath, string.Empty);
             if (string.IsNullOrEmpty(absolute)) return;
-            absolute = absolute.Replace('\\', '/');
-            var assets = Application.dataPath.Replace('\\', '/');
-            if (absolute == assets || absolute.StartsWith(assets + "/"))
-                request.Folder = "Assets" + absolute.Substring(assets.Length);
+            if (DesignerPlatformUtility.TryAbsoluteToAssetPath(absolute, out var assetPath))
+                request.Folder = assetPath;
             else EditorUtility.DisplayDialog("NexUI", "Assets 폴더 안을 선택해 주세요.", "확인");
         }
 

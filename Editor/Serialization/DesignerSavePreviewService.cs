@@ -213,13 +213,25 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 report.MarkUnsupported(component.DisplayName,
                     $"'{element.elementId}' ({component.TypeId}) is unsupported on {backend}.", element.elementId);
 
-            if (element.attachedComponents != null && element.attachedComponents.Count > 0)
+            // Scripts live in element.components now, so the dry run counts the same entries the
+            // writer will act on rather than the legacy list, which is read-only from v6 onwards.
+            var scripts = 0;
+            var values = 0;
+            foreach (var entry in element.components ?? new List<DesignerElementComponent>())
+            {
+                if (entry == null || string.IsNullOrEmpty(entry.typeId)) continue;
+                if (Components.DesignerUIComponentRegistry.IsRegistered(entry.typeId)) continue;
+                scripts++;
+                values += entry.properties?.Count ?? 0;
+            }
+            if (scripts > 0)
             {
                 if (backend == UIRenderBackend.UGUI)
-                    report.MarkModified("Attached components",
-                        $"Synchronize {element.attachedComponents.Count} MonoBehaviour attachment(s) on '{element.elementId}'.", element.elementId);
+                    report.MarkModified("Components",
+                        $"Synchronize {scripts} MonoBehaviour(s) and {values} authored value(s) on '{element.elementId}'.",
+                        element.elementId);
                 else
-                    report.MarkPreviewOnly("Attached components",
+                    report.MarkPreviewOnly("Components",
                         $"'{element.elementId}' MonoBehaviour attachments are uGUI-only and remain in metadata.", element.elementId);
             }
 

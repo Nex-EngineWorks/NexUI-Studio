@@ -1,10 +1,10 @@
 # 프로젝트 구조
 
-Assembly는 두 개입니다. `emiteat.NexUI.Designer.Runtime`(= `Runtime/`)은 **`UnityEditor`를 참조하지 않으며**, `emiteat.NexUI.Designer.Editor`(= `Editor/`)는 Editor 전용입니다. `Editor/Figma`만 별도 Assembly(`emiteat.NexUI.Integrations.Figma`)로 분리되어 있습니다.
+Assembly는 두 개입니다. `emiteat.NexUI.Studio.Runtime`(= `Runtime/`)은 **`UnityEditor`를 참조하지 않으며**, `emiteat.NexUI.Studio.Editor`(= `Editor/`)는 Editor 전용입니다. `Editor/Figma`만 별도 Assembly(`emiteat.NexUI.Integrations.Figma`)로 분리되어 있습니다.
 
 | 경로 | 책임 | 대표 코드/주의사항 |
 |---|---|---|
-| `Runtime/Metadata` | 직렬화 가능한 Designer 데이터 | `UnityEditor` 참조 금지. Schema Version과 Migration 대상 |
+| `Runtime/Metadata` | 직렬화 가능한 Studio 데이터 | `UnityEditor` 참조 금지. Schema Version과 Migration 대상 |
 | `Editor/Core` | Window, Context, Session, Undo, Hierarchy, Command | Context는 partial class로 분할합니다. UI 전용 기능을 Runtime으로 내리지 않습니다 |
 | `Editor/UI/Shell` | Global Toolbar, Sidebar, Right Inspector, Bottom Drawer, Command Palette | 복잡한 데이터 처리를 넣지 않습니다 |
 | `Editor/UI/Panels` | Layers, Components, Assets 패널 | Context 이벤트는 `ContextBoundSubscriptions` 사용 |

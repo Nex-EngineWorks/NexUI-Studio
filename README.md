@@ -1,6 +1,6 @@
-# NexUI Designer
+# NexUI Studio
 
-NexUI Designer는 NexUI 화면을 Unity Editor에서 구성하고 검증하는 제작 도구입니다. uGUI와 UI Toolkit을 동일한 Designer Metadata로 편집하며, Binding·Motion·Validation·Publish 흐름을 연결합니다.
+NexUI Studio는 NexUI 화면을 Unity Editor에서 구성하고 검증하는 제작 도구입니다. uGUI와 UI Toolkit을 동일한 Studio Metadata로 편집하며, Binding·Motion·Validation·Publish 흐름을 연결합니다.
 
 ## 빠른 제작 흐름
 
@@ -9,7 +9,7 @@ NexUI Designer는 NexUI 화면을 Unity Editor에서 구성하고 검증하는 �
 → Scenario로 상태 확인 → Validation/Fix → Save/Publish → Play Mode 확인
 ```
 
-Global Toolbar의 `+ 새 화면`에서 Screen Definition, Designer Metadata와 Backend 에셋을 한 번에 만들 수 있습니다. Canvas Toolbar의 `Layout`과 `Transition`은 선택 요소를 정리하고 기존 Motion Clip 에셋으로 전환을 생성합니다. Scenario 필드는 Mock Data를 현재 화면에 즉시 적용합니다.
+Global Toolbar의 `+ 새 화면`에서 Screen Definition, Studio Metadata와 Backend 에셋을 한 번에 만들 수 있습니다. Canvas Toolbar의 `Layout`과 `Transition`은 선택 요소를 정리하고 기존 Motion Clip 에셋으로 전환을 생성합니다. Scenario 필드는 Mock Data를 현재 화면에 즉시 적용합니다.
 
 ## 요구 환경
 
@@ -39,6 +39,6 @@ Global Toolbar의 `+ 새 화면`에서 Screen Definition, Designer Metadata와 B
 
 ## 저장소와 라이선스
 
-- [NexUI Designer 저장소](https://github.com/swallow-smoke/NexUI-Designer)
+- [NexUI Studio 저장소](https://github.com/swallow-smoke/NexUI-Designer)
 - [NexUI Core 저장소](https://github.com/swallow-smoke/NexUI)
 - [MIT License](LICENSE.md)

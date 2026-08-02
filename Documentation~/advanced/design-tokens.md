@@ -6,7 +6,7 @@
 
 `DesignerTokenSetAsset`은 Theme과 같은 **독립 에셋**입니다.
 
-- `Assets > Create > NexUI > Designer > Token Set` 또는 도구의 **토큰 세트 생성**으로 만듭니다.
+- `Assets > Create > NexUI > Studio > Token Set` 또는 도구의 **토큰 세트 생성**으로 만듭니다.
 - 각 토큰: 이름 + 카테고리 + 값(또는 다른 토큰 **참조**).
 
 ### 카테고리
@@ -37,7 +37,7 @@
 
 ## 아키텍처
 
-- 데이터 `Runtime/Metadata/DesignerTokenSetAsset.cs`(Designer.Runtime).
+- 데이터 `Runtime/Metadata/DesignerTokenSetAsset.cs`(Studio.Runtime).
 - 해석·검증 코어 `Editor/Advanced/Tokens/DesignerTokenResolver.cs`는 **순수 클래스**(참조 해석은 순환 방지 포함)로 단위 테스트됩니다(`DesignerTokenResolverTests`).
 - 에디터 `Editor/Advanced/Tokens/DesignerTokenWindow.cs`.
 

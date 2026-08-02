@@ -11,7 +11,7 @@ namespace emiteat.NexUI.Designer.Editor.AI
     /// <summary>Dockable, approval-first AI chat for the currently focused NexUI Designer session.</summary>
     public sealed class NexUIAIWindow : EditorWindow
     {
-        private const string StylePath = "Packages/com.emiteat.nexui.designer/Editor/Styles/NexUIDesigner.uss";
+        private const string StylePath = "Packages/com.nexengineworks.nexui.studio/Editor/Styles/NexUIDesigner.uss";
         private readonly List<NexUIAIChatMessage> _messages = new List<NexUIAIChatMessage>();
         private readonly Dictionary<NexUIAIProviderKind, string> _sessionApiKeys = new Dictionary<NexUIAIProviderKind, string>();
 
@@ -39,7 +39,7 @@ namespace emiteat.NexUI.Designer.Editor.AI
         private Button _sendButton;
         private IDesignerSessionProvider _sessionProvider;
 
-        [MenuItem("Tools/NexUI/AI Assistant", priority = NexUIDesignerMenu.PriorityWindows + 2)]
+        [MenuItem("Tools/Nex/NexUI Studio/AI Assistant", priority = NexUIDesignerMenu.PriorityWindows + 2)]
         public static void Open()
         {
             var window = GetWindow<NexUIAIWindow>();
@@ -489,7 +489,8 @@ namespace emiteat.NexUI.Designer.Editor.AI
 
         private void OnPromptKeyDown(KeyDownEvent evt)
         {
-            if ((evt.keyCode != KeyCode.Return && evt.keyCode != KeyCode.KeypadEnter) || !evt.ctrlKey) return;
+            if ((evt.keyCode != KeyCode.Return && evt.keyCode != KeyCode.KeypadEnter) ||
+                (!evt.ctrlKey && !evt.commandKey)) return;
             Send();
             evt.StopPropagation();
         }

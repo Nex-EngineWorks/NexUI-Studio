@@ -12,13 +12,13 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         private Vector2 _scroll;
         private readonly Dictionary<DesignerSaveImpactKind, bool> _expanded = new Dictionary<DesignerSaveImpactKind, bool>();
 
-        [MenuItem("Tools/NexUI/Screen/Save Preview", priority = NexUIDesignerMenu.PriorityScreen + 3)]
+        [MenuItem("Tools/Nex/NexUI Studio/Screen/Save Preview", priority = NexUIDesignerMenu.PriorityScreen + 3)]
         public static void OpenFromMenu() => Open(DesignerSessions.ActiveContext);
 
         public static void Open(NexUIDesignerContext context)
         {
             var window = GetWindow<DesignerSavePreviewWindow>();
-            window.titleContent = new GUIContent("NexUI Save Preview");
+            window.titleContent = new GUIContent("NexUI Studio Save Preview");
             window.minSize = new Vector2(560f, 360f);
             window._context = context;
             window.Refresh();

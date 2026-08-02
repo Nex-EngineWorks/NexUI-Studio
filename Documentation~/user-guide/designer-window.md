@@ -1,6 +1,6 @@
-# Designer 창
+# Studio 창
 
-`Tools > NexUI > Designer`는 화면 제작의 중심 창입니다.
+`Tools > NexUI > Studio`는 화면 제작의 중심 창입니다.
 
 ## 배치 바꾸기
 
@@ -10,13 +10,13 @@
 * 배치는 **Unity 레이아웃에 저장**되므로 에디터를 껐다 켜도 유지되고, 레이아웃 저장/전환에도 따라갑니다
 * 그 창을 **닫으면 원래 자리로 돌아옵니다**
 
-Designer 창은 영역이 빠진 만큼 자동으로 다시 배치합니다. 캔버스는 빠지지 않습니다 — Designer 창 자체가 캔버스이기 때문입니다.
+Studio 창은 영역이 빠진 만큼 자동으로 다시 배치합니다. 캔버스는 빠지지 않습니다 — Studio 창 자체가 캔버스이기 때문입니다.
 
-`Tools > NexUI > Panels`에서 필요한 패널만 골라 열 수도 있습니다. Hierarchy·Library·Project Assets는 Designer 창에 구멍을 내지 않고 **추가 창**으로 열립니다(Unity에서 Project 창을 두 개 띄우는 것과 같습니다).
+`Tools > NexUI > Panels`에서 필요한 패널만 골라 열 수도 있습니다. Hierarchy·Library·Project Assets는 Studio 창에 구멍을 내지 않고 **추가 창**으로 열립니다(Unity에서 Project 창을 두 개 띄우는 것과 같습니다).
 
-배치가 꼬였다면 `Tools > NexUI > Panels > Dock All Back Into Designer`로 전부 되돌립니다.
+배치가 꼬였다면 `Tools > NexUI > Panels > Dock All Back Into Studio`로 전부 되돌립니다.
 
-> 빠져나간 패널은 **현재 활성 Designer 창**을 따라갑니다. Designer 창을 여러 개 열어 두고 다른 창을 클릭하면, 빠져나간 Inspector도 그 화면을 가리킵니다.
+> 빠져나간 패널은 **현재 활성 Studio 창**을 따라갑니다. Studio 창을 여러 개 열어 두고 다른 창을 클릭하면, 빠져나간 Inspector도 그 화면을 가리킵니다.
 
 ## 영역 이름
 
@@ -39,4 +39,4 @@ Beginner 모드는 일반 제작에 필요한 항목을 우선 표시합니다. 
 Bottom Drawer 높이, 열린 탭, Workspace, Preview Mode와 Canvas Scroll은 EditorPrefs에 보존됩니다. Screen과 Metadata는 경로 대신 Asset GUID로 복원합니다.
 
 > [!NOTE]
-> 실제 Timeline 편집은 `Tools > NexUI > Designer > Advanced > Motion Clip Editor`에서 수행합니다.
+> 실제 Timeline 편집은 `Tools > NexUI > Studio > Advanced > Motion Clip Editor`에서 수행합니다.

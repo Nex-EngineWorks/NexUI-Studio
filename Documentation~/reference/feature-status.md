@@ -13,10 +13,10 @@
 | Component Slot / Exposed Property Override | Beta | 지원 | 지원 | Typed Override. 적용 불가 Property는 Validation 보고 |
 | Component Variant | Beta | 지원 | 지원 | Bool/Enum/String, Rule 기반 Override와 표시 전환 |
 | Component Detach / Swap | Beta | 지원 | 지원 | 파괴적 작업은 확인 후 실행 |
-| Assets 패널 (탐색/검색/필터) | Beta | 공통 | 공통 | 읽기 전용. Rename/Move/Delete는 Project 창 담당 |
+| Assets 패널 (탐색/검색/편집) | 지원 | 공통 | 공통 | List/Grid, 다중 Drag, Folder 생성, Rename, Duplicate, 확인 후 Trash 삭제 |
 | Asset → Canvas Drag & Drop | Beta | 공통 | 공통 | Sprite/Font/Material/Component Definition. 그 외는 거부 |
-| Text/Value/Visibility/Class/Command Binding | 지원 | 지원 | 지원 | 프로젝트가 Runtime Key를 등록 |
-| Designer Preview/Interactive Log | 지원 | 지원 | 지원 | 안전을 위해 Command 실행 대신 Simulation Log |
+| Text/Value/Visibility/Class/Command Binding | 지원 | 지원 | 지원 | Text/Value 양방향과 Converter Registry 지원. 프로젝트가 Runtime Key를 등록 |
+| Studio Preview/Interactive Log | 지원 | 지원 | 지원 | 안전을 위해 Command 실행 대신 Simulation Log |
 | Scenario Apply/Timeline | 지원 | 공통 | 공통 | Bool/Number/Text/Sprite/List, Preview 환경 복원 |
 | Validation/Save Report | 지원 | 지원 | 지원 | 일부 프로젝트 계약은 Warning |
 | Setup Doctor | 지원 | 공통 | 공통 | 의존성·Registry·Scene Backend·출력 경로 검사 |

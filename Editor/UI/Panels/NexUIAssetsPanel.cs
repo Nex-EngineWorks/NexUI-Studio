@@ -13,21 +13,21 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
     /// filtering, thumbnails, and drag-and-drop onto the canvas or any Inspector object field.
     ///
     /// This replaces the placeholder tab that previously only had a "Show Project Assets" button.
-    /// It does not try to be Unity's Project window - there is no rename, move, delete or create
-    /// here, because those belong to the Project window and duplicating them would mean duplicating
-    /// their safety rules. This is a <i>read-only picker</i> tuned for UI authoring: find a sprite or
-    /// font fast, drag it onto an element, keep working without leaving the Designer.
+    /// The common authoring verbs are available in-place, while destructive operations still go
+    /// through an explicit confirmation and Unity's recoverable Move-to-Trash path.
     /// </summary>
     public sealed class NexUIAssetsPanel : VisualElement
     {
         private const string FolderPrefKey = "NexUI.Designer.Assets.Folder";
         private const string FilterPrefKey = "NexUI.Designer.Assets.Filter";
+        private const string GridPrefKey = "NexUI.Designer.Assets.Grid";
         private const float DragThreshold = 6f;
 
         private readonly VisualElement _breadcrumbs = new VisualElement();
         private readonly ScrollView _list = new ScrollView();
         private readonly Label _status = new Label();
         private readonly List<VisualElement> _rows = new List<VisualElement>();
+        private readonly HashSet<string> _selectedPaths = new HashSet<string>();
 
         private string _folder;
         private string _search = string.Empty;
@@ -35,6 +35,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
         private Vector2 _pointerDownPosition;
         private Object _pointerDownAsset;
         private bool _previewsPending;
+        private bool _grid;
 
         public NexUIAssetsPanel()
         {
@@ -42,6 +43,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
 
             _folder = EditorPrefs.GetString(FolderPrefKey, DesignerAssetBrowser.RootFolder);
             _filter = (DesignerAssetKind)EditorPrefs.GetInt(FilterPrefKey, (int)DesignerAssetKind.Other);
+            _grid = EditorPrefs.GetBool(GridPrefKey, false);
 
             Add(BuildToolbar());
 
@@ -103,6 +105,19 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
             });
             row.Add(filter);
 
+            var createFolder = new Button(CreateFolder) { text = "+", tooltip = "Create folder" };
+            createFolder.AddToClassList("nexui-square-button");
+            row.Add(createFolder);
+
+            var grid = new Button(() =>
+            {
+                _grid = !_grid;
+                EditorPrefs.SetBool(GridPrefKey, _grid);
+                Refresh();
+            }) { text = "▦", tooltip = "Toggle list / grid" };
+            grid.AddToClassList("nexui-square-button");
+            row.Add(grid);
+
             return row;
         }
 
@@ -122,6 +137,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
 
             _list.Clear();
             _rows.Clear();
+            _list.EnableInClassList("nexui-assets-grid", _grid);
 
             var searching = !string.IsNullOrWhiteSpace(_search);
             var entries = searching
@@ -166,6 +182,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
         {
             var row = new VisualElement();
             row.AddToClassList("nexui-assets-row");
+            row.EnableInClassList("is-grid", _grid);
             row.userData = entry;
 
             var icon = new VisualElement();
@@ -208,15 +225,13 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
 
             row.RegisterCallback<ClickEvent>(evt =>
             {
-                if (asset == null) return;
-                if (evt.clickCount >= 2) AssetDatabase.OpenAsset(asset);
+                if (asset == null && !entry.IsFolder) return;
+                if (evt.clickCount >= 2 && !entry.IsFolder) AssetDatabase.OpenAsset(asset);
                 else
                 {
-                    // Selecting in the Project window is what makes the panel useful next to Unity's
-                    // own tooling - the user can still inspect the asset normally.
-                    Selection.activeObject = asset;
-                    EditorGUIUtility.PingObject(asset);
-                    SetSelectedRow(row);
+                    Select(entry.Path, evt.ctrlKey || evt.commandKey);
+                    SyncUnitySelection();
+                    if (asset != null) EditorGUIUtility.PingObject(asset);
                 }
             });
 
@@ -232,9 +247,18 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
                 if (Vector2.Distance(evt.position, _pointerDownPosition) < DragThreshold) return;
 
                 DragAndDrop.PrepareStartDrag();
-                DragAndDrop.objectReferences = new[] { _pointerDownAsset };
-                DragAndDrop.paths = new[] { AssetDatabase.GetAssetPath(_pointerDownAsset) };
-                DragAndDrop.StartDrag(_pointerDownAsset.name);
+                var paths = _selectedPaths.Contains(entry.Path)
+                    ? new List<string>(_selectedPaths)
+                    : new List<string> { entry.Path };
+                var objects = new List<Object>();
+                foreach (var path in paths)
+                {
+                    var selectedAsset = AssetDatabase.LoadAssetAtPath<Object>(path);
+                    if (selectedAsset != null) objects.Add(selectedAsset);
+                }
+                DragAndDrop.objectReferences = objects.ToArray();
+                DragAndDrop.paths = paths.ToArray();
+                DragAndDrop.StartDrag(objects.Count > 1 ? $"{objects.Count} assets" : _pointerDownAsset.name);
                 _pointerDownAsset = null;
             });
             row.RegisterCallback<PointerUpEvent>(_ => _pointerDownAsset = null);
@@ -250,9 +274,8 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
         }
 
         /// <summary>
-        /// Right-click menu for an asset row. Deliberately limited to Unity's own read-only
-        /// Project-window verbs - the panel is a picker, and rename/move/delete belong to the real
-        /// Project window along with their safety rules (see the class summary).
+        /// Project-window-style context menu. Mutating verbs use AssetDatabase so Undo/import state
+        /// remains owned by Unity, and deletion is both confirmed and recoverable.
         /// </summary>
         private void ShowEntryMenu(DesignerAssetEntry entry, Object asset)
         {
@@ -277,6 +300,11 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
             }
 
             menu.AddSeparator("");
+            menu.AddItem(new GUIContent("Rename"), false, () => BeginRename(entry));
+            if (!entry.IsFolder)
+                menu.AddItem(new GUIContent("Duplicate"), false, () => Duplicate(entry));
+            menu.AddItem(new GUIContent("Delete"), false, () => Delete(entry));
+            menu.AddSeparator("");
             menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.asset.copyPath")), false,
                 () => EditorGUIUtility.systemCopyBuffer = entry.Path);
             menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.asset.copyGuid")), false,
@@ -290,10 +318,92 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
             menu.ShowAsContext();
         }
 
-        private void SetSelectedRow(VisualElement selected)
+        private void Select(string path, bool additive)
         {
+            if (!additive) _selectedPaths.Clear();
+            if (additive && _selectedPaths.Contains(path)) _selectedPaths.Remove(path);
+            else _selectedPaths.Add(path);
             foreach (var row in _rows)
-                row.EnableInClassList("is-selected", row == selected);
+                row.EnableInClassList("is-selected",
+                    row.userData is DesignerAssetEntry entry && _selectedPaths.Contains(entry.Path));
+        }
+
+        private void SyncUnitySelection()
+        {
+            var objects = new List<Object>();
+            foreach (var path in _selectedPaths)
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<Object>(path);
+                if (asset != null) objects.Add(asset);
+            }
+            Selection.objects = objects.ToArray();
+        }
+
+        private void CreateFolder()
+        {
+            var name = ObjectNames.GetUniqueName(DesignerAssetBrowser.List(_folder)
+                .ConvertAll(e => e.Name).ToArray(), "New Folder");
+            var guid = AssetDatabase.CreateFolder(_folder, name);
+            var path = AssetDatabase.GUIDToAssetPath(guid);
+            Refresh();
+            var entry = DesignerAssetBrowser.List(_folder).Find(e => e.Path == path);
+            if (entry != null) BeginRename(entry);
+        }
+
+        private void BeginRename(DesignerAssetEntry entry)
+        {
+            var row = _rows.Find(candidate => candidate.userData is DesignerAssetEntry e && e.Path == entry.Path);
+            var label = row?.Q<Label>(className: "nexui-assets-name");
+            if (row == null || label == null) return;
+
+            var field = new TextField { value = entry.Name };
+            field.AddToClassList("nexui-assets-name");
+            var parent = label.parent;
+            var index = parent.IndexOf(label);
+            parent.Remove(label);
+            parent.Insert(index, field);
+            field.Focus();
+            field.SelectAll();
+
+            var finished = false;
+            void Finish(bool commit)
+            {
+                if (finished) return;
+                finished = true;
+                if (commit && !string.IsNullOrWhiteSpace(field.value) && field.value != entry.Name)
+                {
+                    var error = AssetDatabase.RenameAsset(entry.Path, field.value.Trim());
+                    if (!string.IsNullOrEmpty(error)) Debug.LogWarning($"NexUI Assets: {error}");
+                }
+                Refresh();
+            }
+            field.RegisterCallback<KeyDownEvent>(evt =>
+            {
+                if (evt.keyCode == KeyCode.Return || evt.keyCode == KeyCode.KeypadEnter) Finish(true);
+                else if (evt.keyCode == KeyCode.Escape) Finish(false);
+            });
+            field.RegisterCallback<FocusOutEvent>(_ => Finish(true));
+        }
+
+        private void Duplicate(DesignerAssetEntry entry)
+        {
+            var extension = System.IO.Path.GetExtension(entry.Path);
+            var withoutExtension = entry.Path.Substring(0, entry.Path.Length - extension.Length);
+            var destination = AssetDatabase.GenerateUniqueAssetPath(withoutExtension + " Copy" + extension);
+            if (!AssetDatabase.CopyAsset(entry.Path, destination))
+                Debug.LogWarning($"NexUI Assets: could not duplicate '{entry.Path}'.");
+            AssetDatabase.SaveAssets();
+            Refresh();
+        }
+
+        private void Delete(DesignerAssetEntry entry)
+        {
+            if (!EditorUtility.DisplayDialog("Delete asset?",
+                    $"Move '{entry.Name}' to the system Trash?", "Move to Trash", "Cancel")) return;
+            if (!AssetDatabase.MoveAssetToTrash(entry.Path))
+                Debug.LogWarning($"NexUI Assets: could not move '{entry.Path}' to Trash.");
+            _selectedPaths.Remove(entry.Path);
+            Refresh();
         }
 
         private void ApplyIcon(VisualElement icon, Object asset, DesignerAssetKind kind)

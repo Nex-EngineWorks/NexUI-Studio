@@ -23,7 +23,7 @@ namespace emiteat.NexUI.Designer.Editor.Menu
     /// </summary>
     public static class AdvancedValidationMenu
     {
-        [MenuItem("Tools/NexUI/QA/Run Advanced Validation", priority = NexUIDesignerMenu.PriorityQa)]
+        [MenuItem("Tools/Nex/NexUI Studio/QA/Run Advanced Validation", priority = NexUIDesignerMenu.PriorityQa)]
         public static void RunAdvancedValidation()
         {
             var sb = new StringBuilder();
@@ -56,12 +56,12 @@ namespace emiteat.NexUI.Designer.Editor.Menu
                 }
             }
 
-            Debug.Log("[NexUI] Advanced Validation\n" + sb);
-            EditorUtility.DisplayDialog("NexUI Advanced Validation",
+            Debug.Log("[NexUI Studio] Advanced Validation\n" + sb);
+            EditorUtility.DisplayDialog("NexUI Studio Advanced Validation",
                 $"{errors} error(s), {warnings} finding(s).\nSee Console for details.", "OK");
         }
 
-        [MenuItem("Tools/NexUI/QA/Export Agent Manifest", priority = NexUIDesignerMenu.PriorityQa + 3)]
+        [MenuItem("Tools/Nex/NexUI Studio/QA/Export Agent Manifest", priority = NexUIDesignerMenu.PriorityQa + 3)]
         public static void ExportAgentManifest()
         {
             string folder = EditorUtility.SaveFolderPanel("Export Agent Manifest", "", "");
@@ -71,10 +71,10 @@ namespace emiteat.NexUI.Designer.Editor.Menu
             File.WriteAllText(Path.Combine(folder, "nexui-agent-manifest.json"), AgentHandoffService.ToJson(manifest));
             File.WriteAllText(Path.Combine(folder, "nexui-agent-brief.md"), AgentHandoffService.ToMarkdown(manifest));
             EditorUtility.RevealInFinder(folder);
-            Debug.Log($"[NexUI] Agent manifest exported to {folder}");
+            Debug.Log($"[NexUI Studio] Agent manifest exported to {folder}");
         }
 
-        [MenuItem("Tools/NexUI/QA/Run Snapshot Tests", priority = NexUIDesignerMenu.PriorityQa + 1)]
+        [MenuItem("Tools/Nex/NexUI Studio/QA/Run Snapshot Tests", priority = NexUIDesignerMenu.PriorityQa + 1)]
         public static void RunSnapshotTests()
         {
             var sb = new StringBuilder();
@@ -95,7 +95,7 @@ namespace emiteat.NexUI.Designer.Editor.Menu
                 else sb.AppendLine($"[PASS] {asset.screenId}");
             }
 
-            Debug.Log($"[NexUI] Snapshot Tests: {tested - failed}/{tested} passed.\n" + sb);
+            Debug.Log($"[NexUI Studio] Snapshot Tests: {tested - failed}/{tested} passed.\n" + sb);
             EditorUtility.DisplayDialog("NexUI Snapshot Tests",
                 tested == 0 ? "No baselines found." : $"{tested - failed}/{tested} passed.", "OK");
         }

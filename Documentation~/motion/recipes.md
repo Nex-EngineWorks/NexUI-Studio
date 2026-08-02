@@ -1,6 +1,6 @@
 # Motion 레시피
 
-이 문서는 `UIMotionClip`의 Track과 Keyframe으로 반복해서 쓰는 UI 연출을 만드는 방법을 설명합니다. 편집기는 `Tools > NexUI > Designer > Advanced > Motion Clip Editor`에서 엽니다. Property 이름은 편집기의 Track 추가 목록에 실제로 표시되는 항목만 사용하세요.
+이 문서는 `UIMotionClip`의 Track과 Keyframe으로 반복해서 쓰는 UI 연출을 만드는 방법을 설명합니다. 편집기는 `Tools > NexUI > Studio > Advanced > Motion Clip Editor`에서 엽니다. Property 이름은 편집기의 Track 추가 목록에 실제로 표시되는 항목만 사용하세요.
 
 Motion Clip은 여러 Element의 시간 기반 연출에 적합합니다. 이벤트 흐름은 Motion Graph (v2), 상태 전이는 Motion State Machine의 책임입니다. 역할 선택은 [Motion 개요](overview.md)를 참고하세요.
 
@@ -66,6 +66,6 @@ HoverEnter에 짧은 Fade/Slide Clip, HoverExit에 Fade Out Clip을 연결합니
 
 - Track Target Element ID가 Metadata에 존재하는지 확인합니다.
 - Keyframe 시간이 0 이상이고 Duration 이내이며 정렬되어 있는지 Validate합니다.
-- Designer Save 후 Metadata의 Asset Reference가 유지되는지 다시 엽니다.
+- Studio Save 후 Metadata의 Asset Reference가 유지되는지 다시 엽니다.
 - uGUI와 UI Toolkit에서 지원 Capability가 다른 Property는 Play Mode에서 각각 확인합니다.
 - Motion Preview는 Runtime Lifecycle 호출을 대신하지 않습니다.

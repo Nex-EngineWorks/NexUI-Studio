@@ -10,7 +10,7 @@ NexUI에는 목적이 다른 Motion 모델이 공존합니다. 새 작업에서�
 | Property 수 | Track마다 여러 Property | Step마다 Property | Node type별 입력 |
 | Timeline | 지원 | 컴파일 결과 Preview | 없음 |
 | Node Graph | 없음 | 지원 | 지원 |
-| Preview | Designer Surface에 Scrub/Play | 컴파일 Timeline 값 확인 | Designer Surface에서 Entry Event 실행 |
+| Preview | Studio Surface에 Scrub/Play | 컴파일 Timeline 값 확인 | Studio Surface에서 Entry Event 실행 |
 | 적합한 용도 | 여러 Element의 시간 순서 연출 | 단일 Element From/To 단계 | Click/Screen event 기반 흐름 실험 | 상태 사이 Clip 전환 저작 |
 | 상태 | 지원, Runtime Trigger Binder 제공 | 부분 지원 | 실험적 | 실험적 |
 

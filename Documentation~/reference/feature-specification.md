@@ -1,32 +1,32 @@
-# NexUI Designer 목표 기능 명세
+# NexUI Studio 목표 기능 명세
 
 > [!IMPORTANT]
 > 이 문서는 장기 제품 목표입니다. 현재 구현과 Backend 지원 범위는 [기능 상태](feature-status.md)를 기준으로 확인해 주세요.
 
-> **디자이너가 Unity UI를 직접 설계하고, 연결하고, 움직이고, 검증할 수 있도록 만드는 통합 UI 제작 환경**
+> **스튜디오가 Unity UI를 직접 설계하고, 연결하고, 움직이고, 검증할 수 있도록 만드는 통합 UI 제작 환경**
 
-NexUI Designer는 화면 배치만 수행하는 단순 UI 에디터가 아닙니다.  
+NexUI Studio는 화면 배치만 수행하는 단순 UI 에디터가 아닙니다.  
 화면 구성, 재사용 컴포넌트, 데이터 연결, 상호작용, 모션, 반응형 대응, 접근성, 런타임 디버깅까지 하나의 작업 흐름으로 연결하는 것을 목표로 합니다.
 
 > [!NOTE]
-> 이 문서는 **NexUI Designer가 제공해야 하는 목표 기능 범위**를 정리한 제품 기능 명세입니다.  
+> 이 문서는 **NexUI Studio가 제공해야 하는 목표 기능 범위**를 정리한 제품 기능 명세입니다.  
 > 실제 구현 여부와 개발 우선순위는 별도의 로드맵 또는 이슈 트래커에서 관리합니다.
 
 ## 문서 정보
 
 | 항목 | 내용 |
 | --- | --- |
-| 대상 독자 | UI/UX 디자이너, 테크니컬 디자이너, Unity UI 개발자 |
-| 문서 목적 | NexUI Designer가 지원하는 전체 기능과 작업 흐름을 쉽게 파악하기 위함 |
+| 대상 독자 | UI/UX 스튜디오, 테크니컬 스튜디오, Unity UI 개발자 |
+| 문서 목적 | NexUI Studio가 지원하는 전체 기능과 작업 흐름을 쉽게 파악하기 위함 |
 | 주요 출력 대상 | Unity uGUI, Unity UI Toolkit |
 | 핵심 작업 방식 | 시각적 편집, 재사용 컴포넌트, 데이터 Binding, Timeline, Motion Graph |
 | 문서 범위 | 디자인부터 Preview, Publish, Runtime Debug까지 |
 
 ---
 
-## NexUI Designer로 하는 일
+## NexUI Studio로 하는 일
 
-| 단계 | 디자이너가 하는 작업 | 관련 기능 |
+| 단계 | 스튜디오가 하는 작업 | 관련 기능 |
 | --- | --- | --- |
 | 1. 화면 생성 | 새로운 UI 화면을 만들고 기준 해상도와 출력 방식을 정합니다. | 프로젝트 관리 |
 | 2. 화면 디자인 | 요소를 배치하고 정렬하며 레이아웃과 스타일을 편집합니다. | Canvas, Hierarchy, Layout, Style |
@@ -47,13 +47,13 @@ NexUI Designer는 화면 배치만 수행하는 단순 UI 에디터가 아닙니
 | **Element** | Text, Image, Button, Container 등 화면을 구성하는 개별 요소 |
 | **Component** | 여러 화면에서 재사용할 수 있도록 묶은 UI 구성 |
 | **Variant** | 같은 Component의 상태 또는 형태를 바꾸는 선택값 |
-| **Backend** | Designer 결과를 실제 Unity UI로 변환하는 출력 방식 |
+| **Backend** | Studio 결과를 실제 Unity UI로 변환하는 출력 방식 |
 | **Binding** | 게임 데이터와 UI 속성을 연결하는 기능 |
 | **Motion Clip** | Timeline과 Keyframe으로 만드는 시간 기반 애니메이션 |
 | **Motion Graph** | Node를 연결해 만드는 조건·이벤트 기반 UI 동작 |
 | **Scenario** | 특정 해상도, 데이터, 입력 상황을 재현하는 Preview 환경 |
 | **Design Token** | 색상, 간격, 폰트, 모션 속도처럼 공통으로 사용하는 디자인 값 |
-| **Publish** | Designer 데이터를 uGUI Prefab 또는 UXML/USS로 생성하는 과정 |
+| **Publish** | Studio 데이터를 uGUI Prefab 또는 UXML/USS로 생성하는 과정 |
 
 ---
 
@@ -76,7 +76,7 @@ NexUI Designer는 화면 배치만 수행하는 단순 UI 에디터가 아닙니
 
 각 기능은 다음 구조로 정리되어 있습니다.
 
-- **기능 설명**: 디자이너 관점에서 해당 영역이 무엇을 위한 것인지 설명합니다.
+- **기능 설명**: 스튜디오 관점에서 해당 영역이 무엇을 위한 것인지 설명합니다.
 - **세부 기능 보기**: 실제 지원 대상 기능을 원문 수준으로 나열합니다.
 - 영문 기능명은 에디터 UI 또는 개발 API에서 그대로 사용할 수 있는 명칭입니다.
 
@@ -126,11 +126,11 @@ UI 화면을 만들고 관리하며, 출력 방식과 관련 에셋을 한곳에
 - Backend별 Fallback 표시
 - Backend 변경
 - Backend 간 화면 변환
-- Designer와 Backend 동기화
+- Studio와 Backend 동기화
 - Backend 변경 감지
 - 동기화 충돌 감지
 - 충돌 비교
-- Designer 버전 사용
+- Studio 버전 사용
 - Backend 버전 사용
 - 수동 병합
 
@@ -2474,7 +2474,7 @@ Backend 생성, Live Edit, Debugger, Validation, 검색를 다룹니다.
 
 ### 39. Backend 출력
 
-Designer에서 만든 화면을 uGUI 또는 UI Toolkit 에셋으로 생성합니다.
+Studio에서 만든 화면을 uGUI 또는 UI Toolkit 에셋으로 생성합니다.
 
 <details>
 <summary><strong>세부 기능 보기</strong></summary>
@@ -2555,7 +2555,7 @@ Play Mode에서 실제 UI를 선택하고 값을 수정해 결과를 즉시 확�
 - Runtime Screen 목록
 - Runtime Element 선택
 - Game View에서 UI Pick
-- Runtime 값을 Designer에 표시
+- Runtime 값을 Studio에 표시
 - Runtime Instance 편집
 - Preview Only
 - Runtime Instance 적용
@@ -2876,13 +2876,13 @@ Localization, Template, API, Figma, Migration, Test를 다룹니다.
 
 ### 46. Localization
 
-Designer 자체와 제작 중인 UI를 여러 언어와 RTL 환경에서 검증합니다.
+Studio 자체와 제작 중인 UI를 여러 언어와 RTL 환경에서 검증합니다.
 
 <details>
 <summary><strong>세부 기능 보기</strong></summary>
 
-- Designer UI 한국어
-- Designer UI 영어
+- Studio UI 한국어
+- Studio UI 영어
 - 실시간 언어 전환
 - Tooltip 번역
 - Component 이름 번역
@@ -3063,8 +3063,8 @@ Figma 파일과 프레임 정보를 조회해 디자인 전달 과정을 연결�
 
 #### 51.3 Integration 테스트
 
-- Designer에서 uGUI 생성
-- Designer에서 UXML/USS 생성
+- Studio에서 uGUI 생성
+- Studio에서 UXML/USS 생성
 - Backend 동기화
 - Motion Preview 복원
 - Graph Preview
@@ -3097,6 +3097,6 @@ Figma 파일과 프레임 정보를 조회해 디자인 전달 과정을 연결�
 
 - 기능의 **존재 여부**와 **구현 상태**를 혼합하지 않습니다.
 - 구현 상태는 GitHub Issue, Project 또는 `ROADMAP.md`에서 관리합니다.
-- 기능명이 변경되면 Designer UI, 문서, Validation 메시지의 용어를 함께 수정합니다.
-- 디자이너가 이해하기 어려운 기술 용어에는 설명 또는 Tooltip을 제공합니다.
+- 기능명이 변경되면 Studio UI, 문서, Validation 메시지의 용어를 함께 수정합니다.
+- 스튜디오가 이해하기 어려운 기술 용어에는 설명 또는 Tooltip을 제공합니다.
 - Backend별 차이는 기능을 숨기기보다 지원 여부와 Fallback을 명확히 표시합니다.

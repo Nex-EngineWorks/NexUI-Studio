@@ -54,7 +54,111 @@ namespace emiteat.NexUI.Designer.Editor.Validation
 
                 ValidateRequirements(element, present, screenId, issues);
                 ValidateConflicts(element, present, screenId, issues);
+                ValidateReferencesAndEvents(metadata, element, screenId, issues);
             }
+        }
+
+        /// <summary>
+        /// Checks the two things that fail silently at runtime: a reference pointing at nothing, and a
+        /// UnityEvent naming a method that no longer exists.
+        /// </summary>
+        /// <remarks>
+        /// Both survive a save without an error - the prefab is written, the game runs, and the button
+        /// simply does nothing. Reporting them at edit time is the only point at which they are cheap
+        /// to find.
+        /// </remarks>
+        private static void ValidateReferencesAndEvents(DesignerMetadataAsset metadata,
+            DesignerElementMetadata element, string screenId, List<DesignerValidationIssue> issues)
+        {
+            foreach (var component in element.components)
+            {
+                if (component?.properties == null) continue;
+                var componentName = ComponentName(component);
+
+                foreach (var entry in component.properties)
+                {
+                    var reference = entry?.value?.reference;
+                    if (reference == null || !reference.IsAssigned) continue;
+
+                    if (reference.kind == DesignerReferenceKind.Element &&
+                        emiteat.NexUI.Designer.Editor.Components.Serialization.StudioReferenceUtility.FindElement(metadata, reference.stableElementId) == null)
+                    {
+                        issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error,
+                            "NEXUI-REFERENCE-MISSING",
+                            $"'{element.elementId}' {componentName}.{entry.key} points at an element that is not on this screen.",
+                            "Assign the field again, or restore the element it used to point at.",
+                            screenId, element.elementId));
+                    }
+                    else if (reference.kind == DesignerReferenceKind.Asset &&
+                             emiteat.NexUI.Designer.Editor.Components.Serialization.StudioReferenceUtility.ResolveAsset(reference) == null)
+                    {
+                        issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error,
+                            "NEXUI-REFERENCE-MISSING",
+                            $"'{element.elementId}' {componentName}.{entry.key} points at an asset that no longer exists.",
+                            "Assign the field again, or restore the deleted asset.", screenId, element.elementId));
+                    }
+                }
+
+                ValidateEvents(metadata, element, component, componentName, screenId, issues);
+            }
+        }
+
+        private static void ValidateEvents(DesignerMetadataAsset metadata, DesignerElementMetadata element,
+            DesignerElementComponent component, string componentName, string screenId,
+            List<DesignerValidationIssue> issues)
+        {
+            foreach (var eventKey in EventKeys(component))
+            {
+                var calls = emiteat.NexUI.Designer.Editor.Components.Serialization.StudioUnityEventModel.Read(component, eventKey);
+                for (var i = 0; i < calls.Count; i++)
+                {
+                    var call = calls[i];
+                    if (!call.Target.IsAssigned)
+                    {
+                        issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning,
+                            "NEXUI-EVENT-NO-TARGET",
+                            $"'{element.elementId}' {componentName}.{eventKey} listener {i + 1} has no target and will never run.",
+                            "Pick a target element, or remove the listener.", screenId, element.elementId));
+                        continue;
+                    }
+
+                    var targetType = call.Target.kind == DesignerReferenceKind.Asset
+                        ? emiteat.NexUI.Designer.Editor.Components.Serialization.StudioReferenceUtility.ResolveAsset(call.Target)?.GetType()
+                        : Components.StudioComponentTypeIndex.Resolve(call.Target.componentTypeName);
+
+                    if (targetType == null) continue; // the missing reference above already covers it
+
+                    if (!emiteat.NexUI.Designer.Editor.Components.Serialization.StudioUnityEventModel.MethodExists(call, targetType))
+                        issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error,
+                            "NEXUI-EVENT-MISSING-METHOD",
+                            $"'{element.elementId}' {componentName}.{eventKey} listener {i + 1} calls '{call.MethodName}', which {targetType.Name} does not have.",
+                            "Pick the method again, or restore the one that was renamed or removed.",
+                            screenId, element.elementId));
+                }
+            }
+        }
+
+        /// <summary>
+        /// UnityEvent field names on a component, read back out of the stored property paths - the
+        /// validator has no scratch object to reflect over.
+        /// </summary>
+        private static IEnumerable<string> EventKeys(DesignerElementComponent component)
+        {
+            const string marker = ".m_PersistentCalls.m_Calls.Array.size";
+            var keys = new HashSet<string>();
+            foreach (var entry in component.properties)
+            {
+                if (entry?.key == null || !entry.key.EndsWith(marker, System.StringComparison.Ordinal)) continue;
+                keys.Add(entry.key.Substring(0, entry.key.Length - marker.Length));
+            }
+            return keys;
+        }
+
+        private static string ComponentName(DesignerElementComponent component)
+        {
+            var type = DesignerUIComponentRegistry.Get(component.typeId);
+            if (type != null && DesignerUIComponentRegistry.IsRegistered(component.typeId)) return type.DisplayName;
+            return DesignerProjectComponentIds.ShortName(component.typeId);
         }
 
         private static DesignerValidationIssue BackendMismatch(DesignerElementMetadata element,

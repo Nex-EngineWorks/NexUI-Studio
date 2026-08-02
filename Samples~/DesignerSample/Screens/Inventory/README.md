@@ -15,8 +15,8 @@
 
 ## 실행
 
-1. Package Manager에서 Designer Sample을 Import합니다.
-2. `Tools > NexUI > Designer`를 엽니다.
+1. Package Manager에서 Studio Sample을 Import합니다.
+2. `Tools > NexUI > Studio`를 엽니다.
 3. `Inventory.UIToolkit.asset` 또는 `Inventory.UGUI.asset`을 Screen으로 선택합니다.
 4. `Inventory.Metadata.asset`을 Metadata로 선택합니다.
 5. Validate 후 Save하고 Unity를 Reload해 연결이 유지되는지 확인합니다.

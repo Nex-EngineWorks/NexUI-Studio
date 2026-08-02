@@ -1,6 +1,6 @@
 # Metadata Schema
 
-NexUI Designer의 데이터는 Runtime 화면 정의, Designer 제작 데이터와 독립 고급 도구 Asset으로 나뉩니다. Runtime 폴더의 타입은 `UnityEditor`를 참조하지 않지만, 모든 타입이 게임 실행에 자동 사용되는 것은 아닙니다.
+NexUI Studio의 데이터는 Runtime 화면 정의, Studio 제작 데이터와 독립 고급 도구 Asset으로 나뉩니다. Runtime 폴더의 타입은 `UnityEditor`를 참조하지 않지만, 모든 타입이 게임 실행에 자동 사용되는 것은 아닙니다.
 
 ```mermaid
 flowchart LR
@@ -23,16 +23,16 @@ Component Instance는 Definition의 element를 화면에 **복사하지 않고 �
 
 | 타입 | Namespace / 파일 | 책임과 주요 필드 | 수정자 | Runtime |
 | --- | --- | --- | --- | --- |
-| `UIScreenDefinition` | `emiteat.NexUI.Core`, Core `Runtime/Core/UIScreenDefinition.cs` | identity, backendAsset, layer, motion, policy, focus, relations, validation, variants | 사용자/Designer 연결 도구 | UIManager가 읽음 |
-| `DesignerMetadataAsset` | `emiteat.NexUI.Designer`, `Runtime/Metadata/DesignerMetadataAsset.cs` | screenId, elements, screenMotion, 고급 제작 Metadata | Designer | Runtime-safe 직렬화 형식, 주 용도는 제작 |
-| `DesignerElementMetadata` | 같은 Namespace, `Runtime/Metadata/DesignerElementMetadata.cs` | ID, parent/sibling/slot, rect, style, Binding, Motion, Layout, Accessibility | Designer | Backend 변환/Preview 계약 |
-| `DesignerScreenMotionMetadata` | `Runtime/Metadata/DesignerScreenMotionMetadata.cs` | entry/exit Clip, Trigger Binding, State Machine, Graph 참조 | Designer/Motion Inspector | Runtime 연결 시 사용 가능 |
+| `UIScreenDefinition` | `emiteat.NexUI.Core`, Core `Runtime/Core/UIScreenDefinition.cs` | identity, backendAsset, layer, motion, policy, focus, relations, validation, variants | 사용자/Studio 연결 도구 | UIManager가 읽음 |
+| `DesignerMetadataAsset` | `emiteat.NexUI.Studio`, `Runtime/Metadata/DesignerMetadataAsset.cs` | screenId, elements, screenMotion, 고급 제작 Metadata | Studio | Runtime-safe 직렬화 형식, 주 용도는 제작 |
+| `DesignerElementMetadata` | 같은 Namespace, `Runtime/Metadata/DesignerElementMetadata.cs` | ID, parent/sibling/slot, rect, style, Binding, Motion, Layout, Accessibility | Studio | Backend 변환/Preview 계약 |
+| `DesignerScreenMotionMetadata` | `Runtime/Metadata/DesignerScreenMotionMetadata.cs` | entry/exit Clip, Trigger Binding, State Machine, Graph 참조 | Studio/Motion Inspector | Runtime 연결 시 사용 가능 |
 | `DesignerScenarioAsset` | `Runtime/Metadata/DesignerScenarioAsset.cs` | Preview Binding 값, 상태, 언어, 환경, Timeline | Scenario Editor | 실제 게임 상태에는 사용 안 함 |
 | `DesignerTokenSetAsset` | `Runtime/Metadata/DesignerTokenSetAsset.cs` | Token literal/alias | Token 도구 | Element Style 직접 연결 없음 |
 | `DesignerScreenFlowAsset` | `Runtime/Metadata/DesignerScreenFlowAsset.cs` | Node, Transition, 시작 Node, Guard Key | Flow Editor | UIManager 자동 연결 없음 |
 | `DesignerPublishManifest` | `Runtime/Metadata/DesignerPublishManifest.cs` | Screen별 UXML/USS 마지막 Publish Hash | Publish Service | Editor 동기화 기준 |
 | `DesignerComponentDefinitionAsset` | `Runtime/Metadata/DesignerComponentDefinitionAsset.cs` | 재사용 Component의 element sub-tree와 계약(Exposed Property, Slot, Variant) | Component Library / 사용자 | Instance 전개의 원본 |
-| `DesignerComponentInstanceMetadata` | `Runtime/Metadata/DesignerComponentInstanceMetadata.cs` | Definition 참조, Override, Variant 선택, Detach 상태 | Designer | Element마다 존재하되 `definitionGuid`가 있을 때만 유효 |
+| `DesignerComponentInstanceMetadata` | `Runtime/Metadata/DesignerComponentInstanceMetadata.cs` | Definition 참조, Override, Variant 선택, Detach 상태 | Studio | Element마다 존재하되 `definitionGuid`가 있을 때만 유효 |
 
 ## Motion 참조
 
@@ -59,5 +59,5 @@ Component Instance는 Definition의 element를 화면에 **복사하지 않고 �
 
 ## Assembly 경계
 
-Metadata 타입은 Designer Runtime Assembly에 있습니다. Window, AssetDatabase, Undo, Serializer와 Migration은 Editor Assembly에 있습니다. Core 책임은 실행 화면 계약이고, Designer 전용 Preview/편집 책임을 Core에 넣지 않습니다.
+Metadata 타입은 Studio Runtime Assembly에 있습니다. Window, AssetDatabase, Undo, Serializer와 Migration은 Editor Assembly에 있습니다. Core 책임은 실행 화면 계약이고, Studio 전용 Preview/편집 책임을 Core에 넣지 않습니다.
 

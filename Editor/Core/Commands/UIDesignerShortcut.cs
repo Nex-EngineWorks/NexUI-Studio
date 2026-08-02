@@ -35,6 +35,20 @@ namespace emiteat.NexUI.Designer.Editor.Commands
             if (evt.altKey != alt) return false;
             return true;
         }
+
+        public static string PrimaryModifierLabel
+            => PrimaryModifierLabelFor(Application.platform);
+
+        public static string PrimaryModifierLabelFor(RuntimePlatform platform)
+            => platform == RuntimePlatform.OSXEditor ? "Command" : "Ctrl";
+
+        public static string Format(KeyCode key, bool primary = false, bool shift = false,
+            bool alt = false, RuntimePlatform? platform = null)
+            => $"{(primary ? PrimaryModifierLabelFor(platform ?? Application.platform) + "+" : string.Empty)}" +
+               $"{(shift ? "Shift+" : string.Empty)}{(alt ? "Alt+" : string.Empty)}{key}";
+
+        public string DisplayString(RuntimePlatform? platform = null)
+            => Format(key, ctrl, shift, alt, platform);
     }
 
     /// <summary>

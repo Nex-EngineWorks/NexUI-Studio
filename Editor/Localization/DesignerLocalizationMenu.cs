@@ -8,8 +8,8 @@ namespace emiteat.NexUI.Designer.Editor.Localization
     /// </summary>
     public static class DesignerLocalizationMenu
     {
-        private const string KoreanPath = "Tools/NexUI/Preferences/Language/Korean";
-        private const string EnglishPath = "Tools/NexUI/Preferences/Language/English";
+        private const string KoreanPath = "Tools/Nex/NexUI Studio/Preferences/Language/Korean";
+        private const string EnglishPath = "Tools/Nex/NexUI Studio/Preferences/Language/English";
 
         [MenuItem(KoreanPath, true)]
         private static bool KoreanValidate()

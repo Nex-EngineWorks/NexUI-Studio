@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using emiteat.NexUI.Abstractions;
+using emiteat.NexUI.Designer.Editor.Commands;
 using emiteat.NexUI.Designer.Editor.Localization;
 using emiteat.NexUI.MotionClip;
 using UnityEditor;
@@ -56,7 +57,7 @@ namespace emiteat.NexUI.Designer.Editor.StateMachine
             root.AddToClassList("nexui-designer-root");
             root.AddToClassList("nexui-tool-window-root");
             var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(
-                "Packages/com.emiteat.nexui.designer/Editor/Styles/NexUIDesigner.uss");
+                "Packages/com.nexengineworks.nexui.studio/Editor/Styles/NexUIDesigner.uss");
             if (styleSheet != null && !root.styleSheets.Contains(styleSheet))
                 root.styleSheets.Add(styleSheet);
 
@@ -115,7 +116,8 @@ namespace emiteat.NexUI.Designer.Editor.StateMachine
                 toolbar.Add(addTransitionButton);
 
                 var saveButton = MakeButton(() => AssetDatabase.SaveAssets(), DesignerLocalization.T("motionClip.toolbar.save"), "nexui-button-secondary");
-                DesignerTooltip.Set(saveButton, "tooltip.motionClip.save", "Ctrl+S");
+                DesignerTooltip.Set(saveButton, "tooltip.motionClip.save",
+                    UIDesignerShortcut.PrimaryModifierLabel + "+S");
                 toolbar.Add(saveButton);
             }
 
@@ -137,7 +139,7 @@ namespace emiteat.NexUI.Designer.Editor.StateMachine
 
             if (!connected)
             {
-                var openButton = MakeButton(() => EditorApplication.ExecuteMenuItem("Tools/NexUI/Designer"),
+                var openButton = MakeButton(() => EditorApplication.ExecuteMenuItem("Tools/Nex/NexUI Studio"),
                     DesignerLocalization.T("motionClip.status.openDesigner"), "nexui-button-secondary");
                 DesignerTooltip.Set(openButton, "tooltip.motionClip.openDesigner");
                 _statusRow.Add(openButton);

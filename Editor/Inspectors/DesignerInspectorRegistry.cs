@@ -161,9 +161,9 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
                 c => new ElementComponentsInspector(c));
 
             // Element features: on screen only once the element uses them.
-            Register("attached-components", "inspector.section.attachedComponents", "add component monobehaviour script ugui", DesignerInspectorSlot.Feature,
-                DesignerInspectorExposure.Common, DesignerInspectorTarget.SingleElement, c => new AttachedComponentsInspector(c),
-                c => Count(Element(c)?.attachedComponents) > 0);
+            // There is deliberately no separate "attached scripts" section: a project MonoBehaviour is
+            // an ordinary entry in the stack above, so a second panel with its own Add Component button
+            // would be two controls doing the same thing to the same data.
             Register("component-properties", "inspector.section.componentProperties", "properties fields options settings value interaction data",
                 DesignerInspectorSlot.Feature, DesignerInspectorExposure.Common, DesignerInspectorTarget.SingleElement,
                 c => new ComponentPropertiesInspector(c),

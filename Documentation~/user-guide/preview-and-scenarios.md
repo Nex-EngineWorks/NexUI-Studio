@@ -4,15 +4,15 @@ Preview는 현재 `DesignerMetadataAsset`을 편집용 Surface에 그려 보는 
 
 ## Preview 사용
 
-Global Toolbar의 **Preview**를 누르거나 `Tools > NexUI > Designer > Rebuild Preview`를 실행합니다. Canvas Toolbar의 **State**에서 Normal, Hover, Pressed, Disabled, Focused를 선택하면 컴포넌트 상태를 강제로 확인할 수 있습니다. **Input**은 입력 장치별 표현을 점검하며, Interactive Preview에서 누른 Command는 실행되지 않고 Bottom Drawer의 **Preview** Log에만 기록됩니다.
+Global Toolbar의 **Preview**를 누르거나 `Tools > NexUI > Studio > Rebuild Preview`를 실행합니다. Canvas Toolbar의 **State**에서 Normal, Hover, Pressed, Disabled, Focused를 선택하면 컴포넌트 상태를 강제로 확인할 수 있습니다. **Input**은 입력 장치별 표현을 점검하며, Interactive Preview에서 누른 Command는 실행되지 않고 Bottom Drawer의 **Preview** Log에만 기록됩니다.
 
 정상이라면 Layers와 Canvas의 Element 수가 Metadata와 일치합니다. 비어 있다면 Screen, Metadata, Backend Asset을 차례로 확인하고 **Validate**를 실행합니다.
 
 ## Scenario Asset 만들기와 열기
 
-Project 창에서 `Create > NexUI > Designer > Scenario`를 선택합니다. `scenarioName`, 설명과 선택적인 `screenId`를 입력합니다. `screenId`는 작성 대상을 기록하는 정보이며 다른 Screen에 적용하는 것을 막지는 않습니다.
+Project 창에서 `Create > NexUI > Studio > Scenario`를 선택합니다. `scenarioName`, 설명과 선택적인 `screenId`를 입력합니다. `screenId`는 작성 대상을 기록하는 정보이며 다른 Screen에 적용하는 것을 막지는 않습니다.
 
-Designer Global Toolbar의 **Scenario** 필드에 에셋을 지정합니다. Scenario 편집기는 Scenario 필드 주변의 편집 동작에서 열 수 있습니다. Designer가 열려 있지 않으면 편집기가 Active Context를 찾지 못하므로 먼저 `Tools > NexUI > Designer`를 엽니다.
+Studio Global Toolbar의 **Scenario** 필드에 에셋을 지정합니다. Scenario 편집기는 Scenario 필드 주변의 편집 동작에서 열 수 있습니다. Studio가 열려 있지 않으면 편집기가 Active Context를 찾지 못하므로 먼저 `Tools > NexUI > Studio`를 엽니다.
 
 ## 저장되는 값
 
@@ -71,7 +71,7 @@ Scenario Editor에서는 이전/다음 이동, 복제, 이름 변경, 초기화,
 5. Timeline 시작, 중간, 끝을 Scrub합니다.
 6. uGUI와 UI Toolkit 결과를 각각 Play Mode에서 확인합니다.
 
-예상과 다르면 Binding Key 철자, 값 형식, 현재 Metadata, 강제 State를 확인합니다. Designer는 Runtime Registry에 등록된 실제 Key와 형식을 완전히 검증할 수 없습니다.
+예상과 다르면 Binding Key 철자, 값 형식, 현재 Metadata, 강제 State를 확인합니다. Studio는 Runtime Registry에 등록된 실제 Key와 형식을 완전히 검증할 수 없습니다.
 
 ## 관련 문서
 

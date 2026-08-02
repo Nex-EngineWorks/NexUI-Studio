@@ -51,10 +51,10 @@
   "ai.conversation": "대화",
   "ai.clear": "지우기",
   "ai.prompt.tooltip": "화면 또는 선택한 요소에서 바꾸고 싶은 내용을 설명하세요.",
-  "ai.prompt.hint": "Ctrl+Enter로 전송합니다. AI 출력은 코드를 실행하지 않으며 검증된 Designer 작업만 적용됩니다.",
+  "ai.prompt.hint": "Ctrl/Command+Enter로 전송합니다. AI 출력은 코드를 실행하지 않으며 검증된 Designer 작업만 적용됩니다.",
   "ai.send": "보내기",
   "ai.busy": "생각하는 중...",
-  "ai.noContext": "요청을 보내기 전에 NexUI Designer에서 화면을 여세요.",
+  "ai.noContext": "요청을 보내기 전에 NexUI Studio에서 화면을 여세요.",
   "ai.noKey": "선택한 제공자의 API 키 환경변수를 설정하거나 세션 API 키를 입력하세요.",
   "ai.contextChanged": "활성 Designer 화면이 바뀌었습니다. 이 계획을 버리고 현재 화면에서 다시 요청하세요.",
   "ai.plan": "제안된 변경",
@@ -62,7 +62,7 @@
   "ai.apply": "Undo 가능하게 적용",
   "ai.discard": "버리기",
   "ai.cancel": "취소",
-  "ai.applySuccess": "AI 작업 {0}개를 적용했습니다. Ctrl+Z 한 번으로 전체 계획을 되돌릴 수 있습니다.",
+  "ai.applySuccess": "AI 작업 {0}개를 적용했습니다. Ctrl/Command+Z 한 번으로 전체 계획을 되돌릴 수 있습니다.",
   "ai.delete.title": "삭제가 포함된 AI 계획을 적용할까요?",
   "ai.delete.message": "이 계획은 하나 이상의 요소와 자식을 삭제합니다. 작업 후에도 Undo할 수 있습니다.",
   "ai.status.noContext": "활성 Designer 화면 없음",
@@ -154,7 +154,7 @@
   "utilities.tool.renameRefactor.description": "참조를 유지하면서 요소 ID를 변경합니다.",
   "utilities.tool.referenceCleaner": "참조 정리기",
   "utilities.tool.referenceCleaner.description": "사용되지 않는 메타데이터 참조를 찾아 제거합니다.",
-  "designer.title": "NexUI 디자이너",
+  "designer.title": "NexUI 스튜디오",
   "component.panel": "패널",
   "component.container": "컨테이너",
   "component.card": "카드",
@@ -196,7 +196,7 @@
   "motionClip.toolbar.importAnimationClip": "AnimationClip 가져오기",
   "tooltip.motionClip.importAnimationClip": "프로젝트 창에서 선택한 AnimationClip을 Motion Clip 에셋으로 변환합니다.",
   "shortcuts.window.title": "NexUI 단축키",
-  "shortcuts.heading": "NexUI Designer 단축키",
+  "shortcuts.heading": "NexUI Studio 단축키",
   "shortcuts.help": "동일한 키 조합이 여러 커맨드에 지정되면 위쪽 항목이 먼저 실행됩니다.",
   "shortcuts.duplicates": "중복 조합:",
   "shortcuts.reset": "기본값 복원",
@@ -455,7 +455,6 @@
   "tool.align": "정렬",
   "tool.spacing": "간격",
   "tool.createElement": "요소 생성",
-
   "panel.variants": "스크린 변형",
   "panel.responsive": "반응형 규칙",
   "panel.contract": "UI 계약",
@@ -474,7 +473,7 @@
   "panel.contrastChecker": "대비 검사",
   "panel.loadingStrategy": "로딩 전략",
   "pane.detach.tooltip": "이 패널을 별도 창으로 엽니다. 원하는 위치에 도킹할 수 있고, 그 창을 닫으면 다시 여기로 돌아옵니다.",
-  "pane.window.noSession": "이 패널을 사용하려면 NexUI Designer 창을 여세요.",
+  "pane.window.noSession": "이 패널을 사용하려면 NexUI Studio 창을 여세요.",
   "pane.sidebar": "탐색",
   "pane.sidebar.hierarchy": "열린 화면의 구조",
   "pane.sidebar.library": "화면에 요소 추가",
@@ -507,7 +506,6 @@
   "panel.recipes": "UI 레시피",
   "panel.agentHandoff": "AI 인수인계",
   "panel.accessibility": "접근성",
-
   "button.captureSnapshot": "스냅샷 캡처",
   "button.compare": "비교",
   "button.rename": "이름 변경",
@@ -516,7 +514,6 @@
   "button.simulate": "시뮬레이션",
   "button.exportManifest": "Manifest 내보내기",
   "button.copyCliPrompt": "CLI 프롬프트 복사",
-
   "validation.missingContractElement": "UI 계약에 필요한 요소가 없습니다.",
   "validation.deadReference": "존재하지 않는 참조입니다.",
   "validation.lowContrast": "색상 대비가 낮습니다.",
@@ -524,7 +521,6 @@
   "validation.motionBudgetExceeded": "모션 예산을 초과했습니다.",
   "validation.missingFocusGraph": "포커스 그래프가 없습니다.",
   "validation.missingPromptGlyph": "프롬프트 글리프가 누락되었습니다.",
-
   "tooltip.variants": "같은 스크린을 상황별(Compact, 컨트롤러, 전투 등)로 다르게 여는 변형을 만들고 편집합니다.",
   "tooltip.responsive": "해상도와 입력 모드에 따라 레이아웃을 자동으로 바꾸는 반응형 규칙을 편집합니다.",
   "tooltip.contract": "스크린이 반드시 갖춰야 할 요소와 기능(Capability)을 계약으로 정의하고 검사합니다.",
@@ -545,7 +541,6 @@
   "tooltip.recipes": "자주 쓰는 UI 구조(일시정지·설정·인벤토리 등)를 템플릿으로 한 번에 생성합니다.",
   "tooltip.agentHandoff": "현재 프로젝트 상태를 AI CLI 에이전트가 이해할 JSON/Markdown으로 내보냅니다.",
   "tooltip.accessibility": "모션 감소·고대비·큰 글씨 등 접근성 설정과 그 효과를 미리 봅니다.",
-
   "tooltip.captureSnapshot": "현재 스크린의 요소 상태를 스냅샷으로 캡처합니다.",
   "tooltip.compare": "선택한 두 대상의 차이를 계산해 표시합니다.",
   "tooltip.rename": "입력한 이름으로 모든 참조를 함께 변경합니다.",
@@ -554,20 +549,19 @@
   "tooltip.simulate": "선택한 요소의 상호작용 흐름을 실행해 결과를 보여줍니다.",
   "tooltip.exportManifest": "AI 인수인계 Manifest(JSON)와 Brief(Markdown)를 파일로 내보냅니다.",
   "tooltip.copyCliPrompt": "CLI 에이전트에 붙여넣을 프롬프트를 클립보드에 복사합니다.",
-
   "tooltip.toolbar.screen": "편집할 UIScreenDefinition 에셋입니다. 스크린을 열면 백엔드 에셋(UXML/프리팹)으로부터 실시간 프리뷰를 다시 생성합니다.",
   "tooltip.toolbar.metadata": "이 스크린의 요소 배치/바인딩/모션/테마 데이터를 담고 있는 DesignerMetadataAsset입니다. 열린 스크린용으로 새로 만들려면 New를 클릭하세요.",
   "tooltip.toolbar.newMetadata": "현재 열린 스크린용 DesignerMetadataAsset을 새로 만들어 위 필드에 지정합니다.",
   "tooltip.toolbar.status": "백엔드 | 열린 스크린 id. 검사 상태에 따라 색이 바뀝니다 (초록 = 문제 없음, 주황 = 경고/오류 있음).",
   "tooltip.toolbar.modeToggle": "Beginner는 필수·일반 Inspector 섹션을 표시합니다. Pro는 고급·진단 섹션도 표시합니다. 사용자별로 기억됩니다.",
-  "tooltip.toolbar.preview": "실시간 캔버스 해상도 프리셋 (C1: 반응형 브레이크포인트 미리보기) - 디자이너를 벗어나지 않고 폰/태블릿/데스크톱/Steam Deck 크기 사이를 전환합니다.",
+  "tooltip.toolbar.preview": "실시간 캔버스 해상도 프리셋 (C1: 반응형 브레이크포인트 미리보기) - 스튜디오를 벗어나지 않고 폰/태블릿/데스크톱/Steam Deck 크기 사이를 전환합니다.",
   "tooltip.toolbar.state": "실제로 트리거하지 않고도 상태별 모션 변형(Motion 인스펙터의 Hover/Pressed/Focus Variant 등)을 미리 봅니다.",
   "tooltip.toolbar.input": "이 입력 모드에 대한 기기별 프롬프트 글리프/동작을 미리 봅니다.",
   "tooltip.toolbar.snap": "이동/크기 조절/생성 작업을 아래 그리드 크기에 맞춰 스냅합니다.",
   "tooltip.toolbar.zoomOut": "축소합니다.",
   "tooltip.toolbar.zoomIn": "확대합니다.",
   "tooltip.toolbar.rebuild": "실시간 프리뷰를 처음부터 다시 생성합니다(백엔드 요소 + 바인딩 + 테마 + 모션) - 캔버스가 메타데이터와 어긋나 보일 때 사용하세요.",
-  "tooltip.toolbar.save": "디자이너 메타데이터와 열린 스크린 에셋을 저장합니다.",
+  "tooltip.toolbar.save": "스튜디오 메타데이터와 열린 스크린 에셋을 저장합니다.",
   "tooltip.toolbar.validate": "등록된 모든 프로젝트 검사기(중복 id, 누락된 에셋, 백엔드 불일치 등)를 열린 스크린에 대해 다시 실행합니다.",
   "toolbar.group.align": "정렬",
   "toolbar.group.distribute": "분배",
@@ -584,31 +578,27 @@
   "tooltip.toolbar.sendBackward": "선택한 요소를 그리기 순서상 한 단계 뒤로(뒤쪽 방향) 이동합니다.",
   "tooltip.toolbar.bringToFront": "선택한 요소를 그리기 순서상 맨 앞으로 이동합니다.",
   "tooltip.toolbar.sendToBack": "선택한 요소를 그리기 순서상 맨 뒤로 이동합니다.",
-
   "panel.align": "정렬",
-
   "tooltip.style.id": "바인딩 키, commandKey, 백엔드 이름 매칭(UXML/GameObject 이름)에 쓰이는 고유 id입니다. 이름을 바꾸면 자식들의 parentId가 자동으로 다시 연결됩니다.",
   "tooltip.style.displayName": "Hierarchy 패널에 표시되는 사람이 읽기 쉬운 라벨입니다. 순전히 표시용이며 런타임 조회에는 영향을 주지 않습니다.",
   "tooltip.style.type": "의미론적 요소 타입(Panel, Button, Label 등)입니다. 기본 백엔드 비주얼과 런타임이 기대하는 기능(capability)을 결정합니다.",
   "tooltip.style.text": "Label/Button류 요소의 정적 미리보기 텍스트입니다. binding.textKey가 설정되어 있으면 런타임에 덮어써집니다.",
   "tooltip.style.classes": "이 요소에 적용할 공백으로 구분된 스타일 클래스입니다 (UI Toolkit의 USS 클래스, 또는 uGUI의 동등한 클래스 토글 세트).",
-  "tooltip.style.shape": "이 요소 박스의 디자이너 캔버스 프리뷰 도형입니다: Rectangle(각진 모서리), Rounded(작은 반경, 기존 기본값), Pill(완전히 둥근 양 끝), Circle/Ellipse. 프리뷰 전용이며 백엔드 UXML/프리팹 자체의 스타일은 바꾸지 않습니다.",
-  "tooltip.style.previewValue": "이 Progress Bar/Stat Bar/Radial Fill에 대해 디자이너 캔버스에 표시되는, 아래 Min/Max 범위 내의 채움 정도입니다(프리뷰 전용 - 런타임 실제 값은 binding.valueKey에서 옵니다).",
+  "tooltip.style.shape": "이 요소 박스의 스튜디오 캔버스 프리뷰 도형입니다: Rectangle(각진 모서리), Rounded(작은 반경, 기존 기본값), Pill(완전히 둥근 양 끝), Circle/Ellipse. 프리뷰 전용이며 백엔드 UXML/프리팹 자체의 스타일은 바꾸지 않습니다.",
+  "tooltip.style.previewValue": "이 Progress Bar/Stat Bar/Radial Fill에 대해 스튜디오 캔버스에 표시되는, 아래 Min/Max 범위 내의 채움 정도입니다(프리뷰 전용 - 런타임 실제 값은 binding.valueKey에서 옵니다).",
   "tooltip.style.minValue": "프리뷰 값 범위의 하한값입니다. Unity Slider의 minValue와 동일합니다(예: 0).",
   "tooltip.style.maxValue": "프리뷰 값 범위의 상한값입니다. Unity Slider의 maxValue와 동일합니다(예: 100).",
   "tooltip.style.fillDirection": "채움이 어느 가장자리에서부터 자라나는지입니다. Unity Image의 FillMethod + fillOrigin(Horizontal/Left,Right 또는 Vertical/Bottom,Top)과 동일합니다.",
   "tooltip.style.clockwise": "래디얼 채움/스핀 아크의 회전 방향입니다. Unity Image의 fillClockwise와 동일합니다.",
-  "tooltip.style.previewImage": "이 Image/Icon Button에 대해 디자이너 캔버스에 표시되는 텍스처입니다(프리뷰 전용 - 백엔드 UXML/프리팹은 자체 스프라이트/텍스처 참조를 그대로 유지합니다).",
-  "tooltip.style.tint": "디자이너 프리뷰에 표시되고 백엔드 요소에 적용되는 배경/그래픽 틴트 색상입니다.",
+  "tooltip.style.previewImage": "이 Image/Icon Button에 대해 스튜디오 캔버스에 표시되는 텍스처입니다(프리뷰 전용 - 백엔드 UXML/프리팹은 자체 스프라이트/텍스처 참조를 그대로 유지합니다).",
+  "tooltip.style.tint": "스튜디오 프리뷰에 표시되고 백엔드 요소에 적용되는 배경/그래픽 틴트 색상입니다.",
   "tooltip.style.textColor": "Label/Button류 요소의 텍스트 색상입니다.",
   "tooltip.style.fontSize": "포인트 단위 글꼴 크기이며 8-96으로 제한됩니다.",
-  "tooltip.style.hidden": "디자이너 캔버스에서만 이 요소를 숨깁니다(런타임 표시에는 영향 없음) - 메타데이터를 삭제하지 않고 캔버스를 정리할 때 사용하세요.",
-
+  "tooltip.style.hidden": "스튜디오 캔버스에서만 이 요소를 숨깁니다(런타임 표시에는 영향 없음) - 메타데이터를 삭제하지 않고 캔버스를 정리할 때 사용하세요.",
   "tooltip.layout.position": "캔버스 픽셀 기준 좌상단 위치입니다(절대 좌표, 부모 요소 기준 상대 좌표 아님).",
   "tooltip.layout.size": "캔버스 픽셀 단위 너비/높이입니다. 각 축 최소 24px로 제한됩니다.",
   "tooltip.layout.anchor": "저장 시 백엔드 RectTransform/style에 적용되는 uGUI 스타일 앵커 프리셋입니다(Stretch는 해당 축을 부모에 꽉 채웁니다).",
   "tooltip.layout.locked": "캔버스에서 이동/크기조절/사각형 편집을 막습니다(인스펙터 필드는 계속 동작) - 완성된 요소를 실수로 드래그하지 않도록 할 때 사용하세요.",
-
   "tooltip.binding.textKey": "런타임에 이 요소의 텍스트를 구동하는(UITextBinder 경유) UIStateStore 문자열 키입니다. 정적 텍스트로 두려면 비워두세요.",
   "tooltip.binding.valueKey": "런타임에 이 요소의 Value 기능(프로그레스 바, 슬라이더)을 구동하는 UIStateStore float 키입니다.",
   "tooltip.binding.visibilityKey": "런타임에 이 요소를 표시/숨김 처리하는 UIStateStore bool 키입니다.",
@@ -617,7 +607,6 @@
   "tooltip.binding.interactableKey": "런타임에 이 요소의 상호작용을 켜고 끄는 UIStateStore bool 키입니다.",
   "tooltip.binding.pickData": "리플렉션으로 찾은 데이터 소스 IBindableProperty<T>에 이 바인딩 키를 연결합니다.",
   "tooltip.binding.pickCommand": "내장 파이프라인 커맨드나 프로젝트 내 다른 곳에서 이미 쓰인 commandKey 중에서 선택합니다.",
-
   "tooltip.theme.themeAsset": "선택적인 직접 테마 에셋 참조입니다. 하나를 지정하면 아래 Theme Id도 해당 에셋의 themeId로 채워집니다(비어있는 경우).",
   "tooltip.theme.themeId": "런타임에 테마 토큰을 해석하는 데 쓰이는 테마 id 문자열이며, 위 직접 에셋 참조와는 별개입니다(NexUITheme.Use로 런타임에 테마를 교체할 때 유용).",
   "tooltip.theme.classes": "Style 섹션의 Classes 필드에 추가로 적용되는, 공백으로 구분된 테마 전용 스타일 클래스입니다.",
@@ -629,7 +618,6 @@
   "tooltip.theme.removeToken": "이 토큰 오버라이드를 제거합니다.",
   "button.addTokenOverride": "토큰 오버라이드 추가",
   "button.addAsToken": "토큰으로 추가",
-
   "tooltip.motion.preset": "이 요소가 애니메이션하는 데 사용하는 컴파일된 모션 에셋입니다(Motion Graph 에디터로 제작).",
   "tooltip.motion.motionId": "런타임에 이 모션을 조회하는 데 쓰이는 식별자입니다. 프리셋이 지정되면 프리셋 자체의 motionId로 채워집니다.",
   "tooltip.motion.initial": "이 요소가 보이기 시작하는 순간(애니메이션 재생 전) 적용되는 변형(variant) 이름입니다.",
@@ -642,7 +630,6 @@
   "tooltip.motion.openClipEditor": "실시간 프리뷰에서 이 특정 요소로 범위가 지정된 타임라인 클립 에디터를 엽니다.",
   "button.openMotionGraph": "모션 그래프 열기",
   "button.openMotionClipEditor": "모션 클립 에디터 열기",
-
   "tooltip.policy.inputBlocking": "이 스크린이 열려있는 동안 뒤에 있는 스크린으로의 포인터/게임패드 입력을 차단합니다.",
   "tooltip.policy.pauseGameBehind": "이 스크린이 열려있는 동안 게임플레이를 일시정지합니다(Time.timeScale 방식).",
   "tooltip.policy.closeOnBack": "Back 커맨드(취소/Escape)가 발생하면 이 스크린을 닫습니다.",
@@ -651,10 +638,8 @@
   "tooltip.policy.focusPolicy": "열릴 때의 키보드/게임패드 포커스 동작입니다 - AutoFocusDefault는 focus.defaultFocusElementId에 포커스를 주고, TrapFocus는 추가로 Tab이 스크린을 벗어나지 못하게 합니다.",
   "tooltip.policy.conflictPolicy": "이미 전환(transition)이 재생 중인 상태에서 이 스크린을 다시 열거나 닫으라는 요청이 오면 어떻게 할지입니다.",
   "tooltip.policy.lifetimePolicy": "닫힐 때 스크린 인스턴스를 파괴할지, 유지할지, 풀링할지입니다.",
-
   "tooltip.accessibility.label": "이 요소의 스크린리더용 라벨입니다. 비어있으면 런타임에 Text/Name으로 대체됩니다.",
   "tooltip.accessibility.role": "스크린리더/스위치 컨트롤 브릿지를 위한 의미론적 역할 힌트(Button, Toggle, Slider 등)이며, 일반적인 ARIA/UIKit 역할 어휘를 따릅니다.",
-
   "tooltip.autoLayout.enabled": "이 요소의 직계 자식들을 한 축을 따라 배치합니다(Figma 스타일 Auto Layout) - 각 자식이 독립적인 절대 사각형을 유지하는 대신입니다.",
   "tooltip.autoLayout.direction": "자식들이 배치되는 축입니다 - Row(왼쪽에서 오른쪽) 또는 Column(위에서 아래).",
   "tooltip.autoLayout.spacing": "direction 축을 따라 연속된 자식 사이의 간격(픽셀)입니다.",
@@ -664,22 +649,16 @@
   "tooltip.autoLayout.paddingBottom": "이 요소의 아래쪽 가장자리에서 자식까지의 여백입니다.",
   "tooltip.autoLayout.widthSizing": "부모가 Auto Layout 컨테이너일 때 이 요소가 가로로 크기를 정하는 방식입니다: Fixed(자신의 rect 너비 사용), Hug(내용에 맞춤), Fill(남는 공간만큼 늘어남).",
   "tooltip.autoLayout.heightSizing": "부모가 Auto Layout 컨테이너일 때 이 요소가 세로로 크기를 정하는 방식입니다: Fixed(자신의 rect 높이 사용), Hug(내용에 맞춤), Fill(남는 공간만큼 늘어남).",
-
   "tooltip.constraints.horizontal": "부모가 리사이즈될 때의 가로축 핀 동작입니다: Start(왼쪽), End(오른쪽), Center, Scale(비율에 맞춰 크기 조절).",
   "tooltip.constraints.vertical": "부모가 리사이즈될 때의 세로축 핀 동작입니다: Start(위), End(아래), Center, Scale(비율에 맞춰 크기 조절).",
-
   "tooltip.capability.list": "이 요소 타입이 노출할 것으로 기대되는 런타임 기능 인터페이스(IUI*Capability)입니다 - 정보 제공용이며 Style 섹션의 Type 필드로부터 유도됩니다.",
-
   "tooltip.multiSelection.summary": "현재 다중 선택된 요소 개수입니다.",
   "tooltip.multiSelection.position": "선택된 요소들이 공유하는 위치이거나, 서로 다르면 \"Mixed\"입니다.",
   "tooltip.multiSelection.size": "선택된 요소들이 공유하는 크기이거나, 서로 다르면 \"Mixed\"입니다.",
   "tooltip.multiSelection.layer": "선택된 요소들이 차지하는 그리기 순서 인덱스 범위(연속된 요소만)이거나, 아니면 \"Mixed\"입니다.",
-
   "inspector.validation.text": "스크린 / 바인딩 / 모션 / 테마 검사",
   "tooltip.validation.text": "검사가 실행될 때마다 이 요소의 데이터는 이 네 카테고리에 대해 확인됩니다 - 실제 문제 목록은 아래 Validation 패널을 참고하세요.",
-
   "tooltip.screenDefinition.screen": "현재 열려있는 UIScreenDefinition 에셋입니다(여기서는 읽기 전용 - 전환하려면 툴바의 Screen 필드를 사용하세요).",
-
   "tooltip.palette.search": "컴포넌트 목록을 이름으로 필터링합니다.",
   "tooltip.palette.addComponent": "현재 스크린에 {0} 요소를 추가합니다.",
   "tooltip.palette.alignLeft": "선택한 요소의 왼쪽 가장자리를 캔버스에 맞춰 정렬합니다.",
@@ -691,27 +670,20 @@
   "tooltip.palette.fill": "선택한 요소를 캔버스 해상도 전체를 채우도록 크기를 조절합니다.",
   "tooltip.palette.copy": "선택한 요소(들)를 원본에서 살짝 어긋난 위치에 복제합니다.",
   "tooltip.palette.delete": "선택한 요소(들)를 삭제합니다. 자식은 삭제되지 않으니 필요하면 먼저 다른 곳으로 재부모화하세요.",
-
   "tooltip.hierarchy.search": "id 또는 표시 이름으로 요소를 필터링합니다.",
-  "tooltip.hierarchy.visibility": "디자이너 캔버스에서의 표시 여부를 토글합니다(런타임 표시에는 영향 없음).",
+  "tooltip.hierarchy.visibility": "스튜디오 캔버스에서의 표시 여부를 토글합니다(런타임 표시에는 영향 없음).",
   "tooltip.hierarchy.lock": "잠금을 토글합니다(캔버스에서 이동/크기조절/사각형 편집 방지).",
-
   "tooltip.state.title": "선택된 요소(또는 선택이 없으면 모든 요소)에 연결된 모든 UIStateStore 바인딩 키를 나열합니다.",
   "tooltip.state.filter": "아래 바인딩 키 목록을 부분 문자열로 필터링합니다.",
   "tooltip.state.keys": "선택된 요소(또는 모든 요소)의 모든 바인딩에 대해: elementId / 바인딩 종류 = UIStateStore 키.",
-
   "tooltip.command.title": "선택한 요소의 commandKey(런타임에 클릭 시 실행되는 액션)를 미리보고 편집합니다.",
   "tooltip.command.field": "선택한 요소의 커맨드 키입니다. 여기서 편집하는 것은 Binding 인스펙터의 Command Key 필드와 동일합니다.",
   "tooltip.command.run": "이 커맨드 키를 미리보기 실행합니다(실제로 런타임 Command Pipeline을 호출하지는 않고, 전송될 키만 미리 보여줍니다) - 선택한 요소에 저장도 됩니다.",
-
   "tooltip.screenGraph.title": "C1 커맨드/바인딩 연결 뷰: 선택이 없으면 스크린을 요약(백엔드, 변형/반응형 규칙/요소 개수)하고, 요소가 선택되면 정확히 어떤 commandKey/textKey/valueKey 등에 연결되어 있는지 보여줍니다.",
-
   "tooltip.validationPanel.title": "등록된 모든 프로젝트 검사기(중복 id, 누락된 에셋, 백엔드 불일치 등)의 결과이며, Validate를 누르거나 메타데이터가 바뀔 때마다 다시 실행됩니다.",
   "tooltip.validationPanel.item": "Hierarchy/캔버스에서 \"{0}\"을(를) 선택하려면 클릭하세요.",
-
   "tooltip.common.shortcutPrefix": "단축키",
   "tooltip.common.disabledPrefix": "비활성화 이유",
-
   "motionClip.toolbar.clip": "클립",
   "motionClip.toolbar.createClip": "클립 생성",
   "motionClip.toolbar.addTrackFromSelection": "트랙 추가",
@@ -741,10 +713,9 @@
   "motionClip.status.disconnected": "연결 안 됨",
   "motionClip.status.none": "없음",
   "motionClip.status.openDesigner": "Designer 열기",
-
   "tooltip.motionClip.clipField": "편집 중인 Motion Clip 에셋입니다. 트랙을 추가하려면 먼저 하나를 지정하거나 생성하세요.",
   "tooltip.motionClip.createClip": "새로운 빈 Motion Clip 에셋을 만들고 여기서 엽니다.",
-  "tooltip.motionClip.addTrackFromSelection": "현재 NexUI Designer에서 선택된 요소를 대상으로 하는 트랙을 추가합니다.",
+  "tooltip.motionClip.addTrackFromSelection": "현재 NexUI Studio에서 선택된 요소를 대상으로 하는 트랙을 추가합니다.",
   "tooltip.motionClip.duration": "클립의 전체 길이(초)입니다. 이 시간을 넘는 키프레임은 재생 시 클램프됩니다.",
   "tooltip.motionClip.fps": "타임라인의 프레임 표시와 스냅에 사용되는 초당 프레임 수입니다.",
   "tooltip.motionClip.loop": "활성화하면 끝에서 멈추지 않고 0초부터 다시 재생합니다.",
@@ -758,27 +729,23 @@
   "tooltip.motionClip.deleteTrack": "이 속성 트랙(및 모든 키프레임)을 요소에서 제거합니다.",
   "tooltip.motionClip.lockTrack": "이 트랙을 잠급니다. 잠기면 캔버스나 타임라인에서 키프레임을 추가/이동/삭제할 수 없습니다.",
   "tooltip.motionClip.keyframeDot": "클릭하여 선택합니다. Shift-클릭은 범위 선택, Ctrl/Cmd-클릭은 토글 선택입니다. 드래그하면 선택된 키프레임이 함께 이동합니다. 우클릭하면 삭제할 수 있습니다.",
-  "tooltip.motionClip.openDesigner": "NexUI Designer 창을 열어 프리뷰 서페이스로 사용할 화면을 로드할 수 있습니다.",
+  "tooltip.motionClip.openDesigner": "NexUI Studio 창을 열어 프리뷰 서페이스로 사용할 화면을 로드할 수 있습니다.",
   "tooltip.motionClip.reason.noClip": "먼저 Motion Clip을 생성하거나 지정하세요.",
-  "tooltip.motionClip.reason.noElementSelected": "먼저 NexUI Designer에서 요소를 선택하세요.",
+  "tooltip.motionClip.reason.noElementSelected": "먼저 NexUI Studio에서 요소를 선택하세요.",
   "tooltip.motionClip.reason.noPropertyTracks": "먼저 속성 트랙을 하나 이상 추가하세요.",
   "tooltip.motionClip.reason.trackLocked": "이 트랙은 잠겨 있습니다. 편집하려면 \"잠금 해제\"를 클릭하세요.",
   "tooltip.motionClip.reason.nothingToStop": "이미 정지된 상태이며 복원할 것이 없습니다.",
-
   "motionClip.toolbar.pause": "일시정지",
   "motionClip.toolbar.autoKey": "Auto Key",
   "motionClip.autoKey.off": "끄기",
   "motionClip.autoKey.existingTracks": "기존 트랙만",
   "motionClip.autoKey.allChanges": "모든 변경",
   "motionClip.status.recording": "레코딩 중",
-
   "tooltip.motionClip.stop": "재생을 멈추고 0초로 되감은 뒤, 애니메이션된 모든 요소를 프리뷰 이전 자세로 복원합니다.",
   "tooltip.motionClip.autoKey": "끄기: 캔버스 편집은 레이아웃만 변경합니다. 기존 트랙만: 이미 존재하는 트랙의 키프레임만 갱신합니다. 모든 변경: 트랙/속성 트랙이 없으면 생성까지 합니다.",
-  "tooltip.motionClip.recording": "Auto Key가 켜져 있습니다: NexUI Designer 캔버스에서 이 요소를 이동/크기조절하면 레이아웃만 바뀌는 대신 현재 스크럽 시간에 키프레임이 기록됩니다.",
-
+  "tooltip.motionClip.recording": "Auto Key가 켜져 있습니다: NexUI Studio 캔버스에서 이 요소를 이동/크기조절하면 레이아웃만 바뀌는 대신 현재 스크럽 시간에 키프레임이 기록됩니다.",
   "tooltip.motionClip.easingButton": "이 키프레임이 다음 키프레임으로 어떻게 보간될지 선택하는 Easing Browser를 엽니다.",
   "tooltip.motionClip.customCurve": "이 키프레임 전용으로 직접 그린 커브입니다(탄젠트 핸들을 드래그하세요). 위의 Easing 선택을 덮어씁니다.",
-
   "easing.custom": "커스텀 커브...",
   "easing.category.Basic": "기본",
   "easing.category.Quadratic": "2차",
@@ -792,7 +759,6 @@
   "easing.category.Elastic": "탄성",
   "easing.category.Bounce": "바운스",
   "easing.category.Custom": "커스텀",
-
   "easing.hint.Basic": "일정한 속도이거나 부드럽게 시작/끝납니다. 대부분의 UI 모션에 안전한 기본값입니다.",
   "easing.hint.Quadratic": "약한 가속/감속입니다.",
   "easing.hint.Cubic": "중간 강도의 가속/감속입니다 - 범용으로 많이 쓰입니다.",
@@ -805,31 +771,25 @@
   "easing.hint.Elastic": "고무줄처럼 여러 번 진동하며 정착합니다. 추천: 경쾌한 강조, 보상/성공 피드백.",
   "easing.hint.Bounce": "공이 튕기다 멈추듯 정착합니다.",
   "easing.hint.Custom": "정해진 이징 대신 이 키프레임만을 위한 커브를 직접 그립니다.",
-
   "motionClip.toolbar.copyKeyframes": "키프레임 복사",
   "motionClip.toolbar.pasteKeyframes": "키프레임 붙여넣기",
   "motionClip.toolbar.reverseKeyframes": "반전",
   "motionClip.toolbar.scaleTiming": "타이밍 스케일",
-
   "tooltip.motionClip.scaleTimingFactor": "아래 Scale Timing에서 사용할 배율입니다(예: 2는 모든 키프레임 시간을 2배로, 0.5는 절반으로 만듭니다). 시간은 클립 길이로 클램프됩니다.",
   "tooltip.motionClip.moreTrackOps": "호환되는 트랙 간에 키프레임을 복사/붙여넣기하거나, 이 트랙의 타이밍을 반전하거나, 왼쪽 배율만큼 스케일합니다.",
-
   "viewport.motionPath": "이동 경로",
   "viewport.onionSkin": "잔상",
   "tooltip.viewport.motionPath": "선택 요소의 실제 이동 경로와 키프레임을 표시합니다. 시작 위치에는 불투명도를 낮춘 원본 UI가 남고, 현재 UI는 평가된 도착 지점까지 실제로 이동합니다.",
   "tooltip.viewport.onionSkin": "항상 표시되는 시작 원본에 더해 현재 시간 앞뒤의 키프레임 잔상을 표시하여, 스크럽하지 않고도 모션 간격을 판단할 수 있게 합니다.",
-
   "motionClip.toolbar.useWorkArea": "Work Area 반복",
   "motionClip.toolbar.workAreaStart": "시작",
   "motionClip.toolbar.workAreaEnd": "끝",
   "motionClip.toolbar.addMarker": "+ 마커",
   "motionClip.toolbar.renameMarker": "이름 변경",
   "motionClip.toolbar.deleteMarker": "삭제",
-
   "tooltip.motionClip.useWorkArea": "Loop도 켜져 있으면, 첫 재생에서만 클립 전체를 재생하고 그 이후로는 아래 시작-끝 구간만 반복합니다(예: 인트로 후 반복되는 대기 동작).",
   "tooltip.motionClip.addMarker": "현재 스크럽 시간에 이름 있는 마커를 추가합니다(예: \"Impact\", \"Loop Point\"). 마커를 우클릭하면 이름 변경/삭제할 수 있습니다.",
   "tooltip.motionClip.markerFlag": "클릭하면 이 시간으로 이동합니다. 우클릭하면 이름 변경/삭제할 수 있습니다.",
-
   "stateMachine.toolbar.asset": "State Machine",
   "stateMachine.toolbar.create": "생성",
   "stateMachine.toolbar.defaultState": "기본 상태",
@@ -842,24 +802,20 @@
   "stateMachine.toolbar.interruptPolicy": "Interrupt Policy",
   "stateMachine.toolbar.clip": "클립",
   "stateMachine.toolbar.preview": "트랜지션 미리보기",
-
   "tooltip.stateMachine.asset": "편집 중인 Motion State Machine 에셋입니다. 트랜지션을 추가하려면 먼저 하나를 지정하거나 생성하세요.",
   "tooltip.stateMachine.create": "새로운 빈 Motion State Machine 에셋을 만들고 여기서 엽니다.",
   "tooltip.stateMachine.defaultState": "이 머신을 사용하는 컴포넌트가 트랜지션이 실행되기 전 시작하는 상태입니다.",
   "tooltip.stateMachine.addTransition": "새로운 From -> To 트랜지션을 추가합니다. 클립을 지정하고 Interrupt Policy를 선택하세요.",
   "tooltip.stateMachine.anyState": "켜면 이 트랜지션은 현재 상태와 관계없이 To 상태로의 변경과 매칭됩니다(From 드롭다운은 무시됩니다).",
   "tooltip.stateMachine.interruptPolicy": "Restart: 취소하고 처음부터 다시 재생합니다. Ignore: 이미 트랜지션이 재생 중이면 요청을 무시합니다. Complete Immediately: 중단된 클립을 먼저 끝 자세로 스냅한 뒤 이 트랜지션을 재생합니다.",
-  "tooltip.stateMachine.preview": "Motion Clip Editor의 Play 버튼과 동일하게, 연결된 NexUI Designer 프리뷰 서페이스에서 이 트랜지션의 클립을 재생합니다.",
+  "tooltip.stateMachine.preview": "Motion Clip Editor의 Play 버튼과 동일하게, 연결된 NexUI Studio 프리뷰 서페이스에서 이 트랜지션의 클립을 재생합니다.",
   "tooltip.stateMachine.reason.noClip": "먼저 이 트랜지션에 클립을 지정하세요.",
-
   "graphV2.toolbar.asset": "Motion Graph",
   "graphV2.toolbar.create": "생성",
   "graphV2.toolbar.autoLayout": "자동 정렬",
   "graphV2.toolbar.preview": "미리보기",
   "graphV2.toolbar.noAsset": "지정된 Motion Graph가 없습니다. 위에서 선택하거나 생성하세요.",
-
-  "tooltip.graphV2.preview": "연결된 NexUI Designer 프리뷰 서페이스에서 선택한 이벤트로 그래프를 실제로 실행합니다 - 캔버스에서 선택된 요소(있다면)가 Current Event Target으로 사용됩니다.",
-
+  "tooltip.graphV2.preview": "연결된 NexUI Studio 프리뷰 서페이스에서 선택한 이벤트로 그래프를 실제로 실행합니다 - 캔버스에서 선택된 요소(있다면)가 Current Event Target으로 사용됩니다.",
   "focusNav.panel.title": "Focus Navigation",
   "focusNav.panel.autoGenerate": "전체 자동 생성",
   "focusNav.panel.noSelection": "요소를 하나 선택하세요.",
@@ -868,13 +824,10 @@
   "focusNav.panel.left": "왼쪽",
   "focusNav.panel.right": "오른쪽",
   "focusNav.panel.defaultFocus": "기본 포커스",
-
   "tooltip.focusNav.autoGenerate": "이 화면의 모든 요소에 대해 캔버스 위치 기준으로 상/하/좌/우 링크를 계산합니다(각 방향의 최근접 요소). 이미 지정된 링크는 덮어씁니다.",
   "tooltip.focusNav.defaultFocus": "이 화면이 열릴 때 게임패드/키보드 커서가 시작하는 요소입니다. 화면당 최대 1개의 요소만 켜져 있어야 합니다.",
-
   "viewport.focusNav": "Focus Nav",
   "tooltip.viewport.focusNav": "캔버스에 저장된 모든 게임패드/키보드 내비게이션 링크를 요소 간 선으로 표시하고, 화면의 기본 포커스 요소를 표시합니다.",
-
   "scenario.window.title": "Scenario",
   "scenario.window.description": "Mock 상태(시나리오)를 편집하고 현재 열린 화면에 적용하거나 현재 프리뷰 상태를 시나리오로 캡처합니다.",
   "scenario.field.asset": "시나리오 에셋",
@@ -896,7 +849,6 @@
   "scenario.status.openDesigner": "Designer 열기",
   "scenario.help.noAsset": "시나리오 에셋을 선택하거나 새로 생성하세요.",
   "scenario.validation.passed": "문제 없음",
-
   "tooltip.scenario.asset": "편집할 DesignerScenarioAsset입니다. Motion Clip처럼 독립 에셋이므로 여러 화면에서 재사용하고 소스 관리에 포함할 수 있습니다.",
   "tooltip.scenario.create": "새 DesignerScenarioAsset을 프로젝트에 생성합니다.",
   "tooltip.scenario.name": "시나리오 이름(예: Inventory Empty, Low Health).",
@@ -907,7 +859,6 @@
   "tooltip.scenario.apply": "현재 열린 화면에 이 시나리오를 적용합니다 - 각 Mock 값을 해당 키에 바인딩된 요소의 프리뷰 채널에 씁니다. 하나의 Undo로 전체가 되돌려집니다. 게임 Command는 실행하지 않습니다.",
   "tooltip.scenario.capture": "현재 화면의 프리뷰 상태(요소별 바인딩 값·텍스트·표시 여부, 강제 상태, 언어)를 이 시나리오로 캡처합니다.",
   "tooltip.scenario.save": "변경한 시나리오 에셋을 디스크에 저장합니다.",
-
   "scenario.section.timeline": "타임라인",
   "scenario.timeline.use": "타임라인 사용",
   "scenario.timeline.duration": "길이(초)",
@@ -922,7 +873,6 @@
   "tooltip.scenario.timeline.loop": "끝에 도달하면 처음부터 다시 재생합니다.",
   "tooltip.scenario.timeline.scrub": "Playhead를 이동해 해당 시간의 타임라인 상태를 캔버스에 적용합니다. 숫자 키는 이웃 키 사이를 선형 보간, Bool/Text 키는 계단식으로 유지됩니다. 정지 시 원본 프리뷰 값으로 복원됩니다.",
   "tooltip.scenario.timeline.addKey": "현재 시간에 타임라인 키를 추가합니다. Key는 State/Binding 키이며, 그 시점의 값을 지정합니다.",
-
   "scenario.section.recording": "인터랙션 기록",
   "scenario.record.start": "기록 시작",
   "scenario.record.stop": "기록 정지",
@@ -930,7 +880,6 @@
   "scenario.record.help": "기록을 시작하면 Designer에서의 요소 편집(바인딩된 값·텍스트·표시 여부 변경)이 경과 시간과 함께 타임라인 키로 저장됩니다. 정지 후 타임라인 재생으로 그대로 재현할 수 있습니다.",
   "tooltip.scenario.record.start": "지금부터 현재 화면의 요소 편집을 타임라인 키로 기록합니다. 기존 타임라인 키는 지워지고, 시작 시점 상태가 0초 기준으로 캡처됩니다.",
   "tooltip.scenario.record.stop": "기록을 정지하고 타임라인 길이를 마지막 키에 맞춰 정리합니다.",
-
   "screenFlow.toolbar.asset": "Screen Flow",
   "screenFlow.toolbar.create": "Flow 생성",
   "screenFlow.toolbar.addNode": "화면 노드 추가",
@@ -951,7 +900,6 @@
   "tooltip.screenFlow.setEntry": "선택한 노드를 이 Flow의 시작 노드로 지정합니다.",
   "tooltip.screenFlow.validate": "끊어진/미연결 전환, 시작 노드에서 도달 불가능한 노드, 화면 미지정 등을 검사합니다.",
   "tooltip.screenFlow.save": "변경한 Screen Flow 에셋을 디스크에 저장합니다.",
-
   "uxmlGen.window.title": "UXML/USS 생성",
   "uxmlGen.window.description": "현재 열린 화면의 Designer 메타데이터에서 UXML과 USS를 생성합니다. 손으로 작성한 원본 UXML은 절대 건드리지 않고, 별도의 생성 파일(.g.uxml/.g.uss)에만 씁니다.",
   "uxmlGen.status.target": "대상",
@@ -975,7 +923,6 @@
   "uxmlGen.dialog.refuseOverwrite": "대상 파일이 이미 존재하며 NexUI 생성 파일이 아닙니다. 사용자가 작성한 파일을 보호하기 위해 쓰기를 취소했습니다.",
   "tooltip.uxmlGen.generate": "현재 화면 메타데이터에서 UXML/USS 텍스트를 생성해 아래에 미리 봅니다. 파일은 아직 쓰지 않습니다.",
   "tooltip.uxmlGen.write": "미리 본 UXML/USS를 별도 생성 파일(.g.uxml/.g.uss)로 씁니다. 원본 UXML은 건드리지 않습니다.",
-
   "tokens.window.title": "디자인 토큰",
   "tokens.window.description": "색상·간격·반경·모션 등 디자인 토큰을 만들고, 토큰끼리 별칭(참조)으로 연결하며, 각 토큰의 해석된 값을 확인합니다.",
   "tokens.field.asset": "토큰 세트",
@@ -994,11 +941,9 @@
   "tooltip.tokens.create": "새 DesignerTokenSetAsset을 프로젝트에 생성합니다.",
   "tooltip.tokens.setName": "토큰 세트 이름입니다.",
   "tooltip.tokens.add": "토큰을 추가합니다. 카테고리에 따라 색상/숫자/문자열 값을 가지며, 다른 토큰을 참조(별칭)할 수도 있습니다.",
-
   "accessibility.audit.title": "화면 접근성 검사",
   "accessibility.audit.noScreen": "메인 Designer에서 화면을 하나 열면 대비·터치 타깃·레이블/역할을 검사합니다.",
   "accessibility.audit.passed": "문제 없음",
-
   "sync.window.title": "동기화 · Publish",
   "sync.window.description": "생성된 UXML/USS를 디스크 파일 및 마지막 Publish 기준과 3-way로 비교합니다. Designer 변경/백엔드 변경/충돌을 구분하고, 변경분만 Publish합니다.",
   "sync.field.manifest": "Publish 매니페스트",
@@ -1026,926 +971,942 @@
   "tooltip.sync.useBackend": "디스크 파일을 새 기준값으로 채택합니다(재생성 없이 충돌/백엔드 변경 상태 해소).",
   "tooltip.sync.reviewDiff": "파일과 생성 결과의 라인 단위 차이를 봅니다(+ 추가, - 제거).",
   "tooltip.sync.dryRun": "쓰지 않고, 각 화면이 Publish될지/건너뛸지/해결이 필요한지 보고합니다.",
-  "tooltip.sync.publish": "신규·Designer 변경 화면만 파일로 씁니다. 동기화됨은 건너뛰고, 백엔드 변경·충돌은 해결 필요로 보고합니다."
-  ,"productivity.newScreen": "새 스크린"
-  ,"productivity.layout": "레이아웃 정리"
-  ,"productivity.transition": "전환"
-  ,"productivity.scenario": "시나리오"
-  ,"productivity.fixAllSafe": "안전한 문제 모두 수정"
-  ,"productivity.tooltip.newScreen": "Screen, Metadata와 Backend 에셋을 한 번에 연결해 만듭니다."
-  ,"productivity.tooltip.layout": "선택 요소를 Auto Layout으로 정리하거나 Anchor를 추천합니다."
-  ,"productivity.tooltip.transition": "선택 요소에서 Open/Close Motion Clip을 생성합니다."
-  ,"palette.family": "라이브러리"
-  ,"palette.family.all": "전체"
-  ,"palette.family.nexui": "NexUI"
-  ,"palette.family.ugui": "Unity uGUI"
-  ,"palette.family.uitk": "UI Toolkit"
-  ,"tooltip.palette.family": "UI 계열별로 컴포넌트 라이브러리를 필터링합니다."
-,"palette.group.containers": "컨테이너"
-,"palette.group.layout": "레이아웃"
-,"palette.group.textMedia": "텍스트 및 미디어"
-,"palette.group.media": "미디어"
-,"palette.group.controls": "컨트롤"
-,"palette.group.selection": "선택 및 입력"
-,"palette.group.navigation": "내비게이션"
-,"palette.group.feedback": "피드백"
-,"palette.group.overlay": "오버레이"
-,"palette.group.data": "데이터 및 컬렉션"
-,"palette.group.charts": "차트"
-,"palette.group.social": "소셜"
-,"palette.group.commerce": "상점 및 결제"
-,"palette.group.settings": "설정"
-,"palette.group.game": "게임 HUD"
-,"palette.group.game.world": "게임 월드 및 맵"
-,"palette.group.game.items": "게임 아이템 및 인벤토리"
-,"palette.group.game.progression": "게임 성장 및 보상"
-,"palette.group.game.menu": "게임 메뉴 및 결과"
-,"palette.group.game.multiplayer": "게임 멀티플레이"
-,"palette.group.ugui.basic": "기본"
-,"palette.group.ugui.controls": "컨트롤"
-,"palette.group.ugui.containers": "컨테이너 및 레이아웃"
-,"palette.group.uitk.basic": "기본"
-,"palette.group.uitk.controls": "컨트롤"
-,"palette.group.uitk.fields": "필드"
-,"palette.group.uitk.containers": "컨테이너 및 컬렉션"
-  ,"inspector.section.attachedComponents": "프로젝트 스크립트"
-  ,"attachedComponents.help": "MonoBehaviour는 생성된 uGUI GameObject에 적용됩니다. UI Toolkit에서는 메타데이터를 보존하지만 VisualElement에 부착할 수 없습니다."
-  ,"attachedComponents.add": "컴포넌트 추가"
-  ,"attachedComponents.addTooltip": "uGUI 프리팹 저장 시 부착할 런타임 MonoBehaviour를 선택합니다."
-  ,"attachedComponents.remove": "Designer가 관리하는 이 컴포넌트를 제거합니다."
-  ,"attachedComponents.missing": "현재 찾을 수 없는 타입입니다. 참조는 보존됩니다."
-  ,"attachedComponents.pickerTitle": "Add Component"
-  ,"palette.tooltip.family": "라이브러리"
-  ,"palette.tooltip.backends": "백엔드 지원"
-  ,"palette.tooltip.size": "기본 크기"
-  ,"palette.tooltip.states": "미리보기 상태"
-  ,"palette.tooltip.bindings": "바인딩"
-  ,"palette.tooltip.events": "이벤트"
-  ,"palette.tooltip.hint": "가리키면 상세 보기 · 클릭하면 추가 · 우클릭하면 배치 옵션"
-  ,"palette.support.full": "완전 지원"
-  ,"palette.support.partial": "부분 지원"
-  ,"palette.support.previewOnly": "미리보기 전용"
-  ,"palette.support.unsupported": "지원 안 함"
-  ,"palette.capability.children": "자식 허용"
-  ,"palette.capability.interactive": "상호작용"
-  ,"palette.capability.value": "값 기반"
-  ,"palette.capability.collection": "컬렉션"
-  ,"palette.capability.overlay": "오버레이"
-  ,"palette.capability.display": "표시 요소"
-  ,"palette.value.none": "없음"
-  ,"palette.family.custom": "커스텀"
-  ,"componentLibrary.title": "컴포넌트 라이브러리"
-  ,"componentLibrary.summary": "컨트롤 {0}개  |  레시피 {1}개  |  커스텀 {2}개"
-  ,"palette.family.builtin": "기본 제공 레시피"
-  ,"componentLibrary.builtinBadge": "기본 제공"
-  ,"componentLibrary.builtinStats": "요소 {0}개  ·  노출 속성 {1}개  ·  변형 {2}개"
-  ,"componentLibrary.builtinHint": "클릭하여 패키지 레시피 배치 · 우클릭하여 추가 또는 즐겨찾기"
-  ,"builtinRecipe.description": "{1} 스타일로 구성된 실사용 {0} 조합입니다. 편집 가능한 내용, 노출 라벨, 슬롯, 비활성 상태 변형을 포함합니다."
-  ,"builtinRecipe.category.navigation": "내비게이션"
-  ,"builtinRecipe.category.content": "콘텐츠"
-  ,"builtinRecipe.category.forms": "폼"
-  ,"builtinRecipe.category.commerce": "상점 및 결제"
-  ,"builtinRecipe.category.game": "게임 UI"
-  ,"builtinRecipe.category.feedback": "피드백 및 오버레이"
-  ,"builtinRecipe.archetype.appHeader": "앱 헤더"
-  ,"builtinRecipe.archetype.bottomNavigation": "하단 내비게이션"
-  ,"builtinRecipe.archetype.sidebarNavigation": "사이드바 내비게이션"
-  ,"builtinRecipe.archetype.tabStrip": "탭 스트립"
-  ,"builtinRecipe.archetype.breadcrumbBar": "경로 탐색 바"
-  ,"builtinRecipe.archetype.metricCard": "지표 카드"
-  ,"builtinRecipe.archetype.featureCard": "기능 카드"
-  ,"builtinRecipe.archetype.profileCard": "프로필 카드"
-  ,"builtinRecipe.archetype.articleCard": "아티클 카드"
-  ,"builtinRecipe.archetype.emptyState": "빈 상태"
-  ,"builtinRecipe.archetype.loginForm": "로그인 폼"
-  ,"builtinRecipe.archetype.searchPanel": "검색 패널"
-  ,"builtinRecipe.archetype.settingsRow": "설정 행"
-  ,"builtinRecipe.archetype.filterToolbar": "필터 툴바"
-  ,"builtinRecipe.archetype.feedbackForm": "피드백 폼"
-  ,"builtinRecipe.archetype.productCard": "상품 카드"
-  ,"builtinRecipe.archetype.cartSummary": "장바구니 요약"
-  ,"builtinRecipe.archetype.pricingCard": "요금제 카드"
-  ,"builtinRecipe.archetype.inventoryPanel": "인벤토리 패널"
-  ,"builtinRecipe.archetype.questTracker": "퀘스트 추적기"
-  ,"builtinRecipe.archetype.partyMember": "파티원 행"
-  ,"builtinRecipe.archetype.achievementCard": "업적 카드"
-  ,"builtinRecipe.archetype.notificationToast": "알림 토스트"
-  ,"builtinRecipe.archetype.modalDialog": "모달 다이얼로그"
-  ,"builtinRecipe.archetype.loadingPanel": "로딩 패널"
-  ,"builtinRecipe.theme.midnight": "미드나이트"
-  ,"builtinRecipe.theme.slate": "슬레이트"
-  ,"builtinRecipe.theme.ocean": "오션"
-  ,"builtinRecipe.theme.forest": "포레스트"
-  ,"builtinRecipe.theme.ember": "엠버"
-  ,"builtinRecipe.theme.violet": "바이올렛"
-  ,"builtinRecipe.theme.rose": "로즈"
-  ,"builtinRecipe.theme.gold": "골드"
-  ,"builtinRecipe.theme.monoDark": "모노 다크"
-  ,"builtinRecipe.theme.monoLight": "모노 라이트"
-  ,"builtinRecipe.theme.glass": "글래스"
-  ,"builtinRecipe.theme.contrast": "고대비"
-  ,"componentLibrary.newFolder": "새 컴포넌트 폴더"
-  ,"componentLibrary.newFolderShort": "+ 폴더"
-  ,"componentLibrary.createFromSelection": "선택 항목으로 컴포넌트 만들기"
-  ,"componentLibrary.createShort": "+ 커스텀"
-  ,"componentLibrary.manage": "전체 컴포넌트 라이브러리 관리자 열기"
-  ,"componentLibrary.manageShort": "•••"
-  ,"componentLibrary.folder": "폴더"
-  ,"componentLibrary.folderPathHint": "Gameplay/HUD처럼 /를 사용하면 중첩 폴더를 만들 수 있습니다."
-  ,"componentLibrary.folderExists": "같은 폴더가 이미 있습니다."
-  ,"componentLibrary.empty": "아직 커스텀 컴포넌트가 없습니다. 캔버스 요소를 선택하고 + 커스텀을 누르거나 폴더를 우클릭해 만드세요."
-  ,"componentLibrary.customBadge": "커스텀"
-  ,"componentLibrary.customStats": "요소 {0}개  •  슬롯 {1}개  •  노출 속성 {2}개  •  변형 {3}개"
-  ,"componentLibrary.customHint": "클릭하여 인스턴스 배치 • 우클릭하여 정리 또는 편집"
-  ,"componentLibrary.selectionRequired": "먼저 Designer 캔버스에서 요소를 선택하세요. 해당 요소의 전체 하위 트리가 재사용 컴포넌트가 됩니다."
-  ,"componentLibrary.instanceSelection": "이미 컴포넌트 인스턴스입니다. 별도 컴포넌트로 만들려면 먼저 분리하세요."
-  ,"componentLibrary.saveHint": "재사용 컴포넌트 정의를 프로젝트 자산으로 저장합니다."
-  ,"componentLibrary.createHere": "이 폴더에 컴포넌트 만들기"
-  ,"componentLibrary.newSubfolder": "새 하위 폴더"
-  ,"componentLibrary.renameFolder": "폴더 이름 변경"
-  ,"componentLibrary.removeFolder": "폴더 제거"
-  ,"componentLibrary.removeFolderConfirm": "이 폴더를 제거할까요? 컴포넌트 자산은 삭제되지 않고 상위 폴더로 이동합니다."
-  ,"componentLibrary.moveTo": "폴더로 이동"
-  ,"componentLibrary.renameComponent": "컴포넌트 이름 변경"
-  ,"componentLibrary.componentName": "컴포넌트 이름"
-  ,"componentLibrary.editAsset": "정의 자산 편집"
-  ,"componentLibrary.pingAsset": "프로젝트에서 보기"
-  ,"componentLibrary.favourite": "즐겨찾기"
-  ,"common.ok": "확인"
-  ,"common.cancel": "취소"
-  ,"common.apply": "적용"
-  ,"common.remove": "제거"
-  ,"attachedComponents.summary": "런타임 컴포넌트 · {0}개"
-  ,"attachedComponents.target": "uGUI 프리팹 생성 시 {0}에 부착"
-  ,"attachedComponents.helpTooltip": "부착한 MonoBehaviour는 타입 식별자로 직렬화됩니다. NexUI는 이 화면에서 추가한 항목만 관리하며 프리팹에 직접 추가한 컴포넌트는 제거하지 않습니다."
-  ,"attachedComponents.uguiTooltip": "생성된 uGUI GameObject에는 실제로 부착됩니다. VisualElement에는 MonoBehaviour를 붙일 수 없으므로 UI Toolkit에서는 참조를 메타데이터로만 보존합니다."
-  ,"attachedComponents.empty": "부착된 런타임 컴포넌트가 없습니다. 컴포넌트 추가를 눌러 프로젝트 스크립트나 Unity 동작을 이 UI 요소에 연결하세요."
-  ,"attachedComponents.missingTitle": "누락된 컴포넌트"
-  ,"attachedComponents.sourceUnity": "Unity"
-  ,"attachedComponents.sourceProject": "프로젝트"
-  ,"attachedComponents.single": "하나만 허용"
-  ,"attachedComponents.editMode": "편집 모드 실행"
-  ,"attachedComponents.requires": "필수 컴포넌트: {0}"
-  ,"attachedComponents.showScript": "프로젝트에서 스크립트 보기"
-  ,"attachedComponents.openDocs": "문서 열기"
-  ,"attachedComponents.categoryUnknown": "분류 없음"
-  ,"attachedComponents.descriptionUnity": "생성된 UI GameObject에 부착되는 Unity 런타임 동작 '{0}'입니다."
-  ,"attachedComponents.descriptionProject": "프리팹 생성 시 이 UI 요소에 부착되는 프로젝트 MonoBehaviour '{0}'입니다. 클래스에 Description 특성을 추가하면 여기에 전용 설명을 표시할 수 있습니다."
-  ,"attachedComponents.tooltipCategory": "분류"
-  ,"attachedComponents.tooltipAssembly": "어셈블리"
-  ,"attachedComponents.tooltipBackend": "백엔드"
-  ,"attachedComponents.uguiOnly": "uGUI 완전 지원 · UI Toolkit 메타데이터만 보존"
-  ,"attachedComponents.pickerDescription": "Unity 동작과 프로젝트 MonoBehaviour를 탐색합니다. 추가하기 전에 카드에 마우스를 올려 설명과 필수 컴포넌트를 확인하세요."
-  ,"attachedComponents.searchTooltip": "컴포넌트 이름, 분류, 네임스페이스, 어셈블리 또는 설명으로 검색합니다."
-  ,"attachedComponents.resultCount": "컴포넌트 {0}개"
-  ,"attachedComponents.noResults": "검색과 일치하는 컴포넌트가 없습니다."
-  ,"motionInspector.preset": "모션 프리셋"
-  ,"motionInspector.motionId": "모션 ID"
-  ,"motionInspector.initial": "초기"
-  ,"motionInspector.animate": "재생"
-  ,"motionInspector.exit": "퇴장"
-  ,"motionInspector.hover": "호버"
-  ,"motionInspector.pressed": "누름"
-  ,"motionInspector.focus": "포커스"
-  ,"motionInspector.noPreset": "모션 프리셋을 지정하면 그래프를 편집하고 선택한 변형을 미리 볼 수 있습니다."
-  ,"motionInspector.entryClipTooltip": "이 화면이 열릴 때 재생할 모션 클립입니다."
-  ,"motionInspector.exitClipTooltip": "이 화면이 닫힐 때 재생할 모션 클립입니다."
-  ,"motionInspector.addBindingTooltip": "이 UI 요소에서 모션 클립을 재생할 트리거를 추가합니다."
-  ,"motionInspector.previewTitle": "실시간 모션 미리보기"
-  ,"motionInspector.previewDescription": "반투명 시작 원본, 이동 경로, 실제로 움직이는 UI로 적용 전 모션을 확인합니다."
-  ,"motionInspector.replayTooltip": "실시간 미리보기를 처음부터 다시 재생합니다."
-  ,"motionInspector.sectionTabsTooltip": "한 번에 하나의 모션 편집 영역만 표시하여 Inspector 길이를 줄입니다."
-  ,"motionInspector.tabSettings": "설정"
-  ,"motionInspector.tabSettingsTooltip": "요소 프리셋, 상태별 변형, 화면 전환 클립을 편집합니다."
-  ,"motionInspector.tabExamples": "예시"
-  ,"motionInspector.tabExamplesTooltip": "시각적 모션 예시를 살펴보고 편집 가능한 프리셋으로 엽니다."
-  ,"motionInspector.tabTriggers": "트리거"
-  ,"motionInspector.tabTriggersTooltip": "클릭, 상태 변경, 명령, 수명 주기 이벤트에 모션 클립을 연결합니다."
-  ,"motionInspector.elementMotion": "요소 모션"
-  ,"motionInspector.elementMotionDescription": "재사용 가능한 모션 프리셋을 지정하고 요소 상태마다 변형을 연결합니다."
-  ,"motionInspector.previewAssigned": "지정 모션 미리보기"
-  ,"motionInspector.previewAssignedTooltip": "선택한 요소에 지정된 모션을 컴파일하여 위 미리보기에서 재생합니다."
-  ,"motionInspector.variants": "상태별 변형"
-  ,"motionInspector.variantsTooltip": "변형 이름으로 초기, 상호작용, 포커스, 퇴장 상태와 프리셋 타임라인을 연결합니다."
-  ,"motionInspector.screenMotion": "화면 등장 / 퇴장"
-  ,"motionInspector.screenMotionDescription": "화면 전환용 클립을 고르고 각 클립을 바로 미리 봅니다."
-  ,"motionInspector.previewEntryClip": "지정된 등장 클립을 Designer 캔버스에서 미리 봅니다."
-  ,"motionInspector.previewExitClip": "지정된 퇴장 클립을 Designer 캔버스에서 미리 봅니다."
-  ,"motionInspector.examples": "모션 예시"
-  ,"motionInspector.examplesDescription": "카드를 선택해 반복 예시를 보고, 실제 편집 가능한 프리셋으로 열어 사용하세요."
-  ,"motionInspector.useExample": "선택한 예시 사용"
-  ,"motionInspector.useExampleTooltip": "이 예시가 선택된 상태로 전환 프리셋 편집기를 엽니다."
-  ,"motionInspector.useNamedExample": "{0} 예시 사용"
-  ,"motionInspector.exampleTooltip": "클릭하면 이 예시를 실시간 미리보기에 불러옵니다."
-  ,"motionInspector.triggerMotion": "트리거 연결"
-  ,"motionInspector.triggerMotionDescription": "클릭, 상태 변경, 명령, 수명 주기 이벤트에서 클립을 재생합니다."
-  ,"motionInspector.noSelection": "선택된 UI 요소 없음"
-  ,"motionInspector.noSelectionDescription": "캔버스에서 요소를 선택하면 모션을 만들고 미리 볼 수 있습니다."
-  ,"motionInspector.target": "모션 · {0}"
-  ,"motionInspector.unassigned": "미지정"
-  ,"motionInspector.unassignedDescription": "모션 프리셋이 없습니다. 아래 예시를 사용하거나 기존 프리셋을 지정하세요."
-  ,"motionInspector.motionSummary": "트랙 {0}개로 컴파일됨 · 전체 {1:0.00}초"
-  ,"motionInspector.ready": "준비됨"
-  ,"motionInspector.noPresetPreview": "부드러운 투명도 전환으로 실시간 미리보기를 보여줍니다. 아래에서 다른 예시도 선택할 수 있습니다."
-  ,"motionInspector.assignedPreviewDescription": "런타임 이징으로 컴파일된 '{0}' 변형을 재생합니다."
-  ,"motionInspector.noBindings": "아직 트리거 연결이 없습니다. 상호작용이나 이벤트에서 클립을 재생하도록 추가하세요."
-  ,"motionInspector.bindingTooltip": "이 연결은 트리거를 일반 모션 클립과 모션 감소용 클립에 연결합니다."
-  ,"motionInspector.trigger": "트리거"
-  ,"motionInspector.noBindingsForTarget": "현재 이 UI 요소를 대상으로 하는 연결이 없습니다."
-  ,"motionExample.fade": "페이드 인"
-  ,"motionExample.fadeDescription": "투명한 상태에서 선명해지도록 불투명도를 부드럽게 변화시킵니다."
-  ,"motionExample.slide": "슬라이드 인"
-  ,"motionExample.slideDescription": "왼쪽에서 제자리로 이동하면서 UI가 자연스럽게 나타납니다."
-  ,"motionExample.scale": "스케일 팝"
-  ,"motionExample.scaleDescription": "버튼, 카드, 다이얼로그가 살짝 튀어 오르듯 나타나는 오버슈트 모션입니다."
-  ,"motionExample.toast": "토스트 상승"
-  ,"motionExample.toastDescription": "알림이 아래에서 올라온 뒤 부드럽게 제자리에 안착합니다."
-,"component.section": "섹션"
-,"component.toolbar": "툴바"
-,"component.scrollArea": "스크롤 영역"
-,"component.splitter": "분할 패널"
-,"component.accordion": "아코디언"
-,"component.heading": "제목"
-,"component.richText": "리치 텍스트"
-,"component.link": "링크"
-,"component.icon": "아이콘"
-,"component.avatar": "아바타"
-,"component.divider": "구분선"
-,"component.badge": "배지"
-,"component.chip": "칩 / 태그"
-,"component.checkbox": "체크박스"
-,"component.switch": "스위치"
-,"component.radioGroup": "라디오 그룹"
-,"component.segmentedControl": "세그먼트 컨트롤"
-,"component.dropdown": "드롭다운"
-,"component.slider": "슬라이더"
-,"component.rangeSlider": "범위 슬라이더"
-,"component.stepper": "스테퍼"
-,"component.textField": "텍스트 필드"
-,"component.textArea": "여러 줄 텍스트"
-,"component.searchField": "검색 필드"
-,"component.rating": "별점"
-,"component.tabs": "탭"
-,"component.tabItem": "탭 항목"
-,"component.appBar": "앱 바"
-,"component.sideNav": "사이드 내비게이션"
-,"component.breadcrumb": "경로 표시"
-,"component.pagination": "페이지 이동"
-,"component.menu": "메뉴"
-,"component.stepIndicator": "단계 표시"
-,"component.alert": "알림 배너"
-,"component.emptyState": "빈 상태"
-,"component.drawer": "드로어"
-,"component.contextMenu": "컨텍스트 메뉴"
-,"component.loadingOverlay": "로딩 오버레이"
-,"component.table": "테이블"
-,"component.treeView": "트리 뷰"
-,"component.carousel": "캐러셀"
-,"component.minimap": "미니맵"
-,"component.compass": "나침반"
-,"component.crosshair": "조준선"
-,"component.questTracker": "퀘스트 추적기"
-,"component.dialogueBox": "대화 상자"
-,"component.chatPanel": "채팅 패널"
-,"component.leaderboard": "리더보드"
-,"component.currencyDisplay": "재화 표시"
-,"component.buffBar": "버프 바"
-,"component.cooldownIcon": "쿨다운 아이콘"
-,"component.keyPrompt": "키 안내"
-,"component.spacer": "여백"
-,"component.flowContainer": "플로 컨테이너"
-,"component.masonryGrid": "메이슨리 그리드"
-,"component.aspectBox": "비율 고정 박스"
-,"component.safeArea": "세이프 에어리어"
-,"component.stickyHeader": "고정 헤더"
-,"component.sidebarLayout": "사이드바 레이아웃"
-,"component.twoColumn": "2단 레이아웃"
-,"component.threeColumn": "3단 레이아웃"
-,"component.centerBox": "가운데 정렬 박스"
-,"component.dockPanel": "도크 패널"
-,"component.resizablePanel": "크기 조절 패널"
-,"component.scrollSnap": "스크롤 스냅 영역"
-,"component.pageContainer": "페이지 컨테이너"
-,"component.fieldRow": "필드 행"
-,"component.form": "폼"
-,"component.formSection": "폼 섹션"
-,"component.listItem": "리스트 항목"
-,"component.panelHeader": "패널 헤더"
-,"component.caption": "캡션"
-,"component.subtitle": "부제목"
-,"component.overline": "오버라인"
-,"component.codeBlock": "코드 블록"
-,"component.quote": "인용문"
-,"component.markdownText": "마크다운 텍스트"
-,"component.numberTicker": "숫자 티커"
-,"component.countdownText": "카운트다운 텍스트"
-,"component.typewriterText": "타자기 텍스트"
-,"component.marquee": "흐르는 텍스트"
-,"component.highlightText": "강조 텍스트"
-,"component.truncatedText": "말줄임 텍스트"
-,"component.labelValue": "라벨 / 값"
-,"component.timestamp": "시간 표시"
-,"component.currencyText": "금액 텍스트"
-,"component.percentText": "퍼센트 텍스트"
-,"component.gradientText": "그라디언트 텍스트"
-,"component.outlineText": "외곽선 텍스트"
-,"component.videoView": "비디오 뷰"
-,"component.renderTextureView": "렌더 텍스처 뷰"
-,"component.imageGallery": "이미지 갤러리"
-,"component.thumbnail": "썸네일"
-,"component.coverImage": "커버 이미지"
-,"component.logo": "로고"
-,"component.placeholderImage": "빈 이미지"
-,"component.qRCode": "QR 코드"
-,"component.portraitFrame": "초상화 프레임"
-,"component.nineSliceImage": "9슬라이스 이미지"
-,"component.maskedImage": "마스크 이미지"
-,"component.parallaxLayer": "패럴랙스 레이어"
-,"component.particleHost": "파티클 호스트"
-,"component.modelView": "3D 모델 뷰"
-,"component.numberField": "숫자 필드"
-,"component.passwordField": "비밀번호 필드"
-,"component.knob": "노브"
-,"component.colorPicker": "색상 선택기"
-,"component.colorSwatch": "색상 견본"
-,"component.gradientPicker": "그라디언트 선택기"
-,"component.datePicker": "날짜 선택기"
-,"component.timePicker": "시간 선택기"
-,"component.dateRangePicker": "기간 선택기"
-,"component.calendar": "캘린더"
-,"component.keybindField": "키 바인딩 필드"
-,"component.vectorField": "벡터 필드"
-,"component.curveField": "커브 필드"
-,"component.filePicker": "파일 선택기"
-,"component.volumeSlider": "볼륨 슬라이더"
-,"component.toggleButton": "토글 버튼"
-,"component.splitButton": "분할 버튼"
-,"component.buttonGroup": "버튼 그룹"
-,"component.floatingActionButton": "플로팅 액션 버튼"
-,"component.holdButton": "길게 누르기 버튼"
-,"component.repeatButton": "연속 입력 버튼"
-,"component.radialMenu": "방사형 메뉴"
-,"component.virtualJoystick": "가상 조이스틱"
-,"component.dPad": "방향 패드"
-,"component.swipeArea": "스와이프 영역"
-,"component.dragHandle": "드래그 핸들"
-,"component.resizeHandle": "크기 조절 핸들"
-,"component.scrubber": "재생 스크러버"
-,"component.multiSelect": "다중 선택"
-,"component.comboBox": "콤보 박스"
-,"component.autocomplete": "자동 완성"
-,"component.tagInput": "태그 입력"
-,"component.filterBar": "필터 바"
-,"component.sortSelector": "정렬 선택기"
-,"component.optionCard": "선택 카드"
-,"component.transferList": "이동 목록"
-,"component.checkboxGroup": "체크박스 그룹"
-,"component.selectionList": "선택 목록(단일)"
-,"component.navRail": "내비게이션 레일"
-,"component.bottomNav": "하단 내비게이션"
-,"component.navItem": "내비게이션 항목"
-,"component.menuBar": "메뉴 바"
-,"component.menuItem": "메뉴 항목"
-,"component.subMenu": "하위 메뉴"
-,"component.commandPalette": "명령 팔레트"
-,"component.searchOverlay": "검색 오버레이"
-,"component.backButton": "뒤로 버튼"
-,"component.closeButton": "닫기 버튼"
-,"component.wizard": "마법사"
-,"component.wizardStep": "마법사 단계"
-,"component.anchorNav": "앵커 내비게이션"
-,"component.quickAccessBar": "빠른 실행 바"
-,"component.statusDot": "상태 점"
-,"component.statusPill": "상태 배지"
-,"component.loadingBar": "로딩 바"
-,"component.meter": "미터"
-,"component.gauge": "게이지"
-,"component.sparkline": "스파크라인"
-,"component.trendIndicator": "증감 표시"
-,"component.toastStack": "토스트 스택"
-,"component.snackbar": "스낵바"
-,"component.inlineError": "인라인 오류"
-,"component.successCheck": "완료 체크"
-,"component.countdownTimer": "카운트다운 타이머"
-,"component.cooldownBar": "쿨다운 바"
-,"component.comboMeter": "콤보 미터"
-,"component.scorePopup": "점수 팝업"
-,"component.damageNumber": "데미지 숫자"
-,"component.floatingText": "플로팅 텍스트"
-,"component.activityIndicator": "진행 표시기"
-,"component.connectionStatus": "연결 상태"
-,"component.fpsCounter": "FPS 카운터"
-,"component.confirmDialog": "확인 대화상자"
-,"component.alertDialog": "알림 대화상자"
-,"component.promptDialog": "입력 대화상자"
-,"component.bottomSheet": "바텀 시트"
-,"component.sideSheet": "사이드 시트"
-,"component.lightbox": "라이트박스"
-,"component.coachMark": "코치 마크"
-,"component.tutorialOverlay": "튜토리얼 오버레이"
-,"component.spotlight": "스포트라이트"
-,"component.backdrop": "배경 딤"
-,"component.hoverCard": "호버 카드"
-,"component.contextPanel": "상세 패널"
-,"component.tableRow": "테이블 행"
-,"component.tableHeader": "테이블 헤더"
-,"component.columnHeader": "열 헤더"
-,"component.infiniteList": "무한 스크롤 리스트"
-,"component.virtualGrid": "가상 그리드"
-,"component.treeNode": "트리 노드"
-,"component.kanbanBoard": "칸반 보드"
-,"component.kanbanColumn": "칸반 컬럼"
-,"component.timelineList": "타임라인"
-,"component.feed": "피드"
-,"component.commentThread": "댓글 스레드"
-,"component.statCard": "지표 카드"
-,"component.kpiTile": "KPI 타일"
-,"component.metricRow": "지표 행"
-,"component.sectionHeader": "구역 헤더"
-,"component.propertyRow": "속성 행"
-,"component.keyValueTable": "키 / 값 테이블"
-,"component.logView": "로그 뷰"
-,"component.barChart": "막대 차트"
-,"component.lineChart": "선 차트"
-,"component.areaChart": "영역 차트"
-,"component.pieChart": "파이 차트"
-,"component.donutChart": "도넛 차트"
-,"component.radarChart": "레이더 차트"
-,"component.scatterPlot": "산점도"
-,"component.heatmap": "히트맵"
-,"component.histogram": "히스토그램"
-,"component.gaugeChart": "게이지 차트"
-,"component.funnelChart": "퍼널 차트"
-,"component.stackedBarChart": "누적 막대 차트"
-,"component.chartLegend": "차트 범례"
-,"component.profileCard": "프로필 카드"
-,"component.userRow": "사용자 행"
-,"component.friendListItem": "친구 목록 항목"
-,"component.presenceDot": "접속 상태 점"
-,"component.followButton": "팔로우 버튼"
-,"component.shareSheet": "공유 시트"
-,"component.reviewCard": "리뷰 카드"
-,"component.ratingSummary": "평점 요약"
-,"component.commentInput": "댓글 입력"
-,"component.mentionList": "멘션 목록"
-,"component.productCard": "상품 카드"
-,"component.priceTag": "가격 표시"
-,"component.discountBadge": "할인 배지"
-,"component.cartItem": "장바구니 항목"
-,"component.checkoutSummary": "결제 요약"
-,"component.paymentMethodRow": "결제 수단 행"
-,"component.couponField": "쿠폰 입력"
-,"component.purchaseButton": "구매 버튼"
-,"component.subscriptionCard": "구독 카드"
-,"component.shopItemCard": "상점 아이템 카드"
-,"component.currencyPack": "재화 패키지"
-,"component.rewardCard": "보상 카드"
-,"component.settingsRow": "설정 행"
-,"component.settingsToggleRow": "설정 토글 행"
-,"component.settingsSliderRow": "설정 슬라이더 행"
-,"component.settingsSection": "설정 섹션"
-,"component.languageSelector": "언어 선택"
-,"component.volumeRow": "음량 행"
-,"component.keybindRow": "키 설정 행"
-,"component.accountRow": "계정 연동 행"
-,"component.legalRow": "약관 행"
-,"component.aboutRow": "정보 행"
-,"component.abilityBar": "스킬 바"
-,"component.skillSlot": "스킬 슬롯"
-,"component.skillTreeNode": "스킬 트리 노드"
-,"component.inventoryGrid": "인벤토리 그리드"
-,"component.equipmentSlot": "장비 슬롯"
-,"component.characterPortrait": "캐릭터 초상화"
-,"component.partyFrame": "파티 프레임"
-,"component.targetFrame": "타깃 프레임"
-,"component.castBar": "시전 바"
-,"component.comboCounter": "콤보 카운터"
-,"component.killFeed": "킬 피드"
-,"component.objectiveMarker": "목표 마커"
-,"component.waypoint": "웨이포인트"
-,"component.ammoCounter": "탄약 표시"
-,"component.weaponWheel": "무기 휠"
-,"component.interactionPrompt": "상호작용 안내"
-,"component.subtitleBar": "자막 바"
-,"component.bossHealthBar": "보스 체력 바"
-,"component.resourceOrb": "자원 오브"
-,"component.xpBar": "경험치 바"
-,"component.levelBadge": "레벨 배지"
-,"component.rankEmblem": "랭크 엠블럼"
-,"component.achievementToast": "업적 알림"
-,"component.lootPopup": "획득 알림"
-,"component.nameplate": "네임플레이트"
-,"component.chatBubble": "말풍선"
-,"component.emoteWheel": "감정표현 휠"
-,"component.pingWheel": "핑 휠"
-,"component.speedometer": "속도계"
-,"component.lapTimer": "랩 타이머"
-,"component.mapLegend": "맵 범례"
-,"component.craftingSlot": "제작 슬롯"
-,"component.questCard": "퀘스트 카드"
-,"component.tradePanel": "거래 패널"
-,"component.healthBar": "체력 바"
-,"component.shieldBar": "실드 바"
-,"component.armorBar": "방어도 바"
-,"component.manaBar": "마나 바"
-,"component.energyBar": "기력 바"
-,"component.staminaWheel": "스태미나 휠"
-,"component.breathMeter": "산소 게이지"
-,"component.hungerMeter": "허기 게이지"
-,"component.sanityMeter": "정신력 게이지"
-,"component.heatMeter": "과열 게이지"
-,"component.ultimateCharge": "궁극기 게이지"
-,"component.chargeMeter": "차지 게이지"
-,"component.reloadIndicator": "재장전 표시"
-,"component.threatMeter": "어그로 미터"
-,"component.detectionMeter": "발각 게이지"
-,"component.noiseMeter": "소음 게이지"
-,"component.healthPips": "체력 칸"
-,"component.ammoPips": "탄약 칸"
-,"component.hitMarker": "히트 마커"
-,"component.damageIndicator": "피격 방향 표시"
-,"component.statusEffectIcon": "상태 효과 아이콘"
-,"component.abilityQueue": "스킬 대기열"
-,"component.stanceSelector": "자세 / 사격 모드"
-,"component.grenadeSelector": "투척물 선택"
-,"component.comboRank": "콤보 등급"
-,"component.accuracyMeter": "정확도 미터"
-,"component.judgementText": "판정 텍스트"
-,"component.weaponSlot": "무기 슬롯"
-,"component.vehicleHud": "차량 HUD"
-,"component.gearIndicator": "기어 표시"
-,"component.nitroBar": "부스트 바"
-,"component.tachometer": "회전계"
-,"component.mapScreen": "맵 화면"
-,"component.mapMarkerList": "맵 마커 목록"
-,"component.offscreenIndicator": "화면 밖 표시"
-,"component.lockOnIndicator": "락온 표시"
-,"component.distanceMeter": "거리 표시"
-,"component.zoneBanner": "지역 배너"
-,"component.discoveryToast": "발견 알림"
-,"component.travelProgress": "이동 진행"
-,"component.radar": "레이더"
-,"component.objectiveList": "목표 목록"
-,"component.worldTooltip": "월드 툴팁"
-,"component.placementGhost": "설치 미리보기"
-,"component.compassMarker": "나침반 마커"
-,"component.depthMeter": "고도 / 수심 표시"
-,"component.timeOfDay": "게임 내 시간"
-,"component.weatherIndicator": "날씨 표시"
-,"component.letterbox": "컷신 레터박스"
-,"component.skipPrompt": "건너뛰기 안내"
-,"component.itemCard": "아이템 카드"
-,"component.itemTooltip": "아이템 툴팁"
-,"component.itemComparison": "아이템 비교"
-,"component.rarityFrame": "등급 프레임"
-,"component.durabilityBar": "내구도 바"
-,"component.stackCount": "수량 표시"
-,"component.itemLevelBadge": "아이템 레벨 배지"
-,"component.paperdoll": "장비 페이퍼돌"
-,"component.loadoutPanel": "장비 세트 패널"
-,"component.bagTabs": "가방 탭"
-,"component.weightMeter": "무게 게이지"
-,"component.sortFilterBar": "정렬 / 필터 바"
-,"component.craftingRecipe": "제작 레시피"
-,"component.craftingQueue": "제작 대기열"
-,"component.upgradePanel": "강화 패널"
-,"component.enchantPanel": "인챈트 패널"
-,"component.salvagePanel": "분해 패널"
-,"component.vendorList": "상인 목록"
-,"component.buybackList": "되사기 목록"
-,"component.auctionRow": "경매 항목"
-,"component.mailItem": "우편 항목"
-,"component.currencyBar": "재화 바"
-,"component.lootTableRow": "드랍 목록 행"
-,"component.chestOpen": "상자 개봉"
-,"component.summonResult": "소환 결과"
-,"component.pityCounter": "천장 카운터"
-,"component.giftClaim": "선물 수령"
-,"component.collectionAlbum": "수집 도감"
-,"component.codexEntry": "코덱스 항목"
-,"component.experienceBar": "경험치 바(전체)"
-,"component.levelUpPopup": "레벨업 팝업"
-,"component.skillTree": "스킬 트리"
-,"component.talentGrid": "특성 그리드"
-,"component.skillPointCounter": "스킬 포인트 표시"
-,"component.battlePassTrack": "배틀패스 트랙"
-,"component.seasonTier": "시즌 티어"
-,"component.dailyLoginCalendar": "출석 보상 달력"
-,"component.questLog": "퀘스트 로그"
-,"component.questObjective": "퀘스트 목표"
-,"component.achievementRow": "업적 행"
-,"component.masteryRing": "숙련도 링"
-,"component.reputationBar": "평판 바"
-,"component.rankProgress": "랭크 진행"
-,"component.unlockNotification": "해금 알림"
-,"component.rewardPreview": "보상 미리보기"
-,"component.milestoneTrack": "마일스톤 트랙"
-,"component.energyTimer": "행동력 타이머"
-,"component.vipLevel": "VIP 등급"
-,"component.titleScreen": "타이틀 화면"
-,"component.mainMenu": "메인 메뉴"
-,"component.pauseMenu": "일시정지 메뉴"
-,"component.saveSlotList": "저장 슬롯 목록"
-,"component.saveSlot": "저장 슬롯"
-,"component.difficultySelector": "난이도 선택"
-,"component.characterSelect": "캐릭터 선택"
-,"component.characterPreview": "캐릭터 미리보기"
-,"component.levelSelect": "스테이지 선택"
-,"component.stageCard": "스테이지 카드"
-,"component.loadingScreen": "로딩 화면"
-,"component.loadingTip": "로딩 팁"
-,"component.pressStartPrompt": "시작 안내"
-,"component.deathScreen": "사망 화면"
-,"component.respawnTimer": "부활 타이머"
-,"component.matchResults": "매치 결과"
-,"component.scoreBreakdown": "점수 상세"
-,"component.starRatingResult": "별 평가 결과"
-,"component.mvpCard": "MVP 카드"
-,"component.creditsRoll": "크레딧"
-,"component.quitConfirm": "종료 확인"
-,"component.controlsDiagram": "조작 안내도"
-,"component.tutorialHint": "튜토리얼 힌트"
-,"component.adRewardButton": "광고 보상 버튼"
-,"component.rateUsPrompt": "평가 요청"
-,"component.teamRoster": "팀 명단"
-,"component.scoreboard": "스코어보드"
-,"component.scoreboardRow": "스코어보드 행"
-,"component.lobbySlot": "로비 슬롯"
-,"component.readyCheck": "준비 확인"
-,"component.matchmakingStatus": "매칭 상태"
-,"component.partyInvite": "파티 초대"
-,"component.guildPanel": "길드 패널"
-,"component.chatChannelTabs": "채팅 채널 탭"
-,"component.voiceIndicator": "음성 표시"
-,"component.pingBadge": "핑 배지"
-,"component.hostBadge": "호스트 배지"
-,"component.spectatorBar": "관전 바"
-,"component.killCam": "킬 캠"
-,"component.reportPlayer": "플레이어 신고"
-,"component.friendInviteList": "친구 초대 목록"
-,"component.crossplayToggle": "크로스플레이 설정"
-,"component.sessionCode": "세션 코드"
-,"component.serverList": "서버 목록"
-,"component.teamBanner": "팀 배너"
-,"component.ugui.image": "이미지"
-,"component.ugui.rawImage": "Raw 이미지"
-,"component.ugui.panel": "패널"
-,"component.ugui.text": "텍스트 - TextMeshPro"
-,"component.ugui.textLegacy": "텍스트 (레거시)"
-,"component.ugui.button": "버튼"
-,"component.ugui.buttonTMP": "버튼 - TextMeshPro"
-,"component.ugui.toggle": "토글"
-,"component.ugui.toggleGroup": "토글 그룹"
-,"component.ugui.slider": "슬라이더"
-,"component.ugui.scrollbar": "스크롤바"
-,"component.ugui.dropdown": "드롭다운"
-,"component.ugui.dropdownTMP": "드롭다운 - TextMeshPro"
-,"component.ugui.inputField": "입력 필드 (레거시)"
-,"component.ugui.inputFieldTMP": "입력 필드 - TextMeshPro"
-,"component.ugui.scrollView": "스크롤 뷰"
-,"component.ugui.mask": "마스크"
-,"component.ugui.rectMask2D": "Rect Mask 2D"
-,"component.ugui.horizontalLayoutGroup": "가로 레이아웃 그룹"
-,"component.ugui.verticalLayoutGroup": "세로 레이아웃 그룹"
-,"component.ugui.gridLayoutGroup": "그리드 레이아웃 그룹"
-,"component.ugui.canvas": "중첩 캔버스"
-,"component.uitk.visualElement": "Visual Element"
-,"component.uitk.label": "라벨"
-,"component.uitk.image": "이미지"
-,"component.uitk.box": "박스"
-,"component.uitk.textElement": "텍스트 엘리먼트"
-,"component.uitk.bindableElement": "바인딩 엘리먼트"
-,"component.uitk.iMGUIContainer": "IMGUI 컨테이너"
-,"component.uitk.helpBox": "도움말 박스"
-,"component.uitk.button": "버튼"
-,"component.uitk.toggle": "토글"
-,"component.uitk.slider": "슬라이더"
-,"component.uitk.sliderInt": "슬라이더 (정수)"
-,"component.uitk.minMaxSlider": "최소/최대 슬라이더"
-,"component.uitk.progressBar": "프로그레스 바"
-,"component.uitk.radioButton": "라디오 버튼"
-,"component.uitk.radioButtonGroup": "라디오 버튼 그룹"
-,"component.uitk.dropdownField": "드롭다운 필드"
-,"component.uitk.enumField": "열거형 필드"
-,"component.uitk.scroller": "스크롤러"
-,"component.uitk.repeatButton": "연속 입력 버튼"
-,"component.uitk.toggleButtonGroup": "토글 버튼 그룹"
-,"component.uitk.textField": "텍스트 필드"
-,"component.uitk.integerField": "정수 필드"
-,"component.uitk.floatField": "실수 필드"
-,"component.uitk.vector2Field": "Vector2 필드"
-,"component.uitk.vector3Field": "Vector3 필드"
-,"component.uitk.vector4Field": "Vector4 필드"
-,"component.uitk.rectField": "Rect 필드"
-,"component.uitk.objectField": "오브젝트 필드"
-,"component.uitk.doubleField": "Double 필드"
-,"component.uitk.longField": "Long 필드"
-,"component.uitk.unsignedIntegerField": "부호 없는 정수 필드"
-,"component.uitk.unsignedLongField": "부호 없는 Long 필드"
-,"component.uitk.vector2IntField": "Vector2Int 필드"
-,"component.uitk.vector3IntField": "Vector3Int 필드"
-,"component.uitk.rectIntField": "RectInt 필드"
-,"component.uitk.boundsField": "Bounds 필드"
-,"component.uitk.boundsIntField": "BoundsInt 필드"
-,"component.uitk.hash128Field": "Hash128 필드"
-,"component.uitk.angleField": "각도 필드"
-,"component.uitk.lengthField": "길이 필드"
-,"component.uitk.timeValueField": "시간 값 필드"
-,"component.uitk.translateField": "이동 필드"
-,"component.uitk.rotateField": "회전 필드"
-,"component.uitk.scaleField": "스케일 필드"
-,"component.uitk.transformOriginField": "변형 기준점 필드"
-,"component.uitk.gUIDField": "GUID 필드"
-,"component.uitk.buttonStripField": "버튼 스트립 필드"
-,"component.uitk.scrollView": "스크롤 뷰"
-,"component.uitk.listView": "리스트 뷰"
-,"component.uitk.multiColumnListView": "다중 열 리스트 뷰"
-,"component.uitk.treeView": "트리 뷰"
-,"component.uitk.multiColumnTreeView": "다중 열 트리 뷰"
-,"component.uitk.foldout": "폴드아웃"
-,"component.uitk.groupBox": "그룹 박스"
-,"component.uitk.tabView": "탭 뷰"
-,"component.uitk.tab": "탭"
-,"component.uitk.twoPaneSplitView": "2분할 뷰"
-,"component.uitk.popupWindow": "팝업 윈도우"
-,"inspector.section.componentProperties": "컴포넌트 속성"
-,"inspector.showAdvanced": "고급 속성 표시"
-,"tooltip.inspector.showAdvanced": "자주 쓰지 않는 속성까지 모두 보여 줍니다."
-,"tooltip.inspector.resetProperty": "컴포넌트 기본값으로 되돌립니다."
-,"tooltip.inspector.searchProperties": "이름, 키 또는 설명으로 이 컴포넌트의 속성을 검색합니다."
-,"prop.group.content": "내용"
-,"prop.group.value": "값"
-,"prop.group.interaction": "상호작용"
-,"prop.group.data": "데이터"
-,"prop.group.appearance": "모양"
-,"prop.group.layout": "레이아웃"
-,"prop.group.behavior": "동작"
-,"prop.interactable": "상호작용 가능"
-,"prop.transition": "전환 효과"
-,"prop.navigation.enabled": "키보드 / 게임패드 내비게이션"
-,"prop.emphasis": "강조 단계"
-,"prop.clipContent": "내용 잘라내기"
-,"prop.size": "크기 프리셋"
-,"prop.value.min": "최솟값"
-,"prop.value.max": "최댓값"
-,"prop.value.wholeNumbers": "정수만 사용"
-,"prop.value.direction": "채우기 방향"
-,"prop.value.segments": "분할 칸 수"
-,"prop.value.showLabel": "값 라벨 표시"
-,"prop.value.format": "값 표시 형식"
-,"prop.value.animationDuration": "값 변화 애니메이션 (초)"
-,"prop.items.source": "아이템 소스 키"
-,"prop.items.selection": "선택 방식"
-,"prop.items.virtualize": "가상화"
-,"prop.items.itemSize": "아이템 크기"
-,"prop.items.spacing": "아이템 간격"
-,"prop.items.orientation": "방향"
-,"prop.items.reorderable": "순서 변경 허용"
-,"prop.items.showEmptyState": "빈 상태 표시"
-,"prop.items.previewCount": "미리보기 아이템 수"
-,"prop.text.richText": "리치 텍스트"
-,"prop.text.autoSize": "자동 크기"
-,"prop.text.maxLines": "최대 줄 수"
-,"prop.text.selectable": "선택 가능"
-,"prop.text.localizationKey": "현지화 키"
-,"prop.media.sprite": "스프라이트"
-,"prop.media.preserveAspect": "비율 유지"
-,"prop.media.raycastTarget": "레이캐스트 대상"
-,"prop.media.maskable": "마스크 적용"
-,"prop.media.tint": "색조"
-,"prop.overlay.modal": "모달"
-,"prop.overlay.dismissOnBackdrop": "배경 클릭으로 닫기"
-,"prop.overlay.dismissOnEscape": "취소 입력으로 닫기"
-,"prop.overlay.placement": "표시 위치"
-,"prop.overlay.backdropOpacity": "배경 어둡기"
-,"prop.overlay.trapFocus": "포커스 가두기"
-,"prop.overlay.autoDismissSeconds": "자동 닫힘 (초)"
-,"prop.container.scrollable": "스크롤 가능"
-,"prop.container.blocksRaycast": "입력 차단"
-,"prop.slider.step": "증분"
-,"prop.slider.showTicks": "눈금 표시"
-,"prop.slider.fillHandle": "핸들 표시"
-,"prop.range.low": "하한값"
-,"prop.range.high": "상한값"
-,"prop.range.minGap": "최소 간격"
-,"prop.toggle.isOn": "켜짐"
-,"prop.toggle.allowIndeterminate": "중간 상태 허용"
-,"prop.toggle.group": "토글 그룹"
-,"prop.choice.options": "선택지"
-,"prop.choice.value": "선택 인덱스"
-,"prop.choice.placeholder": "안내 문구"
-,"prop.choice.searchable": "검색 가능"
-,"prop.choice.maxVisible": "한 번에 보일 선택지 수"
-,"prop.input.placeholder": "안내 문구"
-,"prop.input.maxLength": "글자 수 제한"
-,"prop.input.contentType": "입력 형식"
-,"prop.input.lineType": "줄 방식"
-,"prop.input.readOnly": "읽기 전용"
-,"prop.input.selectAllOnFocus": "포커스 시 전체 선택"
-,"prop.input.submitOnEnter": "Enter로 제출"
-,"prop.input.clearButton": "지우기 버튼"
-,"prop.scroll.horizontal": "가로 스크롤"
-,"prop.scroll.vertical": "세로 스크롤"
-,"prop.scroll.movement": "이동 방식"
-,"prop.scroll.elasticity": "탄성"
-,"prop.scroll.inertia": "관성"
-,"prop.scroll.decelerationRate": "감속률"
-,"prop.scroll.sensitivity": "스크롤 감도"
-,"prop.scroll.verticalBar": "세로 스크롤바"
-,"prop.scroll.horizontalBar": "가로 스크롤바"
-,"prop.tabs.activeIndex": "활성 탭"
-,"prop.tabs.orientation": "방향"
-,"prop.tabs.closable": "닫기 가능한 탭"
-,"prop.tabs.scrollable": "탭 스트립 스크롤"
-,"prop.foldout.expanded": "펼침"
-,"prop.foldout.singleOpen": "한 번에 하나만 펼침"
-,"prop.button.submitOnHold": "누르는 동안 반복"
-,"prop.button.holdSeconds": "길게 누르기 (초)"
-,"prop.button.busyState": "처리 중 상태 사용"
-,"prop.dialog.confirmLabel": "확인 버튼 문구"
-,"prop.dialog.cancelLabel": "취소 버튼 문구"
-,"prop.dialog.destructive": "위험한 동작"
-,"prop.message.severity": "심각도"
-,"prop.message.dismissible": "닫기 가능"
-,"prop.message.showIcon": "아이콘 표시"
-,"prop.table.columns": "열 수"
-,"prop.table.sortable": "정렬 가능"
-,"prop.table.resizableColumns": "열 너비 조절"
-,"prop.table.stripedRows": "줄무늬 행"
-,"prop.table.stickyHeader": "헤더 고정"
-,"prop.stepper.step": "증분"
-,"prop.stepper.wrap": "끝에서 순환"
-,"prop.stepper.repeatOnHold": "누르는 동안 반복"
-,"prop.rating.max": "별 개수"
-,"prop.rating.allowHalf": "반 칸 허용"
-,"prop.rating.readOnly": "읽기 전용"
-,"prop.carousel.loop": "순환"
-,"prop.carousel.autoAdvance": "자동 넘김 (초)"
-,"prop.carousel.showIndicators": "페이지 표시점"
-,"prop.cooldown.duration": "쿨다운 (초)"
-,"prop.cooldown.charges": "충전 횟수"
-,"prop.cooldown.showSweep": "원형 쓸기 표시"
-,"prop.cooldown.showKeyHint": "키 안내 표시"
-,"prop.slot.acceptsDrop": "드롭 허용"
-,"prop.slot.acceptedTypes": "허용 아이템 종류"
-,"prop.slot.showCount": "수량 표시"
-,"prop.slot.showRarity": "등급 프레임 표시"
-,"prop.health.damageTrail": "피해 잔상"
-,"prop.health.lowThreshold": "위험 기준값"
-,"prop.map.zoom": "확대"
-,"prop.map.rotateWithPlayer": "플레이어와 함께 회전"
-,"prop.map.clampMarkers": "마커 화면 가장자리 고정"
-,"prop.map.range": "표시 반경"
-,"inspector.componentParts": "컴포넌트 구조"
-,"inspector.section.componentParts": "컴포넌트 구조"
-,"inspector.componentParts.description": "라이브러리 내부 파트를 조절하거나 전체 NexUI Inspector를 지원하는 실제 자식 요소를 추가합니다."
-,"inspector.componentParts.internal": "내부 파트"
-,"inspector.componentParts.selectHint": "위 파트를 선택하거나 캔버스에서 직접 클릭해 로컬 Transform을 편집하세요."
-,"inspector.componentParts.reset": "파트 오버라이드 초기화"
-,"inspector.componentParts.contents": "편집 가능한 내부 요소"
-,"inspector.componentParts.contentsDescription": "실제 Hierarchy 요소입니다. 선택하면 Position, Size, Rotation, Scale, Style, Binding, Motion을 모두 편집할 수 있습니다."
-,"inspector.section.elementComponents": "컴포넌트"
-,"inspector.elementComponents": "컴포넌트"
-,"inspector.components.add": "컴포넌트 추가"
-,"inspector.components.fromPreset": "{0} 프리셋으로 만든 요소"
-,"inspector.components.custom": "직접 조합한 요소"
-,"inspector.components.decompose": "분해"
-,"inspector.components.unknown": "이 빌드에 없는 컴포넌트입니다. 값은 그대로 보존됩니다."
-,"inspector.components.noProperties": "편집할 속성이 없습니다."
-,"tooltip.inspector.addComponent": "이 요소에 컴포넌트를 붙입니다. 현재 화면 백엔드에서 동작하는 것만 표시됩니다."
-,"tooltip.inspector.componentEnabled": "컴포넌트를 켜고 끕니다. Unity의 컴포넌트 체크박스와 같습니다."
-,"tooltip.inspector.decompose": "프리셋 표시를 지웁니다. 구성 컴포넌트는 그대로 남습니다."
-,"ctx.component.remove": "컴포넌트 제거"
-,"ctx.component.reset": "값 초기화"
-,"ctx.component.moveUp": "위로 이동"
-,"ctx.component.moveDown": "아래로 이동"
-,"component.type.unknown": "알 수 없는 컴포넌트"
-,"component.type.core.element": "요소 (위치·크기)"
-,"component.type.nx.roundedRect": "둥근 사각형"
-,"component.type.nx.gradient": "그라데이션"
-,"component.type.nx.softShadow": "부드러운 그림자"
-,"component.type.nx.segmentedBar": "분할 바"
-,"component.type.nx.cooldownOverlay": "쿨다운 오버레이"
-,"component.type.nx.safeArea": "세이프 에어리어"
-,"component.type.nx.flowLayout": "플로 레이아웃"
-,"component.type.nx.radialLayout": "방사형 레이아웃"
-,"component.type.nx.autoGrid": "자동 그리드"
-,"component.type.nx.marqueeText": "흐르는 텍스트"
-,"component.type.nx.typewriterText": "타자기 텍스트"
-,"component.type.nx.numberTicker": "숫자 티커"
-,"component.type.nx.holdButton": "길게 누르기 버튼"
-,"component.type.nx.swipeArea": "스와이프 영역"
-,"component.type.nx.tooltipTrigger": "툴팁 트리거"
-,"inspector.components.addScript": "프로젝트 스크립트..."
-,"palette.family.components": "컴포넌트"
-,"palette.family.nexuiBase": "NexUI Base"
-,"palette.family.core": "기본"
-,"palette.components.build": "직접 조립"
-,"palette.components.empty": "빈 요소"
-,"tooltip.palette.components.empty": "컴포넌트가 없는 빈 요소를 만듭니다. Unity의 Create Empty와 같습니다."
-,"ctx.components.attachToSelection": "선택한 요소에 부착"
-,"ctx.components.createEmptyWith": "이 컴포넌트로 새 요소 만들기"
-,"component.type.nx.virtualList": "가상화 리스트"
-,"component.type.nx.carousel": "캐러셀"
-,"component.type.nx.tabGroup": "탭 그룹"
+  "tooltip.sync.publish": "신규·Designer 변경 화면만 파일로 씁니다. 동기화됨은 건너뛰고, 백엔드 변경·충돌은 해결 필요로 보고합니다.",
+  "productivity.newScreen": "새 스크린",
+  "productivity.layout": "레이아웃 정리",
+  "productivity.transition": "전환",
+  "productivity.scenario": "시나리오",
+  "productivity.fixAllSafe": "안전한 문제 모두 수정",
+  "productivity.tooltip.newScreen": "Screen, Metadata와 Backend 에셋을 한 번에 연결해 만듭니다.",
+  "productivity.tooltip.layout": "선택 요소를 Auto Layout으로 정리하거나 Anchor를 추천합니다.",
+  "productivity.tooltip.transition": "선택 요소에서 Open/Close Motion Clip을 생성합니다.",
+  "palette.family": "라이브러리",
+  "palette.family.all": "전체",
+  "palette.family.nexui": "NexUI",
+  "palette.family.ugui": "Unity uGUI",
+  "palette.family.uitk": "UI Toolkit",
+  "tooltip.palette.family": "UI 계열별로 컴포넌트 라이브러리를 필터링합니다.",
+  "palette.group.containers": "컨테이너",
+  "palette.group.layout": "레이아웃",
+  "palette.group.textMedia": "텍스트 및 미디어",
+  "palette.group.media": "미디어",
+  "palette.group.controls": "컨트롤",
+  "palette.group.selection": "선택 및 입력",
+  "palette.group.navigation": "내비게이션",
+  "palette.group.feedback": "피드백",
+  "palette.group.overlay": "오버레이",
+  "palette.group.data": "데이터 및 컬렉션",
+  "palette.group.charts": "차트",
+  "palette.group.social": "소셜",
+  "palette.group.commerce": "상점 및 결제",
+  "palette.group.settings": "설정",
+  "palette.group.game": "게임 HUD",
+  "palette.group.game.world": "게임 월드 및 맵",
+  "palette.group.game.items": "게임 아이템 및 인벤토리",
+  "palette.group.game.progression": "게임 성장 및 보상",
+  "palette.group.game.menu": "게임 메뉴 및 결과",
+  "palette.group.game.multiplayer": "게임 멀티플레이",
+  "palette.group.ugui.basic": "기본",
+  "palette.group.ugui.controls": "컨트롤",
+  "palette.group.ugui.containers": "컨테이너 및 레이아웃",
+  "palette.group.uitk.basic": "기본",
+  "palette.group.uitk.controls": "컨트롤",
+  "palette.group.uitk.fields": "필드",
+  "palette.group.uitk.containers": "컨테이너 및 컬렉션",
+  "inspector.section.attachedComponents": "프로젝트 스크립트",
+  "attachedComponents.help": "MonoBehaviour는 생성된 uGUI GameObject에 적용됩니다. UI Toolkit에서는 메타데이터를 보존하지만 VisualElement에 부착할 수 없습니다.",
+  "attachedComponents.add": "컴포넌트 추가",
+  "attachedComponents.addTooltip": "uGUI 프리팹 저장 시 부착할 런타임 MonoBehaviour를 선택합니다.",
+  "attachedComponents.remove": "Designer가 관리하는 이 컴포넌트를 제거합니다.",
+  "attachedComponents.missing": "현재 찾을 수 없는 타입입니다. 참조는 보존됩니다.",
+  "attachedComponents.pickerTitle": "Add Component",
+  "palette.tooltip.family": "라이브러리",
+  "palette.tooltip.backends": "백엔드 지원",
+  "palette.tooltip.size": "기본 크기",
+  "palette.tooltip.states": "미리보기 상태",
+  "palette.tooltip.bindings": "바인딩",
+  "palette.tooltip.events": "이벤트",
+  "palette.tooltip.hint": "가리키면 상세 보기 · 클릭하면 추가 · 우클릭하면 배치 옵션",
+  "palette.support.full": "완전 지원",
+  "palette.support.partial": "부분 지원",
+  "palette.support.previewOnly": "미리보기 전용",
+  "palette.support.unsupported": "지원 안 함",
+  "palette.capability.children": "자식 허용",
+  "palette.capability.interactive": "상호작용",
+  "palette.capability.value": "값 기반",
+  "palette.capability.collection": "컬렉션",
+  "palette.capability.overlay": "오버레이",
+  "palette.capability.display": "표시 요소",
+  "palette.value.none": "없음",
+  "palette.family.custom": "커스텀",
+  "componentLibrary.title": "컴포넌트 라이브러리",
+  "componentLibrary.summary": "컨트롤 {0}개  |  레시피 {1}개  |  커스텀 {2}개",
+  "palette.family.builtin": "기본 제공 레시피",
+  "componentLibrary.builtinBadge": "기본 제공",
+  "componentLibrary.builtinStats": "요소 {0}개  ·  노출 속성 {1}개  ·  변형 {2}개",
+  "componentLibrary.builtinHint": "클릭하여 패키지 레시피 배치 · 우클릭하여 추가 또는 즐겨찾기",
+  "builtinRecipe.description": "{1} 스타일로 구성된 실사용 {0} 조합입니다. 편집 가능한 내용, 노출 라벨, 슬롯, 비활성 상태 변형을 포함합니다.",
+  "builtinRecipe.category.navigation": "내비게이션",
+  "builtinRecipe.category.content": "콘텐츠",
+  "builtinRecipe.category.forms": "폼",
+  "builtinRecipe.category.commerce": "상점 및 결제",
+  "builtinRecipe.category.game": "게임 UI",
+  "builtinRecipe.category.feedback": "피드백 및 오버레이",
+  "builtinRecipe.archetype.appHeader": "앱 헤더",
+  "builtinRecipe.archetype.bottomNavigation": "하단 내비게이션",
+  "builtinRecipe.archetype.sidebarNavigation": "사이드바 내비게이션",
+  "builtinRecipe.archetype.tabStrip": "탭 스트립",
+  "builtinRecipe.archetype.breadcrumbBar": "경로 탐색 바",
+  "builtinRecipe.archetype.metricCard": "지표 카드",
+  "builtinRecipe.archetype.featureCard": "기능 카드",
+  "builtinRecipe.archetype.profileCard": "프로필 카드",
+  "builtinRecipe.archetype.articleCard": "아티클 카드",
+  "builtinRecipe.archetype.emptyState": "빈 상태",
+  "builtinRecipe.archetype.loginForm": "로그인 폼",
+  "builtinRecipe.archetype.searchPanel": "검색 패널",
+  "builtinRecipe.archetype.settingsRow": "설정 행",
+  "builtinRecipe.archetype.filterToolbar": "필터 툴바",
+  "builtinRecipe.archetype.feedbackForm": "피드백 폼",
+  "builtinRecipe.archetype.productCard": "상품 카드",
+  "builtinRecipe.archetype.cartSummary": "장바구니 요약",
+  "builtinRecipe.archetype.pricingCard": "요금제 카드",
+  "builtinRecipe.archetype.inventoryPanel": "인벤토리 패널",
+  "builtinRecipe.archetype.questTracker": "퀘스트 추적기",
+  "builtinRecipe.archetype.partyMember": "파티원 행",
+  "builtinRecipe.archetype.achievementCard": "업적 카드",
+  "builtinRecipe.archetype.notificationToast": "알림 토스트",
+  "builtinRecipe.archetype.modalDialog": "모달 다이얼로그",
+  "builtinRecipe.archetype.loadingPanel": "로딩 패널",
+  "builtinRecipe.theme.midnight": "미드나이트",
+  "builtinRecipe.theme.slate": "슬레이트",
+  "builtinRecipe.theme.ocean": "오션",
+  "builtinRecipe.theme.forest": "포레스트",
+  "builtinRecipe.theme.ember": "엠버",
+  "builtinRecipe.theme.violet": "바이올렛",
+  "builtinRecipe.theme.rose": "로즈",
+  "builtinRecipe.theme.gold": "골드",
+  "builtinRecipe.theme.monoDark": "모노 다크",
+  "builtinRecipe.theme.monoLight": "모노 라이트",
+  "builtinRecipe.theme.glass": "글래스",
+  "builtinRecipe.theme.contrast": "고대비",
+  "componentLibrary.newFolder": "새 컴포넌트 폴더",
+  "componentLibrary.newFolderShort": "+ 폴더",
+  "componentLibrary.createFromSelection": "선택 항목으로 컴포넌트 만들기",
+  "componentLibrary.createShort": "+ 커스텀",
+  "componentLibrary.manage": "전체 컴포넌트 라이브러리 관리자 열기",
+  "componentLibrary.manageShort": "•••",
+  "componentLibrary.folder": "폴더",
+  "componentLibrary.folderPathHint": "Gameplay/HUD처럼 /를 사용하면 중첩 폴더를 만들 수 있습니다.",
+  "componentLibrary.folderExists": "같은 폴더가 이미 있습니다.",
+  "componentLibrary.empty": "아직 커스텀 컴포넌트가 없습니다. 캔버스 요소를 선택하고 + 커스텀을 누르거나 폴더를 우클릭해 만드세요.",
+  "componentLibrary.customBadge": "커스텀",
+  "componentLibrary.customStats": "요소 {0}개  •  슬롯 {1}개  •  노출 속성 {2}개  •  변형 {3}개",
+  "componentLibrary.customHint": "클릭하여 인스턴스 배치 • 우클릭하여 정리 또는 편집",
+  "componentLibrary.selectionRequired": "먼저 Designer 캔버스에서 요소를 선택하세요. 해당 요소의 전체 하위 트리가 재사용 컴포넌트가 됩니다.",
+  "componentLibrary.instanceSelection": "이미 컴포넌트 인스턴스입니다. 별도 컴포넌트로 만들려면 먼저 분리하세요.",
+  "componentLibrary.saveHint": "재사용 컴포넌트 정의를 프로젝트 자산으로 저장합니다.",
+  "componentLibrary.createHere": "이 폴더에 컴포넌트 만들기",
+  "componentLibrary.newSubfolder": "새 하위 폴더",
+  "componentLibrary.renameFolder": "폴더 이름 변경",
+  "componentLibrary.removeFolder": "폴더 제거",
+  "componentLibrary.removeFolderConfirm": "이 폴더를 제거할까요? 컴포넌트 자산은 삭제되지 않고 상위 폴더로 이동합니다.",
+  "componentLibrary.moveTo": "폴더로 이동",
+  "componentLibrary.renameComponent": "컴포넌트 이름 변경",
+  "componentLibrary.componentName": "컴포넌트 이름",
+  "componentLibrary.editAsset": "정의 자산 편집",
+  "componentLibrary.pingAsset": "프로젝트에서 보기",
+  "componentLibrary.favourite": "즐겨찾기",
+  "common.ok": "확인",
+  "common.cancel": "취소",
+  "common.apply": "적용",
+  "common.remove": "제거",
+  "attachedComponents.summary": "런타임 컴포넌트 · {0}개",
+  "attachedComponents.target": "uGUI 프리팹 생성 시 {0}에 부착",
+  "attachedComponents.helpTooltip": "부착한 MonoBehaviour는 타입 식별자로 직렬화됩니다. NexUI는 이 화면에서 추가한 항목만 관리하며 프리팹에 직접 추가한 컴포넌트는 제거하지 않습니다.",
+  "attachedComponents.uguiTooltip": "생성된 uGUI GameObject에는 실제로 부착됩니다. VisualElement에는 MonoBehaviour를 붙일 수 없으므로 UI Toolkit에서는 참조를 메타데이터로만 보존합니다.",
+  "attachedComponents.empty": "부착된 런타임 컴포넌트가 없습니다. 컴포넌트 추가를 눌러 프로젝트 스크립트나 Unity 동작을 이 UI 요소에 연결하세요.",
+  "attachedComponents.missingTitle": "누락된 컴포넌트",
+  "attachedComponents.sourceUnity": "Unity",
+  "attachedComponents.sourceProject": "프로젝트",
+  "attachedComponents.single": "하나만 허용",
+  "attachedComponents.editMode": "편집 모드 실행",
+  "attachedComponents.requires": "필수 컴포넌트: {0}",
+  "attachedComponents.showScript": "프로젝트에서 스크립트 보기",
+  "attachedComponents.openDocs": "문서 열기",
+  "attachedComponents.categoryUnknown": "분류 없음",
+  "attachedComponents.descriptionUnity": "생성된 UI GameObject에 부착되는 Unity 런타임 동작 '{0}'입니다.",
+  "attachedComponents.descriptionProject": "프리팹 생성 시 이 UI 요소에 부착되는 프로젝트 MonoBehaviour '{0}'입니다. 클래스에 Description 특성을 추가하면 여기에 전용 설명을 표시할 수 있습니다.",
+  "attachedComponents.tooltipCategory": "분류",
+  "attachedComponents.tooltipAssembly": "어셈블리",
+  "attachedComponents.tooltipBackend": "백엔드",
+  "attachedComponents.uguiOnly": "uGUI 완전 지원 · UI Toolkit 메타데이터만 보존",
+  "attachedComponents.pickerDescription": "Unity 동작과 프로젝트 MonoBehaviour를 탐색합니다. 추가하기 전에 카드에 마우스를 올려 설명과 필수 컴포넌트를 확인하세요.",
+  "attachedComponents.searchTooltip": "컴포넌트 이름, 분류, 네임스페이스, 어셈블리 또는 설명으로 검색합니다.",
+  "attachedComponents.resultCount": "컴포넌트 {0}개",
+  "attachedComponents.noResults": "검색과 일치하는 컴포넌트가 없습니다.",
+  "motionInspector.preset": "모션 프리셋",
+  "motionInspector.motionId": "모션 ID",
+  "motionInspector.initial": "초기",
+  "motionInspector.animate": "재생",
+  "motionInspector.exit": "퇴장",
+  "motionInspector.hover": "호버",
+  "motionInspector.pressed": "누름",
+  "motionInspector.focus": "포커스",
+  "motionInspector.noPreset": "모션 프리셋을 지정하면 그래프를 편집하고 선택한 변형을 미리 볼 수 있습니다.",
+  "motionInspector.entryClipTooltip": "이 화면이 열릴 때 재생할 모션 클립입니다.",
+  "motionInspector.exitClipTooltip": "이 화면이 닫힐 때 재생할 모션 클립입니다.",
+  "motionInspector.addBindingTooltip": "이 UI 요소에서 모션 클립을 재생할 트리거를 추가합니다.",
+  "motionInspector.previewTitle": "실시간 모션 미리보기",
+  "motionInspector.previewDescription": "반투명 시작 원본, 이동 경로, 실제로 움직이는 UI로 적용 전 모션을 확인합니다.",
+  "motionInspector.replayTooltip": "실시간 미리보기를 처음부터 다시 재생합니다.",
+  "motionInspector.sectionTabsTooltip": "한 번에 하나의 모션 편집 영역만 표시하여 Inspector 길이를 줄입니다.",
+  "motionInspector.tabSettings": "설정",
+  "motionInspector.tabSettingsTooltip": "요소 프리셋, 상태별 변형, 화면 전환 클립을 편집합니다.",
+  "motionInspector.tabExamples": "예시",
+  "motionInspector.tabExamplesTooltip": "시각적 모션 예시를 살펴보고 편집 가능한 프리셋으로 엽니다.",
+  "motionInspector.tabTriggers": "트리거",
+  "motionInspector.tabTriggersTooltip": "클릭, 상태 변경, 명령, 수명 주기 이벤트에 모션 클립을 연결합니다.",
+  "motionInspector.elementMotion": "요소 모션",
+  "motionInspector.elementMotionDescription": "재사용 가능한 모션 프리셋을 지정하고 요소 상태마다 변형을 연결합니다.",
+  "motionInspector.previewAssigned": "지정 모션 미리보기",
+  "motionInspector.previewAssignedTooltip": "선택한 요소에 지정된 모션을 컴파일하여 위 미리보기에서 재생합니다.",
+  "motionInspector.variants": "상태별 변형",
+  "motionInspector.variantsTooltip": "변형 이름으로 초기, 상호작용, 포커스, 퇴장 상태와 프리셋 타임라인을 연결합니다.",
+  "motionInspector.screenMotion": "화면 등장 / 퇴장",
+  "motionInspector.screenMotionDescription": "화면 전환용 클립을 고르고 각 클립을 바로 미리 봅니다.",
+  "motionInspector.previewEntryClip": "지정된 등장 클립을 Designer 캔버스에서 미리 봅니다.",
+  "motionInspector.previewExitClip": "지정된 퇴장 클립을 Designer 캔버스에서 미리 봅니다.",
+  "motionInspector.examples": "모션 예시",
+  "motionInspector.examplesDescription": "카드를 선택해 반복 예시를 보고, 실제 편집 가능한 프리셋으로 열어 사용하세요.",
+  "motionInspector.useExample": "선택한 예시 사용",
+  "motionInspector.useExampleTooltip": "이 예시가 선택된 상태로 전환 프리셋 편집기를 엽니다.",
+  "motionInspector.useNamedExample": "{0} 예시 사용",
+  "motionInspector.exampleTooltip": "클릭하면 이 예시를 실시간 미리보기에 불러옵니다.",
+  "motionInspector.triggerMotion": "트리거 연결",
+  "motionInspector.triggerMotionDescription": "클릭, 상태 변경, 명령, 수명 주기 이벤트에서 클립을 재생합니다.",
+  "motionInspector.noSelection": "선택된 UI 요소 없음",
+  "motionInspector.noSelectionDescription": "캔버스에서 요소를 선택하면 모션을 만들고 미리 볼 수 있습니다.",
+  "motionInspector.target": "모션 · {0}",
+  "motionInspector.unassigned": "미지정",
+  "motionInspector.unassignedDescription": "모션 프리셋이 없습니다. 아래 예시를 사용하거나 기존 프리셋을 지정하세요.",
+  "motionInspector.motionSummary": "트랙 {0}개로 컴파일됨 · 전체 {1:0.00}초",
+  "motionInspector.ready": "준비됨",
+  "motionInspector.noPresetPreview": "부드러운 투명도 전환으로 실시간 미리보기를 보여줍니다. 아래에서 다른 예시도 선택할 수 있습니다.",
+  "motionInspector.assignedPreviewDescription": "런타임 이징으로 컴파일된 '{0}' 변형을 재생합니다.",
+  "motionInspector.noBindings": "아직 트리거 연결이 없습니다. 상호작용이나 이벤트에서 클립을 재생하도록 추가하세요.",
+  "motionInspector.bindingTooltip": "이 연결은 트리거를 일반 모션 클립과 모션 감소용 클립에 연결합니다.",
+  "motionInspector.trigger": "트리거",
+  "motionInspector.noBindingsForTarget": "현재 이 UI 요소를 대상으로 하는 연결이 없습니다.",
+  "motionExample.fade": "페이드 인",
+  "motionExample.fadeDescription": "투명한 상태에서 선명해지도록 불투명도를 부드럽게 변화시킵니다.",
+  "motionExample.slide": "슬라이드 인",
+  "motionExample.slideDescription": "왼쪽에서 제자리로 이동하면서 UI가 자연스럽게 나타납니다.",
+  "motionExample.scale": "스케일 팝",
+  "motionExample.scaleDescription": "버튼, 카드, 다이얼로그가 살짝 튀어 오르듯 나타나는 오버슈트 모션입니다.",
+  "motionExample.toast": "토스트 상승",
+  "motionExample.toastDescription": "알림이 아래에서 올라온 뒤 부드럽게 제자리에 안착합니다.",
+  "component.section": "섹션",
+  "component.toolbar": "툴바",
+  "component.scrollArea": "스크롤 영역",
+  "component.splitter": "분할 패널",
+  "component.accordion": "아코디언",
+  "component.heading": "제목",
+  "component.richText": "리치 텍스트",
+  "component.link": "링크",
+  "component.icon": "아이콘",
+  "component.avatar": "아바타",
+  "component.divider": "구분선",
+  "component.badge": "배지",
+  "component.chip": "칩 / 태그",
+  "component.checkbox": "체크박스",
+  "component.switch": "스위치",
+  "component.radioGroup": "라디오 그룹",
+  "component.segmentedControl": "세그먼트 컨트롤",
+  "component.dropdown": "드롭다운",
+  "component.slider": "슬라이더",
+  "component.rangeSlider": "범위 슬라이더",
+  "component.stepper": "스테퍼",
+  "component.textField": "텍스트 필드",
+  "component.textArea": "여러 줄 텍스트",
+  "component.searchField": "검색 필드",
+  "component.rating": "별점",
+  "component.tabs": "탭",
+  "component.tabItem": "탭 항목",
+  "component.appBar": "앱 바",
+  "component.sideNav": "사이드 내비게이션",
+  "component.breadcrumb": "경로 표시",
+  "component.pagination": "페이지 이동",
+  "component.menu": "메뉴",
+  "component.stepIndicator": "단계 표시",
+  "component.alert": "알림 배너",
+  "component.emptyState": "빈 상태",
+  "component.drawer": "드로어",
+  "component.contextMenu": "컨텍스트 메뉴",
+  "component.loadingOverlay": "로딩 오버레이",
+  "component.table": "테이블",
+  "component.treeView": "트리 뷰",
+  "component.carousel": "캐러셀",
+  "component.minimap": "미니맵",
+  "component.compass": "나침반",
+  "component.crosshair": "조준선",
+  "component.questTracker": "퀘스트 추적기",
+  "component.dialogueBox": "대화 상자",
+  "component.chatPanel": "채팅 패널",
+  "component.leaderboard": "리더보드",
+  "component.currencyDisplay": "재화 표시",
+  "component.buffBar": "버프 바",
+  "component.cooldownIcon": "쿨다운 아이콘",
+  "component.keyPrompt": "키 안내",
+  "component.spacer": "여백",
+  "component.flowContainer": "플로 컨테이너",
+  "component.masonryGrid": "메이슨리 그리드",
+  "component.aspectBox": "비율 고정 박스",
+  "component.safeArea": "세이프 에어리어",
+  "component.stickyHeader": "고정 헤더",
+  "component.sidebarLayout": "사이드바 레이아웃",
+  "component.twoColumn": "2단 레이아웃",
+  "component.threeColumn": "3단 레이아웃",
+  "component.centerBox": "가운데 정렬 박스",
+  "component.dockPanel": "도크 패널",
+  "component.resizablePanel": "크기 조절 패널",
+  "component.scrollSnap": "스크롤 스냅 영역",
+  "component.pageContainer": "페이지 컨테이너",
+  "component.fieldRow": "필드 행",
+  "component.form": "폼",
+  "component.formSection": "폼 섹션",
+  "component.listItem": "리스트 항목",
+  "component.panelHeader": "패널 헤더",
+  "component.caption": "캡션",
+  "component.subtitle": "부제목",
+  "component.overline": "오버라인",
+  "component.codeBlock": "코드 블록",
+  "component.quote": "인용문",
+  "component.markdownText": "마크다운 텍스트",
+  "component.numberTicker": "숫자 티커",
+  "component.countdownText": "카운트다운 텍스트",
+  "component.typewriterText": "타자기 텍스트",
+  "component.marquee": "흐르는 텍스트",
+  "component.highlightText": "강조 텍스트",
+  "component.truncatedText": "말줄임 텍스트",
+  "component.labelValue": "라벨 / 값",
+  "component.timestamp": "시간 표시",
+  "component.currencyText": "금액 텍스트",
+  "component.percentText": "퍼센트 텍스트",
+  "component.gradientText": "그라디언트 텍스트",
+  "component.outlineText": "외곽선 텍스트",
+  "component.videoView": "비디오 뷰",
+  "component.renderTextureView": "렌더 텍스처 뷰",
+  "component.imageGallery": "이미지 갤러리",
+  "component.thumbnail": "썸네일",
+  "component.coverImage": "커버 이미지",
+  "component.logo": "로고",
+  "component.placeholderImage": "빈 이미지",
+  "component.qRCode": "QR 코드",
+  "component.portraitFrame": "초상화 프레임",
+  "component.nineSliceImage": "9슬라이스 이미지",
+  "component.maskedImage": "마스크 이미지",
+  "component.parallaxLayer": "패럴랙스 레이어",
+  "component.particleHost": "파티클 호스트",
+  "component.modelView": "3D 모델 뷰",
+  "component.numberField": "숫자 필드",
+  "component.passwordField": "비밀번호 필드",
+  "component.knob": "노브",
+  "component.colorPicker": "색상 선택기",
+  "component.colorSwatch": "색상 견본",
+  "component.gradientPicker": "그라디언트 선택기",
+  "component.datePicker": "날짜 선택기",
+  "component.timePicker": "시간 선택기",
+  "component.dateRangePicker": "기간 선택기",
+  "component.calendar": "캘린더",
+  "component.keybindField": "키 바인딩 필드",
+  "component.vectorField": "벡터 필드",
+  "component.curveField": "커브 필드",
+  "component.filePicker": "파일 선택기",
+  "component.volumeSlider": "볼륨 슬라이더",
+  "component.toggleButton": "토글 버튼",
+  "component.splitButton": "분할 버튼",
+  "component.buttonGroup": "버튼 그룹",
+  "component.floatingActionButton": "플로팅 액션 버튼",
+  "component.holdButton": "길게 누르기 버튼",
+  "component.repeatButton": "연속 입력 버튼",
+  "component.radialMenu": "방사형 메뉴",
+  "component.virtualJoystick": "가상 조이스틱",
+  "component.dPad": "방향 패드",
+  "component.swipeArea": "스와이프 영역",
+  "component.dragHandle": "드래그 핸들",
+  "component.resizeHandle": "크기 조절 핸들",
+  "component.scrubber": "재생 스크러버",
+  "component.multiSelect": "다중 선택",
+  "component.comboBox": "콤보 박스",
+  "component.autocomplete": "자동 완성",
+  "component.tagInput": "태그 입력",
+  "component.filterBar": "필터 바",
+  "component.sortSelector": "정렬 선택기",
+  "component.optionCard": "선택 카드",
+  "component.transferList": "이동 목록",
+  "component.checkboxGroup": "체크박스 그룹",
+  "component.selectionList": "선택 목록(단일)",
+  "component.navRail": "내비게이션 레일",
+  "component.bottomNav": "하단 내비게이션",
+  "component.navItem": "내비게이션 항목",
+  "component.menuBar": "메뉴 바",
+  "component.menuItem": "메뉴 항목",
+  "component.subMenu": "하위 메뉴",
+  "component.commandPalette": "명령 팔레트",
+  "component.searchOverlay": "검색 오버레이",
+  "component.backButton": "뒤로 버튼",
+  "component.closeButton": "닫기 버튼",
+  "component.wizard": "마법사",
+  "component.wizardStep": "마법사 단계",
+  "component.anchorNav": "앵커 내비게이션",
+  "component.quickAccessBar": "빠른 실행 바",
+  "component.statusDot": "상태 점",
+  "component.statusPill": "상태 배지",
+  "component.loadingBar": "로딩 바",
+  "component.meter": "미터",
+  "component.gauge": "게이지",
+  "component.sparkline": "스파크라인",
+  "component.trendIndicator": "증감 표시",
+  "component.toastStack": "토스트 스택",
+  "component.snackbar": "스낵바",
+  "component.inlineError": "인라인 오류",
+  "component.successCheck": "완료 체크",
+  "component.countdownTimer": "카운트다운 타이머",
+  "component.cooldownBar": "쿨다운 바",
+  "component.comboMeter": "콤보 미터",
+  "component.scorePopup": "점수 팝업",
+  "component.damageNumber": "데미지 숫자",
+  "component.floatingText": "플로팅 텍스트",
+  "component.activityIndicator": "진행 표시기",
+  "component.connectionStatus": "연결 상태",
+  "component.fpsCounter": "FPS 카운터",
+  "component.confirmDialog": "확인 대화상자",
+  "component.alertDialog": "알림 대화상자",
+  "component.promptDialog": "입력 대화상자",
+  "component.bottomSheet": "바텀 시트",
+  "component.sideSheet": "사이드 시트",
+  "component.lightbox": "라이트박스",
+  "component.coachMark": "코치 마크",
+  "component.tutorialOverlay": "튜토리얼 오버레이",
+  "component.spotlight": "스포트라이트",
+  "component.backdrop": "배경 딤",
+  "component.hoverCard": "호버 카드",
+  "component.contextPanel": "상세 패널",
+  "component.tableRow": "테이블 행",
+  "component.tableHeader": "테이블 헤더",
+  "component.columnHeader": "열 헤더",
+  "component.infiniteList": "무한 스크롤 리스트",
+  "component.virtualGrid": "가상 그리드",
+  "component.treeNode": "트리 노드",
+  "component.kanbanBoard": "칸반 보드",
+  "component.kanbanColumn": "칸반 컬럼",
+  "component.timelineList": "타임라인",
+  "component.feed": "피드",
+  "component.commentThread": "댓글 스레드",
+  "component.statCard": "지표 카드",
+  "component.kpiTile": "KPI 타일",
+  "component.metricRow": "지표 행",
+  "component.sectionHeader": "구역 헤더",
+  "component.propertyRow": "속성 행",
+  "component.keyValueTable": "키 / 값 테이블",
+  "component.logView": "로그 뷰",
+  "component.barChart": "막대 차트",
+  "component.lineChart": "선 차트",
+  "component.areaChart": "영역 차트",
+  "component.pieChart": "파이 차트",
+  "component.donutChart": "도넛 차트",
+  "component.radarChart": "레이더 차트",
+  "component.scatterPlot": "산점도",
+  "component.heatmap": "히트맵",
+  "component.histogram": "히스토그램",
+  "component.gaugeChart": "게이지 차트",
+  "component.funnelChart": "퍼널 차트",
+  "component.stackedBarChart": "누적 막대 차트",
+  "component.chartLegend": "차트 범례",
+  "component.profileCard": "프로필 카드",
+  "component.userRow": "사용자 행",
+  "component.friendListItem": "친구 목록 항목",
+  "component.presenceDot": "접속 상태 점",
+  "component.followButton": "팔로우 버튼",
+  "component.shareSheet": "공유 시트",
+  "component.reviewCard": "리뷰 카드",
+  "component.ratingSummary": "평점 요약",
+  "component.commentInput": "댓글 입력",
+  "component.mentionList": "멘션 목록",
+  "component.productCard": "상품 카드",
+  "component.priceTag": "가격 표시",
+  "component.discountBadge": "할인 배지",
+  "component.cartItem": "장바구니 항목",
+  "component.checkoutSummary": "결제 요약",
+  "component.paymentMethodRow": "결제 수단 행",
+  "component.couponField": "쿠폰 입력",
+  "component.purchaseButton": "구매 버튼",
+  "component.subscriptionCard": "구독 카드",
+  "component.shopItemCard": "상점 아이템 카드",
+  "component.currencyPack": "재화 패키지",
+  "component.rewardCard": "보상 카드",
+  "component.settingsRow": "설정 행",
+  "component.settingsToggleRow": "설정 토글 행",
+  "component.settingsSliderRow": "설정 슬라이더 행",
+  "component.settingsSection": "설정 섹션",
+  "component.languageSelector": "언어 선택",
+  "component.volumeRow": "음량 행",
+  "component.keybindRow": "키 설정 행",
+  "component.accountRow": "계정 연동 행",
+  "component.legalRow": "약관 행",
+  "component.aboutRow": "정보 행",
+  "component.abilityBar": "스킬 바",
+  "component.skillSlot": "스킬 슬롯",
+  "component.skillTreeNode": "스킬 트리 노드",
+  "component.inventoryGrid": "인벤토리 그리드",
+  "component.equipmentSlot": "장비 슬롯",
+  "component.characterPortrait": "캐릭터 초상화",
+  "component.partyFrame": "파티 프레임",
+  "component.targetFrame": "타깃 프레임",
+  "component.castBar": "시전 바",
+  "component.comboCounter": "콤보 카운터",
+  "component.killFeed": "킬 피드",
+  "component.objectiveMarker": "목표 마커",
+  "component.waypoint": "웨이포인트",
+  "component.ammoCounter": "탄약 표시",
+  "component.weaponWheel": "무기 휠",
+  "component.interactionPrompt": "상호작용 안내",
+  "component.subtitleBar": "자막 바",
+  "component.bossHealthBar": "보스 체력 바",
+  "component.resourceOrb": "자원 오브",
+  "component.xpBar": "경험치 바",
+  "component.levelBadge": "레벨 배지",
+  "component.rankEmblem": "랭크 엠블럼",
+  "component.achievementToast": "업적 알림",
+  "component.lootPopup": "획득 알림",
+  "component.nameplate": "네임플레이트",
+  "component.chatBubble": "말풍선",
+  "component.emoteWheel": "감정표현 휠",
+  "component.pingWheel": "핑 휠",
+  "component.speedometer": "속도계",
+  "component.lapTimer": "랩 타이머",
+  "component.mapLegend": "맵 범례",
+  "component.craftingSlot": "제작 슬롯",
+  "component.questCard": "퀘스트 카드",
+  "component.tradePanel": "거래 패널",
+  "component.healthBar": "체력 바",
+  "component.shieldBar": "실드 바",
+  "component.armorBar": "방어도 바",
+  "component.manaBar": "마나 바",
+  "component.energyBar": "기력 바",
+  "component.staminaWheel": "스태미나 휠",
+  "component.breathMeter": "산소 게이지",
+  "component.hungerMeter": "허기 게이지",
+  "component.sanityMeter": "정신력 게이지",
+  "component.heatMeter": "과열 게이지",
+  "component.ultimateCharge": "궁극기 게이지",
+  "component.chargeMeter": "차지 게이지",
+  "component.reloadIndicator": "재장전 표시",
+  "component.threatMeter": "어그로 미터",
+  "component.detectionMeter": "발각 게이지",
+  "component.noiseMeter": "소음 게이지",
+  "component.healthPips": "체력 칸",
+  "component.ammoPips": "탄약 칸",
+  "component.hitMarker": "히트 마커",
+  "component.damageIndicator": "피격 방향 표시",
+  "component.statusEffectIcon": "상태 효과 아이콘",
+  "component.abilityQueue": "스킬 대기열",
+  "component.stanceSelector": "자세 / 사격 모드",
+  "component.grenadeSelector": "투척물 선택",
+  "component.comboRank": "콤보 등급",
+  "component.accuracyMeter": "정확도 미터",
+  "component.judgementText": "판정 텍스트",
+  "component.weaponSlot": "무기 슬롯",
+  "component.vehicleHud": "차량 HUD",
+  "component.gearIndicator": "기어 표시",
+  "component.nitroBar": "부스트 바",
+  "component.tachometer": "회전계",
+  "component.mapScreen": "맵 화면",
+  "component.mapMarkerList": "맵 마커 목록",
+  "component.offscreenIndicator": "화면 밖 표시",
+  "component.lockOnIndicator": "락온 표시",
+  "component.distanceMeter": "거리 표시",
+  "component.zoneBanner": "지역 배너",
+  "component.discoveryToast": "발견 알림",
+  "component.travelProgress": "이동 진행",
+  "component.radar": "레이더",
+  "component.objectiveList": "목표 목록",
+  "component.worldTooltip": "월드 툴팁",
+  "component.placementGhost": "설치 미리보기",
+  "component.compassMarker": "나침반 마커",
+  "component.depthMeter": "고도 / 수심 표시",
+  "component.timeOfDay": "게임 내 시간",
+  "component.weatherIndicator": "날씨 표시",
+  "component.letterbox": "컷신 레터박스",
+  "component.skipPrompt": "건너뛰기 안내",
+  "component.itemCard": "아이템 카드",
+  "component.itemTooltip": "아이템 툴팁",
+  "component.itemComparison": "아이템 비교",
+  "component.rarityFrame": "등급 프레임",
+  "component.durabilityBar": "내구도 바",
+  "component.stackCount": "수량 표시",
+  "component.itemLevelBadge": "아이템 레벨 배지",
+  "component.paperdoll": "장비 페이퍼돌",
+  "component.loadoutPanel": "장비 세트 패널",
+  "component.bagTabs": "가방 탭",
+  "component.weightMeter": "무게 게이지",
+  "component.sortFilterBar": "정렬 / 필터 바",
+  "component.craftingRecipe": "제작 레시피",
+  "component.craftingQueue": "제작 대기열",
+  "component.upgradePanel": "강화 패널",
+  "component.enchantPanel": "인챈트 패널",
+  "component.salvagePanel": "분해 패널",
+  "component.vendorList": "상인 목록",
+  "component.buybackList": "되사기 목록",
+  "component.auctionRow": "경매 항목",
+  "component.mailItem": "우편 항목",
+  "component.currencyBar": "재화 바",
+  "component.lootTableRow": "드랍 목록 행",
+  "component.chestOpen": "상자 개봉",
+  "component.summonResult": "소환 결과",
+  "component.pityCounter": "천장 카운터",
+  "component.giftClaim": "선물 수령",
+  "component.collectionAlbum": "수집 도감",
+  "component.codexEntry": "코덱스 항목",
+  "component.experienceBar": "경험치 바(전체)",
+  "component.levelUpPopup": "레벨업 팝업",
+  "component.skillTree": "스킬 트리",
+  "component.talentGrid": "특성 그리드",
+  "component.skillPointCounter": "스킬 포인트 표시",
+  "component.battlePassTrack": "배틀패스 트랙",
+  "component.seasonTier": "시즌 티어",
+  "component.dailyLoginCalendar": "출석 보상 달력",
+  "component.questLog": "퀘스트 로그",
+  "component.questObjective": "퀘스트 목표",
+  "component.achievementRow": "업적 행",
+  "component.masteryRing": "숙련도 링",
+  "component.reputationBar": "평판 바",
+  "component.rankProgress": "랭크 진행",
+  "component.unlockNotification": "해금 알림",
+  "component.rewardPreview": "보상 미리보기",
+  "component.milestoneTrack": "마일스톤 트랙",
+  "component.energyTimer": "행동력 타이머",
+  "component.vipLevel": "VIP 등급",
+  "component.titleScreen": "타이틀 화면",
+  "component.mainMenu": "메인 메뉴",
+  "component.pauseMenu": "일시정지 메뉴",
+  "component.saveSlotList": "저장 슬롯 목록",
+  "component.saveSlot": "저장 슬롯",
+  "component.difficultySelector": "난이도 선택",
+  "component.characterSelect": "캐릭터 선택",
+  "component.characterPreview": "캐릭터 미리보기",
+  "component.levelSelect": "스테이지 선택",
+  "component.stageCard": "스테이지 카드",
+  "component.loadingScreen": "로딩 화면",
+  "component.loadingTip": "로딩 팁",
+  "component.pressStartPrompt": "시작 안내",
+  "component.deathScreen": "사망 화면",
+  "component.respawnTimer": "부활 타이머",
+  "component.matchResults": "매치 결과",
+  "component.scoreBreakdown": "점수 상세",
+  "component.starRatingResult": "별 평가 결과",
+  "component.mvpCard": "MVP 카드",
+  "component.creditsRoll": "크레딧",
+  "component.quitConfirm": "종료 확인",
+  "component.controlsDiagram": "조작 안내도",
+  "component.tutorialHint": "튜토리얼 힌트",
+  "component.adRewardButton": "광고 보상 버튼",
+  "component.rateUsPrompt": "평가 요청",
+  "component.teamRoster": "팀 명단",
+  "component.scoreboard": "스코어보드",
+  "component.scoreboardRow": "스코어보드 행",
+  "component.lobbySlot": "로비 슬롯",
+  "component.readyCheck": "준비 확인",
+  "component.matchmakingStatus": "매칭 상태",
+  "component.partyInvite": "파티 초대",
+  "component.guildPanel": "길드 패널",
+  "component.chatChannelTabs": "채팅 채널 탭",
+  "component.voiceIndicator": "음성 표시",
+  "component.pingBadge": "핑 배지",
+  "component.hostBadge": "호스트 배지",
+  "component.spectatorBar": "관전 바",
+  "component.killCam": "킬 캠",
+  "component.reportPlayer": "플레이어 신고",
+  "component.friendInviteList": "친구 초대 목록",
+  "component.crossplayToggle": "크로스플레이 설정",
+  "component.sessionCode": "세션 코드",
+  "component.serverList": "서버 목록",
+  "component.teamBanner": "팀 배너",
+  "component.ugui.image": "이미지",
+  "component.ugui.rawImage": "Raw 이미지",
+  "component.ugui.panel": "패널",
+  "component.ugui.text": "텍스트 - TextMeshPro",
+  "component.ugui.textLegacy": "텍스트 (레거시)",
+  "component.ugui.button": "버튼",
+  "component.ugui.buttonTMP": "버튼 - TextMeshPro",
+  "component.ugui.toggle": "토글",
+  "component.ugui.toggleGroup": "토글 그룹",
+  "component.ugui.slider": "슬라이더",
+  "component.ugui.scrollbar": "스크롤바",
+  "component.ugui.dropdown": "드롭다운",
+  "component.ugui.dropdownTMP": "드롭다운 - TextMeshPro",
+  "component.ugui.inputField": "입력 필드 (레거시)",
+  "component.ugui.inputFieldTMP": "입력 필드 - TextMeshPro",
+  "component.ugui.scrollView": "스크롤 뷰",
+  "component.ugui.mask": "마스크",
+  "component.ugui.rectMask2D": "Rect Mask 2D",
+  "component.ugui.horizontalLayoutGroup": "가로 레이아웃 그룹",
+  "component.ugui.verticalLayoutGroup": "세로 레이아웃 그룹",
+  "component.ugui.gridLayoutGroup": "그리드 레이아웃 그룹",
+  "component.ugui.canvas": "중첩 캔버스",
+  "component.uitk.visualElement": "Visual Element",
+  "component.uitk.label": "라벨",
+  "component.uitk.image": "이미지",
+  "component.uitk.box": "박스",
+  "component.uitk.textElement": "텍스트 엘리먼트",
+  "component.uitk.bindableElement": "바인딩 엘리먼트",
+  "component.uitk.iMGUIContainer": "IMGUI 컨테이너",
+  "component.uitk.helpBox": "도움말 박스",
+  "component.uitk.button": "버튼",
+  "component.uitk.toggle": "토글",
+  "component.uitk.slider": "슬라이더",
+  "component.uitk.sliderInt": "슬라이더 (정수)",
+  "component.uitk.minMaxSlider": "최소/최대 슬라이더",
+  "component.uitk.progressBar": "프로그레스 바",
+  "component.uitk.radioButton": "라디오 버튼",
+  "component.uitk.radioButtonGroup": "라디오 버튼 그룹",
+  "component.uitk.dropdownField": "드롭다운 필드",
+  "component.uitk.enumField": "열거형 필드",
+  "component.uitk.scroller": "스크롤러",
+  "component.uitk.repeatButton": "연속 입력 버튼",
+  "component.uitk.toggleButtonGroup": "토글 버튼 그룹",
+  "component.uitk.textField": "텍스트 필드",
+  "component.uitk.integerField": "정수 필드",
+  "component.uitk.floatField": "실수 필드",
+  "component.uitk.vector2Field": "Vector2 필드",
+  "component.uitk.vector3Field": "Vector3 필드",
+  "component.uitk.vector4Field": "Vector4 필드",
+  "component.uitk.rectField": "Rect 필드",
+  "component.uitk.objectField": "오브젝트 필드",
+  "component.uitk.doubleField": "Double 필드",
+  "component.uitk.longField": "Long 필드",
+  "component.uitk.unsignedIntegerField": "부호 없는 정수 필드",
+  "component.uitk.unsignedLongField": "부호 없는 Long 필드",
+  "component.uitk.vector2IntField": "Vector2Int 필드",
+  "component.uitk.vector3IntField": "Vector3Int 필드",
+  "component.uitk.rectIntField": "RectInt 필드",
+  "component.uitk.boundsField": "Bounds 필드",
+  "component.uitk.boundsIntField": "BoundsInt 필드",
+  "component.uitk.hash128Field": "Hash128 필드",
+  "component.uitk.angleField": "각도 필드",
+  "component.uitk.lengthField": "길이 필드",
+  "component.uitk.timeValueField": "시간 값 필드",
+  "component.uitk.translateField": "이동 필드",
+  "component.uitk.rotateField": "회전 필드",
+  "component.uitk.scaleField": "스케일 필드",
+  "component.uitk.transformOriginField": "변형 기준점 필드",
+  "component.uitk.gUIDField": "GUID 필드",
+  "component.uitk.buttonStripField": "버튼 스트립 필드",
+  "component.uitk.scrollView": "스크롤 뷰",
+  "component.uitk.listView": "리스트 뷰",
+  "component.uitk.multiColumnListView": "다중 열 리스트 뷰",
+  "component.uitk.treeView": "트리 뷰",
+  "component.uitk.multiColumnTreeView": "다중 열 트리 뷰",
+  "component.uitk.foldout": "폴드아웃",
+  "component.uitk.groupBox": "그룹 박스",
+  "component.uitk.tabView": "탭 뷰",
+  "component.uitk.tab": "탭",
+  "component.uitk.twoPaneSplitView": "2분할 뷰",
+  "component.uitk.popupWindow": "팝업 윈도우",
+  "inspector.section.componentProperties": "컴포넌트 속성",
+  "inspector.showAdvanced": "고급 속성 표시",
+  "tooltip.inspector.showAdvanced": "자주 쓰지 않는 속성까지 모두 보여 줍니다.",
+  "tooltip.inspector.resetProperty": "컴포넌트 기본값으로 되돌립니다.",
+  "tooltip.inspector.searchProperties": "이름, 키 또는 설명으로 이 컴포넌트의 속성을 검색합니다.",
+  "prop.group.content": "내용",
+  "prop.group.value": "값",
+  "prop.group.interaction": "상호작용",
+  "prop.group.data": "데이터",
+  "prop.group.appearance": "모양",
+  "prop.group.layout": "레이아웃",
+  "prop.group.behavior": "동작",
+  "prop.interactable": "상호작용 가능",
+  "prop.transition": "전환 효과",
+  "prop.navigation.enabled": "키보드 / 게임패드 내비게이션",
+  "prop.emphasis": "강조 단계",
+  "prop.clipContent": "내용 잘라내기",
+  "prop.size": "크기 프리셋",
+  "prop.value.min": "최솟값",
+  "prop.value.max": "최댓값",
+  "prop.value.wholeNumbers": "정수만 사용",
+  "prop.value.direction": "채우기 방향",
+  "prop.value.segments": "분할 칸 수",
+  "prop.value.showLabel": "값 라벨 표시",
+  "prop.value.format": "값 표시 형식",
+  "prop.value.animationDuration": "값 변화 애니메이션 (초)",
+  "prop.items.source": "아이템 소스 키",
+  "prop.items.selection": "선택 방식",
+  "prop.items.virtualize": "가상화",
+  "prop.items.itemSize": "아이템 크기",
+  "prop.items.spacing": "아이템 간격",
+  "prop.items.orientation": "방향",
+  "prop.items.reorderable": "순서 변경 허용",
+  "prop.items.showEmptyState": "빈 상태 표시",
+  "prop.items.previewCount": "미리보기 아이템 수",
+  "prop.text.richText": "리치 텍스트",
+  "prop.text.autoSize": "자동 크기",
+  "prop.text.maxLines": "최대 줄 수",
+  "prop.text.selectable": "선택 가능",
+  "prop.text.localizationKey": "현지화 키",
+  "prop.media.sprite": "스프라이트",
+  "prop.media.preserveAspect": "비율 유지",
+  "prop.media.raycastTarget": "레이캐스트 대상",
+  "prop.media.maskable": "마스크 적용",
+  "prop.media.tint": "색조",
+  "prop.overlay.modal": "모달",
+  "prop.overlay.dismissOnBackdrop": "배경 클릭으로 닫기",
+  "prop.overlay.dismissOnEscape": "취소 입력으로 닫기",
+  "prop.overlay.placement": "표시 위치",
+  "prop.overlay.backdropOpacity": "배경 어둡기",
+  "prop.overlay.trapFocus": "포커스 가두기",
+  "prop.overlay.autoDismissSeconds": "자동 닫힘 (초)",
+  "prop.container.scrollable": "스크롤 가능",
+  "prop.container.blocksRaycast": "입력 차단",
+  "prop.slider.step": "증분",
+  "prop.slider.showTicks": "눈금 표시",
+  "prop.slider.fillHandle": "핸들 표시",
+  "prop.range.low": "하한값",
+  "prop.range.high": "상한값",
+  "prop.range.minGap": "최소 간격",
+  "prop.toggle.isOn": "켜짐",
+  "prop.toggle.allowIndeterminate": "중간 상태 허용",
+  "prop.toggle.group": "토글 그룹",
+  "prop.choice.options": "선택지",
+  "prop.choice.value": "선택 인덱스",
+  "prop.choice.placeholder": "안내 문구",
+  "prop.choice.searchable": "검색 가능",
+  "prop.choice.maxVisible": "한 번에 보일 선택지 수",
+  "prop.input.placeholder": "안내 문구",
+  "prop.input.maxLength": "글자 수 제한",
+  "prop.input.contentType": "입력 형식",
+  "prop.input.lineType": "줄 방식",
+  "prop.input.readOnly": "읽기 전용",
+  "prop.input.selectAllOnFocus": "포커스 시 전체 선택",
+  "prop.input.submitOnEnter": "Enter로 제출",
+  "prop.input.clearButton": "지우기 버튼",
+  "prop.scroll.horizontal": "가로 스크롤",
+  "prop.scroll.vertical": "세로 스크롤",
+  "prop.scroll.movement": "이동 방식",
+  "prop.scroll.elasticity": "탄성",
+  "prop.scroll.inertia": "관성",
+  "prop.scroll.decelerationRate": "감속률",
+  "prop.scroll.sensitivity": "스크롤 감도",
+  "prop.scroll.verticalBar": "세로 스크롤바",
+  "prop.scroll.horizontalBar": "가로 스크롤바",
+  "prop.tabs.activeIndex": "활성 탭",
+  "prop.tabs.orientation": "방향",
+  "prop.tabs.closable": "닫기 가능한 탭",
+  "prop.tabs.scrollable": "탭 스트립 스크롤",
+  "prop.foldout.expanded": "펼침",
+  "prop.foldout.singleOpen": "한 번에 하나만 펼침",
+  "prop.button.submitOnHold": "누르는 동안 반복",
+  "prop.button.holdSeconds": "길게 누르기 (초)",
+  "prop.button.busyState": "처리 중 상태 사용",
+  "prop.dialog.confirmLabel": "확인 버튼 문구",
+  "prop.dialog.cancelLabel": "취소 버튼 문구",
+  "prop.dialog.destructive": "위험한 동작",
+  "prop.message.severity": "심각도",
+  "prop.message.dismissible": "닫기 가능",
+  "prop.message.showIcon": "아이콘 표시",
+  "prop.table.columns": "열 수",
+  "prop.table.sortable": "정렬 가능",
+  "prop.table.resizableColumns": "열 너비 조절",
+  "prop.table.stripedRows": "줄무늬 행",
+  "prop.table.stickyHeader": "헤더 고정",
+  "prop.stepper.step": "증분",
+  "prop.stepper.wrap": "끝에서 순환",
+  "prop.stepper.repeatOnHold": "누르는 동안 반복",
+  "prop.rating.max": "별 개수",
+  "prop.rating.allowHalf": "반 칸 허용",
+  "prop.rating.readOnly": "읽기 전용",
+  "prop.carousel.loop": "순환",
+  "prop.carousel.autoAdvance": "자동 넘김 (초)",
+  "prop.carousel.showIndicators": "페이지 표시점",
+  "prop.cooldown.duration": "쿨다운 (초)",
+  "prop.cooldown.charges": "충전 횟수",
+  "prop.cooldown.showSweep": "원형 쓸기 표시",
+  "prop.cooldown.showKeyHint": "키 안내 표시",
+  "prop.slot.acceptsDrop": "드롭 허용",
+  "prop.slot.acceptedTypes": "허용 아이템 종류",
+  "prop.slot.showCount": "수량 표시",
+  "prop.slot.showRarity": "등급 프레임 표시",
+  "prop.health.damageTrail": "피해 잔상",
+  "prop.health.lowThreshold": "위험 기준값",
+  "prop.map.zoom": "확대",
+  "prop.map.rotateWithPlayer": "플레이어와 함께 회전",
+  "prop.map.clampMarkers": "마커 화면 가장자리 고정",
+  "prop.map.range": "표시 반경",
+  "inspector.componentParts": "컴포넌트 구조",
+  "inspector.section.componentParts": "컴포넌트 구조",
+  "inspector.componentParts.description": "라이브러리 내부 파트를 조절하거나 전체 NexUI Inspector를 지원하는 실제 자식 요소를 추가합니다.",
+  "inspector.componentParts.internal": "내부 파트",
+  "inspector.componentParts.selectHint": "위 파트를 선택하거나 캔버스에서 직접 클릭해 로컬 Transform을 편집하세요.",
+  "inspector.componentParts.reset": "파트 오버라이드 초기화",
+  "inspector.componentParts.contents": "편집 가능한 내부 요소",
+  "inspector.componentParts.contentsDescription": "실제 Hierarchy 요소입니다. 선택하면 Position, Size, Rotation, Scale, Style, Binding, Motion을 모두 편집할 수 있습니다.",
+  "inspector.section.elementComponents": "컴포넌트",
+  "inspector.elementComponents": "컴포넌트",
+  "inspector.components.add": "컴포넌트 추가",
+  "inspector.components.fromPreset": "{0} 프리셋으로 만든 요소",
+  "inspector.components.custom": "직접 조합한 요소",
+  "inspector.components.decompose": "분해",
+  "inspector.components.unknown": "이 빌드에 없는 컴포넌트입니다. 값은 그대로 보존됩니다.",
+  "inspector.components.noProperties": "편집할 속성이 없습니다.",
+  "tooltip.inspector.addComponent": "이 요소에 컴포넌트를 붙입니다. 현재 화면 백엔드에서 동작하는 것만 표시됩니다.",
+  "tooltip.inspector.componentEnabled": "컴포넌트를 켜고 끕니다. Unity의 컴포넌트 체크박스와 같습니다.",
+  "tooltip.inspector.decompose": "프리셋 표시를 지웁니다. 구성 컴포넌트는 그대로 남습니다.",
+  "ctx.component.remove": "컴포넌트 제거",
+  "ctx.component.reset": "값 초기화",
+  "ctx.component.moveUp": "위로 이동",
+  "ctx.component.moveDown": "아래로 이동",
+  "component.type.unknown": "알 수 없는 컴포넌트",
+  "component.type.core.element": "요소 (위치·크기)",
+  "component.type.nx.roundedRect": "둥근 사각형",
+  "component.type.nx.gradient": "그라데이션",
+  "component.type.nx.softShadow": "부드러운 그림자",
+  "component.type.nx.segmentedBar": "분할 바",
+  "component.type.nx.cooldownOverlay": "쿨다운 오버레이",
+  "component.type.nx.safeArea": "세이프 에어리어",
+  "component.type.nx.flowLayout": "플로 레이아웃",
+  "component.type.nx.radialLayout": "방사형 레이아웃",
+  "component.type.nx.autoGrid": "자동 그리드",
+  "component.type.nx.marqueeText": "흐르는 텍스트",
+  "component.type.nx.typewriterText": "타자기 텍스트",
+  "component.type.nx.numberTicker": "숫자 티커",
+  "component.type.nx.holdButton": "길게 누르기 버튼",
+  "component.type.nx.swipeArea": "스와이프 영역",
+  "component.type.nx.tooltipTrigger": "툴팁 트리거",
+  "inspector.components.addScript": "프로젝트 스크립트...",
+  "palette.family.components": "컴포넌트",
+  "palette.family.nexuiBase": "NexUI Base",
+  "palette.family.core": "기본",
+  "palette.components.build": "직접 조립",
+  "palette.components.empty": "빈 요소",
+  "tooltip.palette.components.empty": "컴포넌트가 없는 빈 요소를 만듭니다. Unity의 Create Empty와 같습니다.",
+  "ctx.components.attachToSelection": "선택한 요소에 부착",
+  "ctx.components.createEmptyWith": "이 컴포넌트로 새 요소 만들기",
+  "component.type.nx.virtualList": "가상화 리스트",
+  "component.type.nx.carousel": "캐러셀",
+  "component.type.nx.tabGroup": "탭 그룹",
+  "inspector.components.missingScript": "스크립트를 찾을 수 없습니다: {0}. 저장된 값 {1}개는 보존되며 스크립트가 다시 컴파일되면 복원됩니다.",
+  "inspector.components.scratchFailed": "{0}을(를) 편집용으로 생성하지 못했습니다. 저장된 값은 보존됩니다.",
+  "inspector.components.valuesPreserved": "이 빌드에서 편집할 수 없어 값만 보존한 속성: {0}",
+  "inspector.reference.none": "없음",
+  "inspector.reference.element": "요소",
+  "inspector.reference.asset": "에셋...",
+  "inspector.reference.noElements": "이 화면에 {0}을(를) 제공하는 요소가 없습니다",
+  "inspector.reference.pickTooltip": "이 필드를 화면의 다른 요소나 프로젝트 에셋에 연결합니다. 필요한 타입: {0}",
+  "inspector.unityEvent.addTooltip": "리스너를 추가합니다. 대상은 이 화면의 다른 요소나 프로젝트 에셋이 될 수 있습니다.",
+  "inspector.unityEvent.removeTooltip": "이 리스너를 제거합니다.",
+  "inspector.unityEvent.targetTooltip": "메서드를 실행할 대상입니다. 요소의 GameObject나 그 컴포넌트 중 하나를 지정합니다.",
+  "inspector.unityEvent.callStateTooltip": "리스너 실행 시점: 플레이 모드에서만, 에디트 모드 포함, 또는 실행 안 함.",
+  "inspector.unityEvent.empty": "리스너 없음.",
+  "inspector.unityEvent.noTarget": "대상을 먼저 지정하세요",
+  "inspector.unityEvent.noMethods": "호출 가능한 메서드 없음",
+  "inspector.unityEvent.missingMethod": "없는 메서드: {0}"
 }

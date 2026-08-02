@@ -13,7 +13,7 @@ Windows 예시:
 
 `-runTests`는 실행이 끝나면 스스로 종료하므로 **`-quit`를 함께 쓰지 마세요.** 테스트가 끝나기 전에 Editor가 내려가 결과 파일이 생기지 않을 수 있습니다.
 
-특정 클래스만 돌리려면 `-testFilter "emiteat.NexUI.Designer.Tests.EditMode.*"`를 추가합니다. PlayMode는 `-testPlatform PlayMode`입니다.
+특정 클래스만 돌리려면 `-testFilter "emiteat.NexUI.Studio.Tests.EditMode.*"`를 추가합니다. PlayMode는 `-testPlatform PlayMode`입니다.
 
 결과 XML이 생기지 않았다면 통과로 간주하지 마세요. `-logFile`을 열어 컴파일 오류나 라이선스 오류를 먼저 확인합니다.
 
@@ -37,7 +37,7 @@ Copy-Item "<repo>\ProjectSettings" "$shadow\ProjectSettings" -Recurse -Force
 Unity가 `.csproj`를 갱신한 뒤 다음을 실행합니다.
 
 ```powershell
-dotnet build emiteat.NexUI.Designer.Tests.EditMode.csproj --no-restore
+dotnet build emiteat.NexUI.Studio.Tests.EditMode.csproj --no-restore
 ```
 
 이 명령은 Unity Test Runner를 실행하지 않고 C# 컴파일만 확인합니다.
@@ -74,7 +74,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\Tools\Validate-NexUI.ps1
 ## 수동 검증 체크리스트
 
 - [ ] Unity Console 컴파일 오류 없음
-- [ ] `Tools > NexUI > Designer` 열기와 한국어/영어 전환
+- [ ] `Tools > NexUI > Studio` 열기와 한국어/영어 전환
 - [ ] Screen/Metadata 연결, Preview Rebuild
 - [ ] Component 추가, 선택·다중 선택·이동·크기 변경
 - [ ] Reparent, Layer 순서, Group/Ungroup

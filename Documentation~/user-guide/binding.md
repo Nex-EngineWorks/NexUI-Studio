@@ -1,9 +1,9 @@
 # Binding
 
-Binding은 Element가 사용할 데이터나 Action을 문자열 Key로 연결하는 계약입니다. Designer는 Key를 Metadata에 저장하고 Preview Mock 값을 보여 줍니다. 실제 값 보관, 변경 알림과 Command 실행은 NexUI Runtime과 게임 코드가 담당합니다.
+Binding은 Element가 사용할 데이터나 Action을 문자열 Key로 연결하는 계약입니다. Studio는 Key를 Metadata에 저장하고 Preview Mock 값을 보여 줍니다. 실제 값 보관, 변경 알림과 Command 실행은 NexUI Runtime과 게임 코드가 담당합니다.
 
 ```text
-Designer Element
+Studio Element
 → DesignerBindingMetadata에 Key 저장
 → Runtime UIStateStore/UIActionResolver 등록
 → 상태 변경 또는 입력
@@ -23,7 +23,7 @@ Designer Element
 
 Image Object Binding과 Collection Binding은 현재 Inspector에서 독립적인 완성 채널로 제공되지 않습니다.
 
-## Designer에서 설정
+## Studio에서 설정
 
 Element를 선택하고 Right Inspector의 Workflow를 **Connect**로 바꾼 뒤 **Binding** Section을 엽니다. Binding Picker는 프로젝트에서 발견한 `IBindableProperty<T>` 후보를 보여 주고 Command Picker는 기본 Key와 다른 Metadata에서 사용 중인 Key를 보여 줍니다. Picker 결과는 Runtime 등록을 자동 생성하지 않습니다.
 
@@ -72,7 +72,7 @@ state.Set("settings.visible", true);
 - `UIStateStore`에 아직 Key가 없으면 Watch는 초기 값을 전달하지 않습니다.
 - 등록되지 않은 Action을 실행하면 Console에 `No action registered` Warning이 기록됩니다.
 - Element Handle이 필요한 Capability를 제공하지 않으면 Binder가 Warning을 남기고 연결하지 않습니다.
-- Designer는 프로젝트의 모든 실행 경로를 해석할 수 없으므로 Runtime Key 존재와 타입을 완전히 검증하지 못합니다.
+- Studio는 프로젝트의 모든 실행 경로를 해석할 수 없으므로 Runtime Key 존재와 타입을 완전히 검증하지 못합니다.
 
 ## Command와 Interactive Preview
 
@@ -80,6 +80,6 @@ Interactive Preview는 Command Key와 Click을 Preview Log에 시뮬레이션합
 
 ## Validation 범위
 
-Designer는 Component가 지원하지 않는 Binding 채널, Button의 빈 Command와 끊어진 일부 참조를 검사합니다. 동적으로 생성되는 Key, DI Container에서 등록하는 Action과 실제 값 타입은 게임 코드 또는 PlayMode 테스트가 책임집니다.
+Studio는 Component가 지원하지 않는 Binding 채널, Button의 빈 Command와 끊어진 일부 참조를 검사합니다. 동적으로 생성되는 Key, DI Container에서 등록하는 Action과 실제 값 타입은 게임 코드 또는 PlayMode 테스트가 책임집니다.
 
 관련 문서: [자주 사용하는 작업](common-workflows.md), [Scenario](preview-and-scenarios.md), [문제 해결](../reference/troubleshooting.md)

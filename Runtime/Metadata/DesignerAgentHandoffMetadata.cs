@@ -10,8 +10,8 @@ namespace emiteat.NexUI.Designer
     [Serializable]
     public sealed class DesignerAgentHandoffMetadata
     {
-        public string package = "com.emiteat.nexui";
-        public string designerPackage = "com.emiteat.nexui.designer";
+        public string package = "com.nexengineworks.nexui";
+        public string designerPackage = "com.nexengineworks.nexui.studio";
 
         public List<string> screens = new();
         public List<string> stateKeys = new();

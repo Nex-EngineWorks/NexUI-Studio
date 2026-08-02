@@ -1363,7 +1363,7 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
                     var result = DesignerComponentService.Instantiate(_context.Metadata, definition, canvasPoint);
                     if (!result.Success)
                     {
-                        Debug.LogError("[NexUI Designer] " + result.Message);
+                        Debug.LogError("[NexUI Studio] " + result.Message);
                         return;
                     }
                     _context.InvalidateComponentExpansion();

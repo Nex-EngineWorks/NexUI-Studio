@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using emiteat.NexUI.Designer.Editor.Backend;
 using emiteat.NexUI.Designer.Editor.Components;
+using emiteat.NexUI.Designer.Editor.Components.Serialization;
 using emiteat.NexUI.Designer.Editor.Localization;
 using UnityEditor;
 using UnityEngine;
@@ -127,6 +128,9 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
 
         private VisualElement Card(DesignerElementMetadata element, DesignerElementComponent component)
         {
+            // The inspector follows the writer: whatever writes the component's values is what draws
+            // them, so what the user edits and what lands on the prefab can never be different fields.
+            var registered = !Serialization.StudioComponentWriter.OwnedByThisWriter(component);
             var type = DesignerUIComponentRegistry.Get(component.typeId);
             var card = new VisualElement();
             card.AddToClassList("nexui-element-component-card");
@@ -142,10 +146,14 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
                 }, "Toggle Component"));
             header.Add(enabled);
 
+            // A component with no registry entry is a real MonoBehaviour the user chose, so its name
+            // comes from the type rather than from the "unknown component" placeholder descriptor.
+            var runtimeType = registered ? null : StudioReferenceUtility.ResolveComponentType(component);
+
             var prefKey = CardPrefPrefix + component.typeId;
             var foldout = new Foldout
             {
-                text = Name(type),
+                text = runtimeType != null ? ObjectNames.NicifyVariableName(runtimeType.Name) : Name(type),
                 value = EditorPrefs.GetBool(prefKey, true),
                 style = { flexGrow = 1 }
             };
@@ -161,15 +169,25 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
             header.Add(menu);
             card.Add(header);
 
-            if (type == null || type.Properties.Count == 0)
+            // Anything without a hand-curated schema - a project script, a plain Unity component - is
+            // drawn from its real SerializedObject, so it gets Unity's own fields and drawers.
+            if (!registered)
             {
-                var note = new Label(type == null
-                    ? DesignerLocalization.T("inspector.components.unknown")
-                    : DesignerLocalization.T("inspector.components.noProperties"))
+                if (runtimeType == null)
+                {
+                    foldout.Add(MissingScriptNote(component));
+                    return card;
+                }
+                foldout.Add(new StudioGenericComponentEditor(Context, element, component, runtimeType));
+                return card;
+            }
+
+            if (type.Properties.Count == 0)
+            {
+                foldout.Add(new Label(DesignerLocalization.T("inspector.components.noProperties"))
                 {
                     style = { opacity = 0.6f, fontSize = 11, marginLeft = 18, whiteSpace = WhiteSpace.Normal }
-                };
-                foldout.Add(note);
+                });
                 return card;
             }
 
@@ -181,6 +199,22 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
             }
 
             return card;
+        }
+
+        /// <summary>
+        /// A script that cannot be resolved right now - renamed, moved, or in an assembly that failed
+        /// to compile. The stored values stay untouched so fixing the script brings them all back.
+        /// </summary>
+        private static VisualElement MissingScriptNote(DesignerElementComponent component)
+        {
+            var note = new Label(string.Format(DesignerLocalization.T("inspector.components.missingScript"),
+                component.assemblyQualifiedTypeName ?? component.typeId,
+                component.properties?.Count ?? 0))
+            {
+                style = { opacity = 0.8f, fontSize = 11, marginLeft = 18, whiteSpace = WhiteSpace.Normal }
+            };
+            note.AddToClassList("nexui-element-component-missing");
+            return note;
         }
 
         private void ShowCardMenu(DesignerElementMetadata element, DesignerElementComponent component,
@@ -208,7 +242,7 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
                     string blocked = null;
                     Context.UpdateElement(element,
                         e => DesignerElementComponentAccess.Detach(e, component.instanceId, out blocked), "Remove Component");
-                    if (!string.IsNullOrEmpty(blocked)) Debug.LogWarning($"[NexUI] {blocked}");
+                    if (!string.IsNullOrEmpty(blocked)) Debug.LogWarning($"[NexUI Studio] {blocked}");
                 });
 
             menu.ShowAsContext();
@@ -278,25 +312,33 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
             // confusing in the first place.
             menu.AddSeparator("");
             menu.AddItem(new GUIContent(DesignerLocalization.T("inspector.components.addScript")), false,
-                () => DesignerMonoBehaviourPickerWindow.Open(AttachScript));
+                () => StudioAddComponentPicker.Open(AttachScript,
+                    type => DesignerElementComponentAccess.ProjectAttachBlockedReason(element, type)));
         }
 
         /// <summary>
-        /// Attaches a project MonoBehaviour. These are stored separately from registered component
-        /// types because the Designer cannot know a user script's fields ahead of time - it only
-        /// guarantees the component exists on the generated GameObject.
+        /// Attaches a project or engine MonoBehaviour to the same stack every other component lives
+        /// in. Nothing about a user script makes it a different kind of thing: it gets an
+        /// <c>instanceId</c>, an enable state and a property bag like an Image does.
         /// </summary>
         private void AttachScript(System.Type type)
         {
             var element = Context.SelectedMetadata;
             if (element == null || type == null) return;
+
+            string added = null;
             Context.UpdateElement(element, e =>
             {
-                e.attachedComponents ??= new List<DesignerAttachedComponentMetadata>();
-                foreach (var existing in e.attachedComponents)
-                    if (existing != null && existing.typeName == type.AssemblyQualifiedName) return;
-                e.attachedComponents.Add(new DesignerAttachedComponentMetadata { typeName = type.AssemblyQualifiedName });
-            }, "Add Script Component");
+                var component = DesignerElementComponentAccess.AttachProject(e, type);
+                if (component != null) added = component.instanceId;
+            }, "Add Component");
+
+            // Unity expands a freshly added component; matching that means the fields the user came
+            // for are already visible instead of behind one more click.
+            if (added != null)
+                EditorPrefs.SetBool(CardPrefPrefix + DesignerProjectComponentIds.FromQualifiedName(
+                    StudioComponentTypeIndex.Identity(type)), true);
+            Rebuild();
         }
 
         private VisualElement Field(DesignerElementMetadata element, DesignerElementComponent component,

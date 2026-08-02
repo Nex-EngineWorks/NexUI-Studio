@@ -1,5 +1,6 @@
 using System;
 using emiteat.NexUI.Designer.Editor.Localization;
+using emiteat.NexUI.State;
 using UnityEditor;
 using UnityEngine.UIElements;
 
@@ -13,6 +14,10 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
         private readonly TextField _classKey;
         private readonly TextField _commandKey;
         private readonly TextField _interactableKey;
+        private readonly EnumField _textMode;
+        private readonly EnumField _valueMode;
+        private readonly TextField _textConverterKey;
+        private readonly TextField _valueConverterKey;
         private bool _refreshing;
 
         public BindingInspector(NexUIDesignerContext context) : base(context, "inspector.binding")
@@ -23,12 +28,20 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
             _classKey = new TextField("Class Key") { tooltip = DesignerLocalization.T("tooltip.binding.classKey") };
             _commandKey = new TextField("Command Key") { tooltip = DesignerLocalization.T("tooltip.binding.commandKey") };
             _interactableKey = new TextField("Interactable Key") { tooltip = DesignerLocalization.T("tooltip.binding.interactableKey") };
+            _textMode = new EnumField("Text Mode", UIBindingMode.OneWay);
+            _valueMode = new EnumField("Value Mode", UIBindingMode.OneWay);
+            _textConverterKey = new TextField("Text Converter") { tooltip = "Optional project converter registry key." };
+            _valueConverterKey = new TextField("Value Converter") { tooltip = "Optional project converter registry key." };
             // C3 (Simple/Advanced mode): Command Key is the plain-language "event -> action"
             // wiring every screen needs; the raw UIStateStore key fields below it are advanced-
             // only (they require knowing what state keys the game code publishes).
             Add(WithCommandPicker(_commandKey));
             AddAdvancedOnly(WithPicker(_textKey, null));
+            AddAdvancedOnly(_textMode);
+            AddAdvancedOnly(_textConverterKey);
             AddAdvancedOnly(WithPicker(_valueKey, typeof(float)));
+            AddAdvancedOnly(_valueMode);
+            AddAdvancedOnly(_valueConverterKey);
             AddAdvancedOnly(WithPicker(_visibilityKey, typeof(bool)));
             AddAdvancedOnly(_classKey);
             AddAdvancedOnly(WithPicker(_interactableKey, typeof(bool)));
@@ -39,6 +52,10 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
             _classKey.RegisterValueChangedCallback(evt => Change(e => e.binding.classKey = evt.newValue));
             _commandKey.RegisterValueChangedCallback(evt => Change(e => e.binding.commandKey = evt.newValue));
             _interactableKey.RegisterValueChangedCallback(evt => Change(e => e.binding.interactableKey = evt.newValue));
+            _textMode.RegisterValueChangedCallback(evt => Change(e => e.binding.textMode = (UIBindingMode)evt.newValue));
+            _valueMode.RegisterValueChangedCallback(evt => Change(e => e.binding.valueMode = (UIBindingMode)evt.newValue));
+            _textConverterKey.RegisterValueChangedCallback(evt => Change(e => e.binding.textConverterKey = evt.newValue));
+            _valueConverterKey.RegisterValueChangedCallback(evt => Change(e => e.binding.valueConverterKey = evt.newValue));
 
             Subscriptions.Add<DesignerElementMetadata>(h => context.MetadataSelectionChanged += h, h => context.MetadataSelectionChanged -= h, _ => Refresh());
             Subscriptions.Add(h => context.CanvasChanged += h, h => context.CanvasChanged -= h, Refresh);
@@ -147,6 +164,10 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
                 _classKey.SetValueWithoutNotify(selected.binding.classKey);
                 _commandKey.SetValueWithoutNotify(selected.binding.commandKey);
                 _interactableKey.SetValueWithoutNotify(selected.binding.interactableKey);
+                _textMode.SetValueWithoutNotify(selected.binding.textMode);
+                _valueMode.SetValueWithoutNotify(selected.binding.valueMode);
+                _textConverterKey.SetValueWithoutNotify(selected.binding.textConverterKey);
+                _valueConverterKey.SetValueWithoutNotify(selected.binding.valueConverterKey);
             }
             _refreshing = false;
         }

@@ -1,4 +1,5 @@
 using emiteat.NexUI.Designer.Editor;
+using emiteat.NexUI.Designer.Editor.Commands;
 using emiteat.NexUI.Designer.Editor.Viewport;
 using NUnit.Framework;
 using UnityEngine;
@@ -7,6 +8,20 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
 {
     public sealed class DesignerUIStateTests
     {
+        [Test]
+        public void ShortcutLabelsUseCommandOnMacAndCtrlElsewhere()
+        {
+            Assert.AreEqual("Command+Shift+K",
+                UIDesignerShortcut.Format(KeyCode.K, primary: true, shift: true,
+                    platform: RuntimePlatform.OSXEditor));
+            Assert.AreEqual("Ctrl+Shift+K",
+                UIDesignerShortcut.Format(KeyCode.K, primary: true, shift: true,
+                    platform: RuntimePlatform.WindowsEditor));
+            Assert.AreEqual("Ctrl+Shift+K",
+                UIDesignerShortcut.Format(KeyCode.K, primary: true, shift: true,
+                    platform: RuntimePlatform.LinuxEditor));
+        }
+
         // Grid size and snapping live in EditorPrefs, which are shared with whatever the developer
         // last set in the Designer window. Several assertions below depend on them, so pin known
         // values for the run and put the user's settings back afterwards - otherwise the suite

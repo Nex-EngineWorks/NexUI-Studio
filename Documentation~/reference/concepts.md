@@ -1,16 +1,16 @@
-# NexUI Designer 핵심 개념
+# NexUI Studio 핵심 개념
 
-## 런타임 패키지와 디자이너 패키지
+## 런타임 패키지와 스튜디오 패키지
 
-`com.emiteat.nexui`는 런타임 동작을 담당합니다. `com.emiteat.nexui.designer`는 Unity Editor 도구를 담당합니다.
+`com.nexengineworks.nexui`는 런타임 동작을 담당합니다. `com.nexengineworks.nexui.studio`는 Unity Editor 도구를 담당합니다.
 
-게임플레이와 런타임 UI 코드는 런타임 패키지에 둡니다. 제작 보조 도구, 에디터 패널, 검증, 프리뷰, 메타데이터 편집은 디자이너 패키지에 둡니다.
+게임플레이와 런타임 UI 코드는 런타임 패키지에 둡니다. 제작 보조 도구, 에디터 패널, 검증, 프리뷰, 메타데이터 편집은 스튜디오 패키지에 둡니다.
 
 ## Screen Definition
 
-`UIScreenDefinition`은 런타임에서 사용하는 화면 에셋입니다. 디자이너는 이 에셋을 프리뷰, 검증, 저장 작업의 루트 객체로 사용합니다.
+`UIScreenDefinition`은 런타임에서 사용하는 화면 에셋입니다. 스튜디오는 이 에셋을 프리뷰, 검증, 저장 작업의 루트 객체로 사용합니다.
 
-## Designer Metadata
+## Studio Metadata
 
 `DesignerMetadataAsset`은 에디터에서 작성한 제작용 데이터를 저장합니다.
 
@@ -29,7 +29,7 @@
 
 ## Backend
 
-디자이너는 `INexUIDesignerBackend`를 통해 UI 구현과 통신합니다.
+스튜디오는 `INexUIDesignerBackend`를 통해 UI 구현과 통신합니다.
 
 백엔드가 담당하는 일:
 
@@ -39,7 +39,7 @@
 - 선택 항목을 메타데이터와 연결
 - serializer와 협력해 저장
 
-이 구조 덕분에 UI Toolkit과 uGUI가 같은 디자이너 창을 공유하면서도 서로 다른 렌더링 모델을 유지할 수 있습니다.
+이 구조 덕분에 UI Toolkit과 uGUI가 같은 스튜디오 창을 공유하면서도 서로 다른 렌더링 모델을 유지할 수 있습니다.
 
 ## Validation
 
@@ -47,7 +47,7 @@
 
 ## Localization
 
-디자이너 UI 문자열과 게임 UI 로컬라이제이션은 분리됩니다. 디자이너 로컬라이제이션은 에디터 라벨과 메뉴 텍스트를 제어합니다. 게임 로컬라이제이션 메타데이터는 화면 요소와 런타임 localization key를 연결합니다.
+스튜디오 UI 문자열과 게임 UI 로컬라이제이션은 분리됩니다. 스튜디오 로컬라이제이션은 에디터 라벨과 메뉴 텍스트를 제어합니다. 게임 로컬라이제이션 메타데이터는 화면 요소와 런타임 localization key를 연결합니다.
 
 ## Preview
 
@@ -67,7 +67,7 @@ Instance element는 전개 시 **Definition root가 됩니다** — 별도 wrapp
 
 ## Binding과 Command
 
-Binding은 `UIStateStore` Key를 표시 속성과 연결합니다. Command는 클릭 같은 사용자 동작을 `UIActionResolver`의 문자열 Action Key로 연결합니다. Designer는 Key 계약을 저장하지만 게임 로직을 구현하지 않습니다.
+Binding은 `UIStateStore` Key를 표시 속성과 연결합니다. Command는 클릭 같은 사용자 동작을 `UIActionResolver`의 문자열 Action Key로 연결합니다. Studio는 Key 계약을 저장하지만 게임 로직을 구현하지 않습니다.
 
 ## Theme와 Variant
 

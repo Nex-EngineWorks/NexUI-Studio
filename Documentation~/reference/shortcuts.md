@@ -1,13 +1,13 @@
 # 단축키
 
-`Ctrl`은 macOS에서 `Command`로 사용할 수 있습니다. 아래는 코드에 등록된 Designer 단축키입니다.
+`Ctrl`은 macOS에서 `Command`로 사용할 수 있습니다. 아래는 코드에 등록된 Studio 단축키입니다.
 
-`Tools > NexUI > Designer > Preferences > 단축키 설정`에서 Command별 Key와 Ctrl/Shift/Alt 조합을 변경하고 중복 조합을 확인할 수 있습니다.
+`Tools > NexUI > Studio > Preferences > 단축키 설정`에서 Command별 Key와 Ctrl/Shift/Alt 조합을 변경하고 중복 조합을 확인할 수 있습니다.
 
 | 단축키 | 기능 | 사용 위치 | 비고 |
 |---|---|---|---|
-| `Ctrl+S` | Save | Designer Window | Unity 전체 저장과 별도 처리 |
-| `Ctrl+K`, `Ctrl+Shift+P` | Command Palette | Designer Shell | 두 입력 모두 같은 Palette |
+| `Ctrl+S` | Save | Studio Window | Unity 전체 저장과 별도 처리 |
+| `Ctrl+K`, `Ctrl+Shift+P` | Command Palette | Studio Shell | 두 입력 모두 같은 Palette |
 | `Ctrl+A` | 전체 선택 | Canvas | 현재 Metadata Element |
 | `Escape` | 선택 해제 | Canvas/Palette | Rename에서는 편집 종료 |
 | `Delete`, `Backspace` | 삭제 | Canvas/Timeline | Timeline은 선택 Keyframe 삭제 |

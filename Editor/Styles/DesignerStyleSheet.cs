@@ -10,7 +10,7 @@ namespace emiteat.NexUI.Designer.Editor.Styles
     /// </summary>
     public static class DesignerStyleSheet
     {
-        public const string Path = "Packages/com.emiteat.nexui.designer/Editor/Styles/NexUIDesigner.uss";
+        public const string Path = "Packages/com.nexengineworks.nexui.studio/Editor/Styles/NexUIDesigner.uss";
 
         public static void Apply(VisualElement root)
         {

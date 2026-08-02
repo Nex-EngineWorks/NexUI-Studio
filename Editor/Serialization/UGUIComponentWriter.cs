@@ -30,6 +30,11 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             foreach (var component in element.components)
             {
                 if (component == null || string.IsNullOrEmpty(component.typeId)) continue;
+
+                // Components stored by property path belong to StudioComponentWriter; writing them
+                // here would look every key up in the wrong table and report all of them skipped.
+                if (StudioComponentWriter.OwnedByThisWriter(component)) continue;
+
                 var type = DesignerUIComponentRegistry.Get(component.typeId);
 
                 if (type == null || type.Family == DesignerUIComponentFamily.Core) continue;

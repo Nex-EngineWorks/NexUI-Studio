@@ -58,7 +58,7 @@ namespace emiteat.NexUI.Designer.Editor.ScreenFlow
             root.AddToClassList("nexui-designer-root");
             root.AddToClassList("nexui-tool-window-root");
             var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(
-                "Packages/com.emiteat.nexui.designer/Editor/Styles/NexUIDesigner.uss");
+                "Packages/com.nexengineworks.nexui.studio/Editor/Styles/NexUIDesigner.uss");
             if (styleSheet != null && !root.styleSheets.Contains(styleSheet))
                 root.styleSheets.Add(styleSheet);
 

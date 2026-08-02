@@ -31,7 +31,7 @@
   "ai.scope.destructive": "Allow destructive actions",
   "ai.scope.destructive.tooltip": "Allows delete actions only when the Delete Elements permission is also enabled. Apply still requires review and confirmation.",
   "ai.scope.help": "The snapshot sent to the provider and every returned action are constrained by this range and permission list.",
-  "ai.capability.ReadContext": "Read Designer context",
+  "ai.capability.ReadContext": "Read Studio context",
   "ai.capability.Selection": "Change selection",
   "ai.capability.Content": "Edit content and accessibility",
   "ai.capability.Layout": "Edit layout and geometry",
@@ -51,21 +51,21 @@
   "ai.conversation": "Conversation",
   "ai.clear": "Clear",
   "ai.prompt.tooltip": "Describe the screen or selected-element changes you want.",
-  "ai.prompt.hint": "Ctrl+Enter to send. AI output never executes code; only validated Designer actions can be applied.",
+  "ai.prompt.hint": "Ctrl/Command+Enter to send. AI output never executes code; only validated Studio actions can be applied.",
   "ai.send": "Send",
   "ai.busy": "Thinking...",
-  "ai.noContext": "Open a screen in NexUI Designer before sending a request.",
+  "ai.noContext": "Open a screen in NexUI Studio before sending a request.",
   "ai.noKey": "Set the selected provider's API key environment variable or enter a session API key.",
-  "ai.contextChanged": "The active Designer screen changed. Discard this plan and ask again for the current screen.",
+  "ai.contextChanged": "The active Studio screen changed. Discard this plan and ask again for the current screen.",
   "ai.plan": "Proposed changes",
-  "ai.plan.empty": "No Designer changes were proposed.",
+  "ai.plan.empty": "No Studio changes were proposed.",
   "ai.apply": "Apply with Undo",
   "ai.discard": "Discard",
   "ai.cancel": "Cancel",
-  "ai.applySuccess": "Applied {0} AI action(s). Use Ctrl+Z to undo the complete plan.",
+  "ai.applySuccess": "Applied {0} AI action(s). Use Ctrl/Command+Z to undo the complete plan.",
   "ai.delete.title": "Apply destructive AI plan?",
   "ai.delete.message": "This plan deletes one or more elements and their children. The operation remains Undoable.",
-  "ai.status.noContext": "No active Designer screen",
+  "ai.status.noContext": "No active Studio screen",
   "ai.status.context": "Screen: {0}  •  Selected: {1}",
   "ai.welcome": "Try: “Create a centered login card with a title and primary button,” or select an element and ask to restyle it.",
   "ai.role.user": "YOU",
@@ -154,7 +154,7 @@
   "utilities.tool.renameRefactor.description": "Rename element IDs while preserving references.",
   "utilities.tool.referenceCleaner": "Reference Cleaner",
   "utilities.tool.referenceCleaner.description": "Find and remove dead metadata references.",
-  "designer.title": "NexUI Designer",
+  "designer.title": "NexUI Studio",
   "component.panel": "Panel",
   "component.container": "Container",
   "component.card": "Card",
@@ -196,7 +196,7 @@
   "motionClip.toolbar.importAnimationClip": "Import AnimationClip",
   "tooltip.motionClip.importAnimationClip": "Convert the AnimationClip selected in the Project window into a Motion Clip asset.",
   "shortcuts.window.title": "NexUI Shortcuts",
-  "shortcuts.heading": "NexUI Designer Shortcuts",
+  "shortcuts.heading": "NexUI Studio Shortcuts",
   "shortcuts.help": "When several commands share a key combination, the one listed first runs.",
   "shortcuts.duplicates": "Duplicate combinations:",
   "shortcuts.reset": "Reset To Defaults",
@@ -455,7 +455,6 @@
   "tool.align": "Align",
   "tool.spacing": "Spacing",
   "tool.createElement": "Create Element",
-
   "panel.variants": "Screen Variants",
   "panel.responsive": "Responsive Rules",
   "panel.contract": "UI Contract",
@@ -474,7 +473,7 @@
   "panel.contrastChecker": "Contrast Checker",
   "panel.loadingStrategy": "Loading Strategy",
   "pane.detach.tooltip": "Open this panel in its own window so it can be docked anywhere. Closing that window docks it back here.",
-  "pane.window.noSession": "Open a NexUI Designer window to use this panel.",
+  "pane.window.noSession": "Open a NexUI Studio window to use this panel.",
   "pane.sidebar": "EXPLORER",
   "pane.sidebar.hierarchy": "Structure of the open screen",
   "pane.sidebar.library": "Add elements to the screen",
@@ -507,7 +506,6 @@
   "panel.recipes": "UI Recipes",
   "panel.agentHandoff": "AI Handoff",
   "panel.accessibility": "Accessibility",
-
   "button.captureSnapshot": "Capture Snapshot",
   "button.compare": "Compare",
   "button.rename": "Rename",
@@ -516,7 +514,6 @@
   "button.simulate": "Simulate",
   "button.exportManifest": "Export Manifest",
   "button.copyCliPrompt": "Copy CLI Prompt",
-
   "validation.missingContractElement": "A required contract element is missing.",
   "validation.deadReference": "This reference does not exist.",
   "validation.lowContrast": "Color contrast is too low.",
@@ -524,7 +521,6 @@
   "validation.motionBudgetExceeded": "Motion budget exceeded.",
   "validation.missingFocusGraph": "Focus graph is missing.",
   "validation.missingPromptGlyph": "Prompt glyph is missing.",
-
   "tooltip.variants": "Create and edit variants that open the same screen differently per situation (Compact, Controller, Combat, ...).",
   "tooltip.responsive": "Edit responsive rules that adapt layout automatically by resolution and input mode.",
   "tooltip.contract": "Define and check the elements and capabilities a screen must provide.",
@@ -545,7 +541,6 @@
   "tooltip.recipes": "Generate common UI structures (Pause, Settings, Inventory, ...) from templates in one step.",
   "tooltip.agentHandoff": "Export the current project state as JSON/Markdown for an AI CLI agent to understand.",
   "tooltip.accessibility": "Preview accessibility preferences (reduce motion, high contrast, large text) and their effects.",
-
   "tooltip.captureSnapshot": "Capture the current screen's element state as a snapshot.",
   "tooltip.compare": "Compute and show the difference between the two selected targets.",
   "tooltip.rename": "Rename all references together to the entered name.",
@@ -554,20 +549,19 @@
   "tooltip.simulate": "Run the interaction flow of the selected element and show the result.",
   "tooltip.exportManifest": "Export the AI handoff Manifest (JSON) and Brief (Markdown) to files.",
   "tooltip.copyCliPrompt": "Copy a prompt for the CLI agent to the clipboard.",
-
   "tooltip.toolbar.screen": "The UIScreenDefinition asset to edit. Opening a screen rebuilds the live preview from its backend asset (UXML/prefab).",
   "tooltip.toolbar.metadata": "The DesignerMetadataAsset holding this screen's element layout/bindings/motion/theme data. Click New to create one for the open screen.",
   "tooltip.toolbar.newMetadata": "Creates a new DesignerMetadataAsset for the currently open Screen and assigns it above.",
   "tooltip.toolbar.status": "Backend | open Screen id, colored by validation status (green = no issues, orange = warnings/errors present).",
   "tooltip.toolbar.modeToggle": "Beginner shows essential and common Inspector sections. Pro also shows advanced and diagnostic sections. Remembered per-user.",
-  "tooltip.toolbar.preview": "Live canvas resolution preset (C1: responsive breakpoint preview) - switch between phone/tablet/desktop/Steam Deck sizes without leaving the Designer.",
+  "tooltip.toolbar.preview": "Live canvas resolution preset (C1: responsive breakpoint preview) - switch between phone/tablet/desktop/Steam Deck sizes without leaving the Studio.",
   "tooltip.toolbar.state": "Preview a per-state Motion variant (e.g. Hover/Pressed/Focus Variant on the Motion inspector) without needing to trigger it live.",
   "tooltip.toolbar.input": "Preview device-specific prompt glyphs/behavior for this input mode.",
   "tooltip.toolbar.snap": "Snaps move/resize/create operations to the grid size below.",
   "tooltip.toolbar.zoomOut": "Zoom out.",
   "tooltip.toolbar.zoomIn": "Zoom in.",
   "tooltip.toolbar.rebuild": "Rebuilds the live preview from scratch (backend elements + bindings + theme + motion) - use if the canvas looks out of sync with the metadata.",
-  "tooltip.toolbar.save": "Saves the Designer metadata and the open Screen asset.",
+  "tooltip.toolbar.save": "Saves the Studio metadata and the open Screen asset.",
   "tooltip.toolbar.validate": "Re-runs all project validators (duplicate ids, missing assets, backend mismatches, ...) against the open screen.",
   "toolbar.group.align": "Align",
   "toolbar.group.distribute": "Distribute",
@@ -584,31 +578,27 @@
   "tooltip.toolbar.sendBackward": "Move the selected element one step backward (toward the back) in draw order.",
   "tooltip.toolbar.bringToFront": "Move the selected element to the very front of the draw order.",
   "tooltip.toolbar.sendToBack": "Move the selected element to the very back of the draw order.",
-
   "panel.align": "Align",
-
   "tooltip.style.id": "Unique id used by binding keys, commandKeys, and backend name-matching (UXML/GameObject name). Renaming this repoints child parentIds automatically.",
   "tooltip.style.displayName": "Human-readable label shown in the Hierarchy panel. Purely cosmetic - does not affect runtime lookup.",
   "tooltip.style.type": "Semantic element type (Panel, Button, Label, ...). Drives the default backend visual and which capabilities the runtime expects it to expose.",
   "tooltip.style.text": "Static preview text for Label/Button-like elements. Overridden at runtime by binding.textKey if one is set.",
   "tooltip.style.classes": "Space-separated style classes applied to this element (USS classes for UI Toolkit, or the equivalent class-toggle set for uGUI).",
-  "tooltip.style.shape": "Designer-canvas preview shape for this element's box: Rectangle (square corners), Rounded (small radius, the previous default), Pill (fully rounded ends), or Circle/Ellipse. Preview only - does not change the backend UXML/prefab's own styling.",
-  "tooltip.style.previewValue": "Fill amount shown in the Designer canvas for this Progress Bar/Stat Bar/Radial Fill, in the Min/Max range below (preview only - the real value at runtime comes from binding.valueKey).",
+  "tooltip.style.shape": "Studio-canvas preview shape for this element's box: Rectangle (square corners), Rounded (small radius, the previous default), Pill (fully rounded ends), or Circle/Ellipse. Preview only - does not change the backend UXML/prefab's own styling.",
+  "tooltip.style.previewValue": "Fill amount shown in the Studio canvas for this Progress Bar/Stat Bar/Radial Fill, in the Min/Max range below (preview only - the real value at runtime comes from binding.valueKey).",
   "tooltip.style.minValue": "Lower bound of the preview value range, matching Unity Slider's minValue (e.g. 0).",
   "tooltip.style.maxValue": "Upper bound of the preview value range, matching Unity Slider's maxValue (e.g. 100).",
   "tooltip.style.fillDirection": "Which edge the fill grows from, matching Unity Image's FillMethod + fillOrigin (Horizontal/Left,Right or Vertical/Bottom,Top).",
   "tooltip.style.clockwise": "Sweep direction of the radial fill/spin arc, matching Unity Image's fillClockwise.",
-  "tooltip.style.previewImage": "Texture shown in the Designer canvas for this Image/Icon Button (preview only - the backend UXML/prefab keeps its own sprite/texture reference).",
-  "tooltip.style.tint": "Background/graphic tint color shown in the Designer preview and applied to the backend element.",
+  "tooltip.style.previewImage": "Texture shown in the Studio canvas for this Image/Icon Button (preview only - the backend UXML/prefab keeps its own sprite/texture reference).",
+  "tooltip.style.tint": "Background/graphic tint color shown in the Studio preview and applied to the backend element.",
   "tooltip.style.textColor": "Text color for Label/Button-like elements.",
   "tooltip.style.fontSize": "Font size in points, clamped to 8-96.",
-  "tooltip.style.hidden": "Hides this element in the Designer canvas only (does not affect runtime visibility) - use to declutter the canvas without deleting metadata.",
-
+  "tooltip.style.hidden": "Hides this element in the Studio canvas only (does not affect runtime visibility) - use to declutter the canvas without deleting metadata.",
   "tooltip.layout.position": "Top-left position in canvas pixels (absolute, not relative to the parent element).",
   "tooltip.layout.size": "Width/height in canvas pixels. Clamped to a 24px minimum on each axis.",
   "tooltip.layout.anchor": "uGUI-style anchor preset applied to the backend RectTransform/style on save (Stretch fills the parent on that axis).",
   "tooltip.layout.locked": "Prevents move/resize/rect edits on the canvas (Inspector fields still work) - use to avoid accidentally dragging a finished element.",
-
   "tooltip.binding.textKey": "UIStateStore key whose string value drives this element's text at runtime (via UITextBinder). Leave empty for static text.",
   "tooltip.binding.valueKey": "UIStateStore key whose float value drives this element's Value capability at runtime (progress bars, sliders).",
   "tooltip.binding.visibilityKey": "UIStateStore key whose bool value shows/hides this element at runtime.",
@@ -617,7 +607,6 @@
   "tooltip.binding.interactableKey": "UIStateStore key whose bool value enables/disables interaction on this element at runtime.",
   "tooltip.binding.pickData": "Connect this binding key to a data-source IBindableProperty<T> found by reflection.",
   "tooltip.binding.pickCommand": "Choose from built-in pipeline commands or commandKeys already used elsewhere in this project.",
-
   "tooltip.theme.themeAsset": "Optional direct theme asset reference. Assigning one also seeds Theme Id below from the asset's themeId, if empty.",
   "tooltip.theme.themeId": "Theme id string used to resolve theme tokens at runtime, independent of the direct asset reference above (useful when the theme is swapped at runtime via NexUITheme.Use).",
   "tooltip.theme.classes": "Space-separated theme-specific style classes, applied in addition to the Style section's Classes field.",
@@ -629,7 +618,6 @@
   "tooltip.theme.removeToken": "Remove this token override.",
   "button.addTokenOverride": "Add Token Override",
   "button.addAsToken": "Add as Token",
-
   "tooltip.motion.preset": "The compiled motion asset (built with the Motion Graph editor) this element animates with.",
   "tooltip.motion.motionId": "Identifier used to look up this motion at runtime; seeded from the preset's own motionId when one is assigned.",
   "tooltip.motion.initial": "Variant name applied the instant this element becomes visible (before any animation plays).",
@@ -642,7 +630,6 @@
   "tooltip.motion.openClipEditor": "Opens the timeline clip editor scoped to this specific element in the live preview.",
   "button.openMotionGraph": "Open Motion Graph",
   "button.openMotionClipEditor": "Open Motion Clip Editor",
-
   "tooltip.policy.inputBlocking": "Blocks pointer/gamepad input to screens behind this one while it's open.",
   "tooltip.policy.pauseGameBehind": "Pauses gameplay (Time.timeScale-style) while this screen is open.",
   "tooltip.policy.closeOnBack": "Closes this screen when the Back command (Cancel/Escape) fires.",
@@ -651,10 +638,8 @@
   "tooltip.policy.focusPolicy": "Keyboard/gamepad focus behavior on open - AutoFocusDefault focuses focus.defaultFocusElementId; TrapFocus additionally prevents Tab from leaving the screen.",
   "tooltip.policy.conflictPolicy": "What happens if this screen is asked to open/close again while a transition is already playing.",
   "tooltip.policy.lifetimePolicy": "Whether the screen instance is destroyed, kept alive, or pooled when closed.",
-
   "tooltip.accessibility.label": "Screen-reader-facing label for this element. Falls back to Text/Name at runtime when empty.",
   "tooltip.accessibility.role": "Semantic role hint (Button, Toggle, Slider, ...) for screen-reader/switch-control bridges, following the common ARIA/UIKit role vocabulary.",
-
   "tooltip.autoLayout.enabled": "Arranges this element's direct children along one axis (Figma-style Auto Layout), instead of each child keeping an independent absolute rect.",
   "tooltip.autoLayout.direction": "Axis children are arranged along - Row (left to right) or Column (top to bottom).",
   "tooltip.autoLayout.spacing": "Gap between consecutive children along the direction axis, in pixels.",
@@ -664,22 +649,16 @@
   "tooltip.autoLayout.paddingBottom": "Inset from this element's bottom edge to its children.",
   "tooltip.autoLayout.widthSizing": "How this element sizes horizontally when its parent is an Auto Layout container: Fixed (use its own rect width), Hug (fit content), or Fill (grow to take remaining space).",
   "tooltip.autoLayout.heightSizing": "How this element sizes vertically when its parent is an Auto Layout container: Fixed (use its own rect height), Hug (fit content), or Fill (grow to take remaining space).",
-
   "tooltip.constraints.horizontal": "Pin behavior on the horizontal axis when the parent is resized: Start (left), End (right), Center, or Scale (resize proportionally).",
   "tooltip.constraints.vertical": "Pin behavior on the vertical axis when the parent is resized: Start (top), End (bottom), Center, or Scale (resize proportionally).",
-
   "tooltip.capability.list": "Runtime capability interfaces (IUI*Capability) this element type is expected to expose - informational, derived from the Type field in the Style section.",
-
   "tooltip.multiSelection.summary": "Number of elements in the current multi-selection.",
   "tooltip.multiSelection.position": "Shared position across the selection, or \"Mixed\" if they differ.",
   "tooltip.multiSelection.size": "Shared size across the selection, or \"Mixed\" if they differ.",
   "tooltip.multiSelection.layer": "Draw-order index range covered by the selection (contiguous elements only), or \"Mixed\" otherwise.",
-
   "inspector.validation.text": "Screen / binding / motion / theme validation",
   "tooltip.validation.text": "This element's data is checked against these four categories whenever validation runs - see the Validation panel below for the actual issue list.",
-
   "tooltip.screenDefinition.screen": "The UIScreenDefinition asset currently open (read-only here - use the toolbar's Screen field to switch).",
-
   "tooltip.palette.search": "Filter the component list by name.",
   "tooltip.palette.addComponent": "Add a {0} element to the current screen.",
   "tooltip.palette.alignLeft": "Align the selected element's left edge to the canvas.",
@@ -691,27 +670,20 @@
   "tooltip.palette.fill": "Resize the selected element to fill the entire canvas resolution.",
   "tooltip.palette.copy": "Duplicate the selected element(s), offset slightly from the original.",
   "tooltip.palette.delete": "Delete the selected element(s). This does not delete their children - reparent those first if needed.",
-
   "tooltip.hierarchy.search": "Filter elements by id or display name.",
-  "tooltip.hierarchy.visibility": "Toggle visibility in the Designer canvas (does not affect runtime visibility).",
+  "tooltip.hierarchy.visibility": "Toggle visibility in the Studio canvas (does not affect runtime visibility).",
   "tooltip.hierarchy.lock": "Toggle locked (prevents move/resize/rect edits on the canvas).",
-
   "tooltip.state.title": "Lists every UIStateStore binding key wired on the selected element (or every element, if none is selected).",
   "tooltip.state.filter": "Filter the binding key list below by substring.",
   "tooltip.state.keys": "elementId / binding kind = UIStateStore key, for every binding on the selected element (or all elements).",
-
   "tooltip.command.title": "Preview/edit the selected element's commandKey (the action dispatched when it's clicked at runtime).",
   "tooltip.command.field": "Command key for the selected element. Editing here is the same as the Binding inspector's Command Key field.",
   "tooltip.command.run": "Preview-dispatch this command key (does not actually invoke the runtime Command Pipeline - just previews the key that would be sent) and save it onto the selected element.",
-
   "tooltip.screenGraph.title": "C1 command/binding link view: with nothing selected, summarizes the screen (backend, variant/responsive-rule/element counts); with an element selected, shows exactly which commandKey/textKey/valueKey/etc. it's wired to.",
-
   "tooltip.validationPanel.title": "Results from every registered project validator (duplicate ids, missing assets, backend mismatches, ...), re-run on Validate or whenever the metadata changes.",
   "tooltip.validationPanel.item": "Click to select \"{0}\" in the Hierarchy/canvas.",
-
   "tooltip.common.shortcutPrefix": "Shortcut",
   "tooltip.common.disabledPrefix": "Disabled reason",
-
   "motionClip.toolbar.clip": "Clip",
   "motionClip.toolbar.createClip": "Create Clip",
   "motionClip.toolbar.addTrackFromSelection": "Add Track",
@@ -731,7 +703,7 @@
   "motionClip.toolbar.lockTrack": "Lock",
   "motionClip.toolbar.unlockTrack": "Unlock",
   "motionClip.toolbar.noClip": "Create or assign a Motion Clip to begin.",
-  "motionClip.toolbar.noTracks": "No tracks yet. Select an element in the Designer and click \"Add Track\".",
+  "motionClip.toolbar.noTracks": "No tracks yet. Select an element in the Studio and click \"Add Track\".",
   "motionClip.toolbar.noKeyframes": "No keyframes yet.",
   "motionClip.category.transform": "Transform",
   "motionClip.category.visual": "Visual",
@@ -740,11 +712,10 @@
   "motionClip.status.connected": "Connected",
   "motionClip.status.disconnected": "Not Connected",
   "motionClip.status.none": "None",
-  "motionClip.status.openDesigner": "Open Designer",
-
+  "motionClip.status.openDesigner": "Open Studio",
   "tooltip.motionClip.clipField": "The Motion Clip asset being edited. Assign or create one to start adding tracks.",
   "tooltip.motionClip.createClip": "Creates a new empty Motion Clip asset and opens it here.",
-  "tooltip.motionClip.addTrackFromSelection": "Adds a track targeting the element currently selected in the NexUI Designer.",
+  "tooltip.motionClip.addTrackFromSelection": "Adds a track targeting the element currently selected in the NexUI Studio.",
   "tooltip.motionClip.duration": "Total length of the clip, in seconds. Keyframes beyond this time are clamped when played.",
   "tooltip.motionClip.fps": "Frames-per-second used for the timeline's frame display and for Snap.",
   "tooltip.motionClip.loop": "When enabled, playback restarts from 0 instead of stopping at the end.",
@@ -758,27 +729,23 @@
   "tooltip.motionClip.deleteTrack": "Removes this property track (and all its keyframes) from the element.",
   "tooltip.motionClip.lockTrack": "Locks this track so its keyframes can't be added, moved, or deleted from the canvas or timeline.",
   "tooltip.motionClip.keyframeDot": "Click to select. Shift-click to range-select, Ctrl/Cmd-click to toggle. Drag to move (all selected keyframes move together). Right-click to delete.",
-  "tooltip.motionClip.openDesigner": "Opens the NexUI Designer window so a screen can be loaded as the preview surface.",
+  "tooltip.motionClip.openDesigner": "Opens the NexUI Studio window so a screen can be loaded as the preview surface.",
   "tooltip.motionClip.reason.noClip": "Create or assign a Motion Clip first.",
-  "tooltip.motionClip.reason.noElementSelected": "Select an element in the NexUI Designer first.",
+  "tooltip.motionClip.reason.noElementSelected": "Select an element in the NexUI Studio first.",
   "tooltip.motionClip.reason.noPropertyTracks": "Add at least one property track first.",
   "tooltip.motionClip.reason.trackLocked": "This track is locked. Click Unlock to edit it.",
   "tooltip.motionClip.reason.nothingToStop": "Playback is already stopped and nothing needs restoring.",
-
   "motionClip.toolbar.pause": "Pause",
   "motionClip.toolbar.autoKey": "Auto Key",
   "motionClip.autoKey.off": "Off",
   "motionClip.autoKey.existingTracks": "Existing Tracks",
   "motionClip.autoKey.allChanges": "All Changes",
   "motionClip.status.recording": "Recording",
-
   "tooltip.motionClip.stop": "Stops playback, rewinds to 0, and restores every animated element to its pre-preview pose.",
   "tooltip.motionClip.autoKey": "Off: canvas edits only change layout. Existing Tracks: canvas edits update keyframes on tracks that already exist. All Changes: canvas edits also create the track/property track if missing.",
-  "tooltip.motionClip.recording": "Auto Key is on: moving or resizing this element on the NexUI Designer canvas writes a keyframe at the current scrub time instead of only updating its layout.",
-
+  "tooltip.motionClip.recording": "Auto Key is on: moving or resizing this element on the NexUI Studio canvas writes a keyframe at the current scrub time instead of only updating its layout.",
   "tooltip.motionClip.easingButton": "Opens the Easing Browser to pick how this keyframe blends into the next one.",
   "tooltip.motionClip.customCurve": "Hand-drawn curve for this keyframe (drag the tangent handles). Overrides the Easing selection above.",
-
   "easing.custom": "Custom Curve...",
   "easing.category.Basic": "Basic",
   "easing.category.Quadratic": "Quadratic",
@@ -792,7 +759,6 @@
   "easing.category.Elastic": "Elastic",
   "easing.category.Bounce": "Bounce",
   "easing.category.Custom": "Custom",
-
   "easing.hint.Basic": "Constant speed, or a gentle smoothed start/end. Safe default for most UI motion.",
   "easing.hint.Quadratic": "Mild acceleration/deceleration.",
   "easing.hint.Cubic": "Moderate acceleration/deceleration - a common general-purpose choice.",
@@ -805,31 +771,25 @@
   "easing.hint.Elastic": "Springs back and forth like elastic before settling. Recommended for: playful emphasis, reward/success feedback.",
   "easing.hint.Bounce": "Settles like a ball bouncing to a stop.",
   "easing.hint.Custom": "Draw your own curve for this keyframe instead of picking a named easing.",
-
   "motionClip.toolbar.copyKeyframes": "Copy Keyframes",
   "motionClip.toolbar.pasteKeyframes": "Paste Keyframes",
   "motionClip.toolbar.reverseKeyframes": "Reverse",
   "motionClip.toolbar.scaleTiming": "Scale Timing",
-
   "tooltip.motionClip.scaleTimingFactor": "Multiplier used by Scale Timing below (e.g. 2 doubles every keyframe's time, 0.5 halves it). Times are clamped to the clip's duration.",
   "tooltip.motionClip.moreTrackOps": "Copy/paste keyframes between compatible tracks, reverse this track's timing, or scale it by the factor to the left.",
-
   "viewport.motionPath": "Motion Path",
   "viewport.onionSkin": "Onion Skin",
   "tooltip.viewport.motionPath": "Shows the selected element's travel path and keyframes. The original UI remains at the start with reduced opacity while the live UI moves to the evaluated destination.",
   "tooltip.viewport.onionSkin": "Adds nearby before/after keyframe ghosts in addition to the persistent start pose, so motion spacing can be judged without scrubbing back and forth.",
-
   "motionClip.toolbar.useWorkArea": "Loop Work Area",
   "motionClip.toolbar.workAreaStart": "Start",
   "motionClip.toolbar.workAreaEnd": "End",
   "motionClip.toolbar.addMarker": "+ Marker",
   "motionClip.toolbar.renameMarker": "Rename",
   "motionClip.toolbar.deleteMarker": "Delete",
-
   "tooltip.motionClip.useWorkArea": "When Loop is also on, only the first playback pass plays the full clip; every pass after that repeats just the Start-End range below (e.g. an intro followed by a looping idle segment).",
   "tooltip.motionClip.addMarker": "Adds a named marker at the current scrub time (e.g. \"Impact\", \"Loop Point\"). Right-click a marker to rename or delete it.",
   "tooltip.motionClip.markerFlag": "Click to jump the scrub time here. Right-click to rename or delete.",
-
   "stateMachine.toolbar.asset": "State Machine",
   "stateMachine.toolbar.create": "Create",
   "stateMachine.toolbar.defaultState": "Default State",
@@ -842,24 +802,20 @@
   "stateMachine.toolbar.interruptPolicy": "Interrupt Policy",
   "stateMachine.toolbar.clip": "Clip",
   "stateMachine.toolbar.preview": "Preview Transition",
-
   "tooltip.stateMachine.asset": "The Motion State Machine asset being edited. Assign or create one to start adding transitions.",
   "tooltip.stateMachine.create": "Creates a new empty Motion State Machine asset and opens it here.",
   "tooltip.stateMachine.defaultState": "The state a component using this machine starts in before any transition runs.",
   "tooltip.stateMachine.addTransition": "Adds a new From -> To transition. Assign a clip and pick an Interrupt Policy for it.",
   "tooltip.stateMachine.anyState": "When on, this transition matches a change to the To state from any current state (the From dropdown is ignored).",
   "tooltip.stateMachine.interruptPolicy": "Restart: cancel and replay from scratch. Ignore: drop the request if a transition is already playing. Complete Immediately: snap the interrupted clip to its end pose first, then play this one.",
-  "tooltip.stateMachine.preview": "Plays this transition's clip against the connected NexUI Designer preview surface, exactly like the Motion Clip Editor's Play button.",
+  "tooltip.stateMachine.preview": "Plays this transition's clip against the connected NexUI Studio preview surface, exactly like the Motion Clip Editor's Play button.",
   "tooltip.stateMachine.reason.noClip": "Assign a clip to this transition first.",
-
   "graphV2.toolbar.asset": "Motion Graph",
   "graphV2.toolbar.create": "Create",
   "graphV2.toolbar.autoLayout": "Auto Layout",
   "graphV2.toolbar.preview": "Preview",
   "graphV2.toolbar.noAsset": "No Motion Graph assigned. Pick or create one above.",
-
-  "tooltip.graphV2.preview": "Runs the selected event through the graph against the connected NexUI Designer preview surface - a real execution, using the selected canvas element (if any) as the Current Event Target.",
-
+  "tooltip.graphV2.preview": "Runs the selected event through the graph against the connected NexUI Studio preview surface - a real execution, using the selected canvas element (if any) as the Current Event Target.",
   "focusNav.panel.title": "Focus Navigation",
   "focusNav.panel.autoGenerate": "Auto Generate All",
   "focusNav.panel.noSelection": "Select a single element.",
@@ -868,13 +824,10 @@
   "focusNav.panel.left": "Left",
   "focusNav.panel.right": "Right",
   "focusNav.panel.defaultFocus": "Default Focus",
-
   "tooltip.focusNav.autoGenerate": "Computes Up/Down/Left/Right links for every element on this screen from their canvas positions (nearest neighbor in each direction). Overwrites any links already authored.",
   "tooltip.focusNav.defaultFocus": "The element a gamepad/keyboard cursor starts on when this screen opens. At most one element per screen should have this on.",
-
   "viewport.focusNav": "Focus Nav",
   "tooltip.viewport.focusNav": "Shows every authored gamepad/keyboard navigation link on the canvas as a line between elements, and marks the screen's default focus element.",
-
   "scenario.window.title": "Scenario",
   "scenario.window.description": "Edit a mock-state scenario and apply it to the open screen, or capture the current preview state into a scenario.",
   "scenario.field.asset": "Scenario Asset",
@@ -892,22 +845,20 @@
   "scenario.button.capture": "Capture Current",
   "scenario.button.save": "Save",
   "scenario.status.target": "Target",
-  "scenario.status.disconnected": "No connected Designer screen",
-  "scenario.status.openDesigner": "Open Designer",
+  "scenario.status.disconnected": "No connected Studio screen",
+  "scenario.status.openDesigner": "Open Studio",
   "scenario.help.noAsset": "Select or create a scenario asset.",
   "scenario.validation.passed": "No issues",
-
   "tooltip.scenario.asset": "The DesignerScenarioAsset to edit. Like a Motion Clip, it is a standalone asset so scenarios can be reused across screens and checked into source control.",
   "tooltip.scenario.create": "Creates a new DesignerScenarioAsset in the project.",
   "tooltip.scenario.name": "Scenario name (e.g. Inventory Empty, Low Health).",
   "tooltip.scenario.description": "Notes on the state this scenario reproduces.",
   "tooltip.scenario.addBinding": "Adds a mock binding value. Key is a state/binding key; it drives the preview value, text, or visibility of every element bound to that key.",
   "tooltip.scenario.forcedState": "On apply, forces every component into this preview state. None leaves the state untouched.",
-  "tooltip.scenario.language": "On apply, switches the Designer language. None leaves the language untouched.",
+  "tooltip.scenario.language": "On apply, switches the Studio language. None leaves the language untouched.",
   "tooltip.scenario.apply": "Applies this scenario to the open screen - writes each mock value into the preview channels of elements bound to that key. A single Undo reverts the whole thing. Never runs game commands.",
   "tooltip.scenario.capture": "Captures the current screen's preview state (per-element binding value/text/visibility, forced state, language) into this scenario.",
   "tooltip.scenario.save": "Saves the edited scenario asset to disk.",
-
   "scenario.section.timeline": "Timeline",
   "scenario.timeline.use": "Use Timeline",
   "scenario.timeline.duration": "Duration (s)",
@@ -922,15 +873,13 @@
   "tooltip.scenario.timeline.loop": "Restart from the beginning when the end is reached.",
   "tooltip.scenario.timeline.scrub": "Moves the playhead and applies the timeline state at that time to the canvas. Numeric keys interpolate linearly between neighbors; Bool/Text keys step. Stop restores the original preview values.",
   "tooltip.scenario.timeline.addKey": "Adds a timeline key at the current time. Key is a state/binding key; it sets that key's value at this moment.",
-
   "scenario.section.recording": "Interaction Recording",
   "scenario.record.start": "Start Recording",
   "scenario.record.stop": "Stop Recording",
   "scenario.record.recording": "Recording",
-  "scenario.record.help": "While recording, element edits in the Designer (bound value/text/visibility changes) are saved as timeline keys with their elapsed time. Stop, then replay the timeline to reproduce them.",
+  "scenario.record.help": "While recording, element edits in the Studio (bound value/text/visibility changes) are saved as timeline keys with their elapsed time. Stop, then replay the timeline to reproduce them.",
   "tooltip.scenario.record.start": "Records the current screen's element edits as timeline keys from now on. Existing timeline keys are cleared and the starting state is captured at t=0.",
   "tooltip.scenario.record.stop": "Stops recording and trims the timeline duration to the last key.",
-
   "screenFlow.toolbar.asset": "Screen Flow",
   "screenFlow.toolbar.create": "Create Flow",
   "screenFlow.toolbar.addNode": "Add Screen Node",
@@ -951,12 +900,11 @@
   "tooltip.screenFlow.setEntry": "Marks the selected node as this flow's entry node.",
   "tooltip.screenFlow.validate": "Checks for broken/dangling transitions, nodes unreachable from the entry, and missing screen assignments.",
   "tooltip.screenFlow.save": "Saves the edited Screen Flow asset to disk.",
-
   "uxmlGen.window.title": "Generate UXML/USS",
-  "uxmlGen.window.description": "Generates UXML and USS from the open screen's Designer metadata. It never touches a hand-authored source UXML - it only writes separate generated files (.g.uxml/.g.uss).",
+  "uxmlGen.window.description": "Generates UXML and USS from the open screen's Studio metadata. It never touches a hand-authored source UXML - it only writes separate generated files (.g.uxml/.g.uss).",
   "uxmlGen.status.target": "Target",
-  "uxmlGen.status.disconnected": "No connected Designer screen",
-  "uxmlGen.status.openDesigner": "Open Designer",
+  "uxmlGen.status.disconnected": "No connected Studio screen",
+  "uxmlGen.status.openDesigner": "Open Studio",
   "uxmlGen.button.generate": "Generate (preview)",
   "uxmlGen.button.write": "Write Files",
   "uxmlGen.button.dryRun": "Dry Run",
@@ -970,12 +918,11 @@
   "uxmlGen.field.ussPath": "USS path",
   "uxmlGen.section.uxml": "Generated UXML",
   "uxmlGen.section.uss": "Generated USS",
-  "uxmlGen.help.noScreen": "Open a UI Toolkit screen in the main Designer.",
+  "uxmlGen.help.noScreen": "Open a UI Toolkit screen in the main Studio.",
   "uxmlGen.help.safety": "Generation reads metadata; writing only saves to separate files next to the metadata asset (<screen>.g.uxml / .g.uss). Existing files without the generated banner are never overwritten.",
   "uxmlGen.dialog.refuseOverwrite": "A target file already exists and is not a NexUI-generated file. Write was cancelled to protect your hand-authored file.",
   "tooltip.uxmlGen.generate": "Generates UXML/USS text from the current screen metadata and previews it below. No files are written yet.",
   "tooltip.uxmlGen.write": "Writes the previewed UXML/USS to separate generated files (.g.uxml/.g.uss). The source UXML is never touched.",
-
   "tokens.window.title": "Design Tokens",
   "tokens.window.description": "Create design tokens (color, spacing, radius, motion, ...), alias one token to another, and see each token's resolved value.",
   "tokens.field.asset": "Token Set",
@@ -994,27 +941,25 @@
   "tooltip.tokens.create": "Creates a new DesignerTokenSetAsset in the project.",
   "tooltip.tokens.setName": "Name of the token set.",
   "tooltip.tokens.add": "Adds a token. Depending on category it holds a color/number/string value, and can reference (alias) another token.",
-
   "accessibility.audit.title": "Screen Accessibility Audit",
-  "accessibility.audit.noScreen": "Open a screen in the main Designer to audit contrast, touch targets, and labels/roles.",
+  "accessibility.audit.noScreen": "Open a screen in the main Studio to audit contrast, touch targets, and labels/roles.",
   "accessibility.audit.passed": "No issues",
-
   "sync.window.title": "Sync & Publish",
-  "sync.window.description": "Three-way compares generated UXML/USS against the on-disk files and the last published baseline. Distinguishes Designer/backend changes and conflicts, and publishes only changed screens.",
+  "sync.window.description": "Three-way compares generated UXML/USS against the on-disk files and the last published baseline. Distinguishes Studio/backend changes and conflicts, and publishes only changed screens.",
   "sync.field.manifest": "Publish Manifest",
   "sync.section.current": "Current Screen",
   "sync.section.publishAll": "Publish All (changed only)",
   "sync.button.createManifest": "Create Manifest",
-  "sync.button.useDesigner": "Use Designer (write)",
+  "sync.button.useDesigner": "Use Studio (write)",
   "sync.button.useBackend": "Use Backend (adopt)",
   "sync.button.reviewDiff": "Review Diff",
   "sync.button.dryRun": "Dry Run",
   "sync.button.publish": "Publish Changed",
   "sync.help.noManifest": "Without a publish manifest there is no baseline, so conflicts cannot be distinguished (changed/unchanged only). Create a manifest.",
-  "sync.help.noScreen": "Open a screen in the main Designer.",
+  "sync.help.noScreen": "Open a screen in the main Studio.",
   "sync.state.new": "New",
   "sync.state.inSync": "In sync",
-  "sync.state.designerChanged": "Designer changed",
+  "sync.state.designerChanged": "Studio changed",
   "sync.state.backendChanged": "Backend changed",
   "sync.state.conflict": "Conflict",
   "sync.diff.identical": "No differences",
@@ -1026,926 +971,942 @@
   "tooltip.sync.useBackend": "Adopts the on-disk files as the new baseline (clears conflict/backend-changed without regenerating).",
   "tooltip.sync.reviewDiff": "Shows the line-level difference between the file and the generated result (+ added, - removed).",
   "tooltip.sync.dryRun": "Reports, without writing, whether each screen would be published / skipped / needs resolution.",
-  "tooltip.sync.publish": "Writes only New/Designer-changed screens. In-sync is skipped; backend-changed and conflicts are reported as needing resolution."
-  ,"productivity.newScreen": "New Screen"
-  ,"productivity.layout": "Layout"
-  ,"productivity.transition": "Transition"
-  ,"productivity.scenario": "Scenario"
-  ,"productivity.fixAllSafe": "Fix all safe issues"
-  ,"productivity.tooltip.newScreen": "Create a connected Screen, Metadata and backend asset bundle."
-  ,"productivity.tooltip.layout": "Convert the selection to Auto Layout or recommend anchors."
-  ,"productivity.tooltip.transition": "Generate Open and Close Motion Clips from the selection."
-  ,"palette.family": "Library"
-  ,"palette.family.all": "All"
-  ,"palette.family.nexui": "NexUI"
-  ,"palette.family.ugui": "Unity uGUI"
-  ,"palette.family.uitk": "UI Toolkit"
-  ,"tooltip.palette.family": "Filter the component library by UI family."
-,"palette.group.containers": "Containers"
-,"palette.group.layout": "Layout"
-,"palette.group.textMedia": "Text & Media"
-,"palette.group.media": "Media"
-,"palette.group.controls": "Controls"
-,"palette.group.selection": "Selection & Input"
-,"palette.group.navigation": "Navigation"
-,"palette.group.feedback": "Feedback"
-,"palette.group.overlay": "Overlay"
-,"palette.group.data": "Data & Collections"
-,"palette.group.charts": "Charts"
-,"palette.group.social": "Social"
-,"palette.group.commerce": "Commerce"
-,"palette.group.settings": "Settings"
-,"palette.group.game": "Game HUD"
-,"palette.group.game.world": "Game World & Map"
-,"palette.group.game.items": "Game Items & Inventory"
-,"palette.group.game.progression": "Game Progression & Rewards"
-,"palette.group.game.menu": "Game Menus & Results"
-,"palette.group.game.multiplayer": "Game Multiplayer"
-,"palette.group.ugui.basic": "Basic"
-,"palette.group.ugui.controls": "Controls"
-,"palette.group.ugui.containers": "Containers & Layout"
-,"palette.group.uitk.basic": "Basic"
-,"palette.group.uitk.controls": "Controls"
-,"palette.group.uitk.fields": "Fields"
-,"palette.group.uitk.containers": "Containers & Collections"
-  ,"inspector.section.attachedComponents": "Project Scripts"
-  ,"attachedComponents.help": "MonoBehaviours are applied to the generated uGUI GameObject. UI Toolkit screens keep them in metadata but cannot attach them to a VisualElement."
-  ,"attachedComponents.add": "Add Component"
-  ,"attachedComponents.addTooltip": "Choose a runtime MonoBehaviour to attach when the uGUI prefab is saved."
-  ,"attachedComponents.remove": "Remove this Designer-managed component."
-  ,"attachedComponents.missing": "This type is not currently available; its reference is preserved."
-  ,"attachedComponents.pickerTitle": "Add Component"
-  ,"palette.tooltip.family": "Library"
-  ,"palette.tooltip.backends": "Backend support"
-  ,"palette.tooltip.size": "Default size"
-  ,"palette.tooltip.states": "Preview states"
-  ,"palette.tooltip.bindings": "Bindings"
-  ,"palette.tooltip.events": "Events"
-  ,"palette.tooltip.hint": "Hover to inspect · Click to add · Right-click for placement options"
-  ,"palette.support.full": "Full"
-  ,"palette.support.partial": "Partial"
-  ,"palette.support.previewOnly": "Preview only"
-  ,"palette.support.unsupported": "Unsupported"
-  ,"palette.capability.children": "Accepts children"
-  ,"palette.capability.interactive": "Interactive"
-  ,"palette.capability.value": "Value-driven"
-  ,"palette.capability.collection": "Collection"
-  ,"palette.capability.overlay": "Overlay"
-  ,"palette.capability.display": "Display element"
-  ,"palette.value.none": "None"
-  ,"palette.family.custom": "Custom"
-  ,"componentLibrary.title": "Component Library"
-  ,"componentLibrary.summary": "{0} controls  |  {1} recipes  |  {2} custom"
-  ,"palette.family.builtin": "Built-In Recipes"
-  ,"componentLibrary.builtinBadge": "BUILT-IN"
-  ,"componentLibrary.builtinStats": "{0} elements  ·  {1} exposed  ·  {2} variants"
-  ,"componentLibrary.builtinHint": "Click to place this package recipe · Right-click to add or favourite"
-  ,"builtinRecipe.description": "Production-ready {0} composition in the {1} style. Includes editable content, exposed labels, slots, and a disabled-state variant."
-  ,"builtinRecipe.category.navigation": "Navigation"
-  ,"builtinRecipe.category.content": "Content"
-  ,"builtinRecipe.category.forms": "Forms"
-  ,"builtinRecipe.category.commerce": "Commerce"
-  ,"builtinRecipe.category.game": "Game UI"
-  ,"builtinRecipe.category.feedback": "Feedback & Overlays"
-  ,"builtinRecipe.archetype.appHeader": "App Header"
-  ,"builtinRecipe.archetype.bottomNavigation": "Bottom Navigation"
-  ,"builtinRecipe.archetype.sidebarNavigation": "Sidebar Navigation"
-  ,"builtinRecipe.archetype.tabStrip": "Tab Strip"
-  ,"builtinRecipe.archetype.breadcrumbBar": "Breadcrumb Bar"
-  ,"builtinRecipe.archetype.metricCard": "Metric Card"
-  ,"builtinRecipe.archetype.featureCard": "Feature Card"
-  ,"builtinRecipe.archetype.profileCard": "Profile Card"
-  ,"builtinRecipe.archetype.articleCard": "Article Card"
-  ,"builtinRecipe.archetype.emptyState": "Empty State"
-  ,"builtinRecipe.archetype.loginForm": "Login Form"
-  ,"builtinRecipe.archetype.searchPanel": "Search Panel"
-  ,"builtinRecipe.archetype.settingsRow": "Settings Row"
-  ,"builtinRecipe.archetype.filterToolbar": "Filter Toolbar"
-  ,"builtinRecipe.archetype.feedbackForm": "Feedback Form"
-  ,"builtinRecipe.archetype.productCard": "Product Card"
-  ,"builtinRecipe.archetype.cartSummary": "Cart Summary"
-  ,"builtinRecipe.archetype.pricingCard": "Pricing Card"
-  ,"builtinRecipe.archetype.inventoryPanel": "Inventory Panel"
-  ,"builtinRecipe.archetype.questTracker": "Quest Tracker"
-  ,"builtinRecipe.archetype.partyMember": "Party Member Row"
-  ,"builtinRecipe.archetype.achievementCard": "Achievement Card"
-  ,"builtinRecipe.archetype.notificationToast": "Notification Toast"
-  ,"builtinRecipe.archetype.modalDialog": "Modal Dialog"
-  ,"builtinRecipe.archetype.loadingPanel": "Loading Panel"
-  ,"builtinRecipe.theme.midnight": "Midnight"
-  ,"builtinRecipe.theme.slate": "Slate"
-  ,"builtinRecipe.theme.ocean": "Ocean"
-  ,"builtinRecipe.theme.forest": "Forest"
-  ,"builtinRecipe.theme.ember": "Ember"
-  ,"builtinRecipe.theme.violet": "Violet"
-  ,"builtinRecipe.theme.rose": "Rose"
-  ,"builtinRecipe.theme.gold": "Gold"
-  ,"builtinRecipe.theme.monoDark": "Mono Dark"
-  ,"builtinRecipe.theme.monoLight": "Mono Light"
-  ,"builtinRecipe.theme.glass": "Glass"
-  ,"builtinRecipe.theme.contrast": "High Contrast"
-  ,"componentLibrary.newFolder": "New component folder"
-  ,"componentLibrary.newFolderShort": "+ Folder"
-  ,"componentLibrary.createFromSelection": "Create component from selection"
-  ,"componentLibrary.createShort": "+ Custom"
-  ,"componentLibrary.manage": "Open the full Component Library manager"
-  ,"componentLibrary.manageShort": "•••"
-  ,"componentLibrary.folder": "Folder"
-  ,"componentLibrary.folderPathHint": "Use / to create nested folders, for example Gameplay/HUD."
-  ,"componentLibrary.folderExists": "That folder already exists."
-  ,"componentLibrary.empty": "No custom components yet. Select a canvas element and use + Custom, or right-click a folder to create one there."
-  ,"componentLibrary.customBadge": "CUSTOM"
-  ,"componentLibrary.customStats": "{0} elements  •  {1} slots  •  {2} exposed  •  {3} variants"
-  ,"componentLibrary.customHint": "Click to place an instance • Right-click to organize or edit"
-  ,"componentLibrary.selectionRequired": "Select an element on the Designer canvas first. Its full subtree will become a reusable component."
-  ,"componentLibrary.instanceSelection": "This is already a component instance. Detach it first if you want to fork it."
-  ,"componentLibrary.saveHint": "Save the reusable component definition as a project asset."
-  ,"componentLibrary.createHere": "Create component here"
-  ,"componentLibrary.newSubfolder": "New subfolder"
-  ,"componentLibrary.renameFolder": "Rename folder"
-  ,"componentLibrary.removeFolder": "Remove folder"
-  ,"componentLibrary.removeFolderConfirm": "Remove this folder? Component assets are kept and moved to the parent folder."
-  ,"componentLibrary.moveTo": "Move to folder"
-  ,"componentLibrary.renameComponent": "Rename component"
-  ,"componentLibrary.componentName": "Component name"
-  ,"componentLibrary.editAsset": "Edit definition asset"
-  ,"componentLibrary.pingAsset": "Show in Project"
-  ,"componentLibrary.favourite": "Favourite"
-  ,"common.ok": "OK"
-  ,"common.cancel": "Cancel"
-  ,"common.apply": "Apply"
-  ,"common.remove": "Remove"
-  ,"attachedComponents.summary": "Runtime Components · {0}"
-  ,"attachedComponents.target": "Attached to {0} when the uGUI prefab is generated"
-  ,"attachedComponents.helpTooltip": "Attached MonoBehaviours are serialized as type identities. NexUI only manages entries added here and does not remove components authored directly on the prefab."
-  ,"attachedComponents.uguiTooltip": "Fully materialized on the generated uGUI GameObject. UI Toolkit preserves the reference as metadata because VisualElement cannot host MonoBehaviour."
-  ,"attachedComponents.empty": "No runtime components attached. Use Add Component to connect project scripts or Unity behaviours to this UI element."
-  ,"attachedComponents.missingTitle": "Missing Component"
-  ,"attachedComponents.sourceUnity": "Unity"
-  ,"attachedComponents.sourceProject": "Project"
-  ,"attachedComponents.single": "Single instance"
-  ,"attachedComponents.editMode": "Runs in Edit Mode"
-  ,"attachedComponents.requires": "Requires: {0}"
-  ,"attachedComponents.showScript": "Show script in Project"
-  ,"attachedComponents.openDocs": "Open documentation"
-  ,"attachedComponents.categoryUnknown": "Uncategorized"
-  ,"attachedComponents.descriptionUnity": "Unity runtime behaviour '{0}' attached to the generated UI GameObject."
-  ,"attachedComponents.descriptionProject": "Project MonoBehaviour '{0}' attached to this UI element at prefab generation time. Add a Description attribute to the class to show custom help here."
-  ,"attachedComponents.tooltipCategory": "Category"
-  ,"attachedComponents.tooltipAssembly": "Assembly"
-  ,"attachedComponents.tooltipBackend": "Backend"
-  ,"attachedComponents.uguiOnly": "uGUI full · UI Toolkit metadata only"
-  ,"attachedComponents.pickerDescription": "Browse Unity behaviours and project MonoBehaviours. Hover a card to inspect its description and requirements before adding it."
-  ,"attachedComponents.searchTooltip": "Search by component name, category, namespace, assembly or description."
-  ,"attachedComponents.resultCount": "{0} components"
-  ,"attachedComponents.noResults": "No component matches this search."
-  ,"motionInspector.preset": "Motion Preset"
-  ,"motionInspector.motionId": "Motion ID"
-  ,"motionInspector.initial": "Initial"
-  ,"motionInspector.animate": "Animate"
-  ,"motionInspector.exit": "Exit"
-  ,"motionInspector.hover": "Hover"
-  ,"motionInspector.pressed": "Pressed"
-  ,"motionInspector.focus": "Focus"
-  ,"motionInspector.noPreset": "Assign a motion preset to edit its graph and preview the selected variant."
-  ,"motionInspector.entryClipTooltip": "Motion clip played when this screen opens."
-  ,"motionInspector.exitClipTooltip": "Motion clip played when this screen closes."
-  ,"motionInspector.addBindingTooltip": "Add a trigger that plays a motion clip for this UI element."
-  ,"motionInspector.previewTitle": "Live Motion Preview"
-  ,"motionInspector.previewDescription": "The start ghost, travel path, and moving UI show the motion before you apply it."
-  ,"motionInspector.replayTooltip": "Replay the live preview from the start."
-  ,"motionInspector.sectionTabsTooltip": "Show only one motion editing area at a time to keep the Inspector compact."
-  ,"motionInspector.tabSettings": "Settings"
-  ,"motionInspector.tabSettingsTooltip": "Edit element presets, state variants, and screen transition clips."
-  ,"motionInspector.tabExamples": "Examples"
-  ,"motionInspector.tabExamplesTooltip": "Browse visual motion recipes and open one as an editable preset."
-  ,"motionInspector.tabTriggers": "Triggers"
-  ,"motionInspector.tabTriggersTooltip": "Connect motion clips to clicks, state changes, commands, and lifecycle events."
-  ,"motionInspector.elementMotion": "Element Motion"
-  ,"motionInspector.elementMotionDescription": "Assign a reusable motion preset and map its variants to element states."
-  ,"motionInspector.previewAssigned": "Preview assigned"
-  ,"motionInspector.previewAssignedTooltip": "Play the selected element's compiled motion in the preview above."
-  ,"motionInspector.variants": "State Variants"
-  ,"motionInspector.variantsTooltip": "Variant names connect preset timelines to initial, interaction, focus, and exit states."
-  ,"motionInspector.screenMotion": "Screen Enter / Exit"
-  ,"motionInspector.screenMotionDescription": "Choose clips for screen-level transitions and preview either clip instantly."
-  ,"motionInspector.previewEntryClip": "Preview the assigned entry clip on the Designer canvas."
-  ,"motionInspector.previewExitClip": "Preview the assigned exit clip on the Designer canvas."
-  ,"motionInspector.examples": "Motion Examples"
-  ,"motionInspector.examplesDescription": "Select a card to see a looping example, then open it as a real editable preset."
-  ,"motionInspector.useExample": "Use selected example"
-  ,"motionInspector.useExampleTooltip": "Open the transition preset editor with this example selected."
-  ,"motionInspector.useNamedExample": "Use {0} example"
-  ,"motionInspector.exampleTooltip": "Click to load this example into the live preview."
-  ,"motionInspector.triggerMotion": "Trigger Bindings"
-  ,"motionInspector.triggerMotionDescription": "Play clips from clicks, state changes, commands, or lifecycle events."
-  ,"motionInspector.noSelection": "No UI element selected"
-  ,"motionInspector.noSelectionDescription": "Select an element on the canvas to author and preview its motion."
-  ,"motionInspector.target": "Motion · {0}"
-  ,"motionInspector.unassigned": "Not assigned"
-  ,"motionInspector.unassignedDescription": "No motion preset is assigned. Try an example below or assign an existing preset."
-  ,"motionInspector.motionSummary": "Compiled into {0} tracks · {1:0.00}s total"
-  ,"motionInspector.ready": "Ready"
-  ,"motionInspector.noPresetPreview": "A gentle opacity transition demonstrates the live preview. Choose an example below for more."
-  ,"motionInspector.assignedPreviewDescription": "Playing compiled variant '{0}' with runtime easing."
-  ,"motionInspector.noBindings": "No trigger bindings yet. Add one to play a clip from an interaction or event."
-  ,"motionInspector.bindingTooltip": "This binding links a trigger to its normal and reduced-motion clips."
-  ,"motionInspector.trigger": "Trigger"
-  ,"motionInspector.noBindingsForTarget": "No bindings currently target this UI element."
-  ,"motionExample.fade": "Fade In"
-  ,"motionExample.fadeDescription": "Gently reveals UI by animating opacity from transparent to visible."
-  ,"motionExample.slide": "Slide In"
-  ,"motionExample.slideDescription": "Moves UI in from the left while fading it into place."
-  ,"motionExample.scale": "Scale Pop"
-  ,"motionExample.scaleDescription": "Uses a soft overshoot to pop buttons, cards, or dialogs into view."
-  ,"motionExample.toast": "Toast Rise"
-  ,"motionExample.toastDescription": "Raises a notification from below with a brief eased settle."
-,"component.section": "Section"
-,"component.toolbar": "Toolbar"
-,"component.scrollArea": "Scroll Area"
-,"component.splitter": "Splitter"
-,"component.accordion": "Accordion"
-,"component.heading": "Heading"
-,"component.richText": "Rich Text"
-,"component.link": "Link"
-,"component.icon": "Icon"
-,"component.avatar": "Avatar"
-,"component.divider": "Divider"
-,"component.badge": "Badge"
-,"component.chip": "Chip / Tag"
-,"component.checkbox": "Checkbox"
-,"component.switch": "Switch"
-,"component.radioGroup": "Radio Group"
-,"component.segmentedControl": "Segmented Control"
-,"component.dropdown": "Dropdown"
-,"component.slider": "Slider"
-,"component.rangeSlider": "Range Slider"
-,"component.stepper": "Stepper"
-,"component.textField": "Text Field"
-,"component.textArea": "Text Area"
-,"component.searchField": "Search Field"
-,"component.rating": "Rating"
-,"component.tabs": "Tabs"
-,"component.tabItem": "Tab Item"
-,"component.appBar": "App Bar"
-,"component.sideNav": "Side Navigation"
-,"component.breadcrumb": "Breadcrumb"
-,"component.pagination": "Pagination"
-,"component.menu": "Menu"
-,"component.stepIndicator": "Step Indicator"
-,"component.alert": "Alert"
-,"component.emptyState": "Empty State"
-,"component.drawer": "Drawer"
-,"component.contextMenu": "Context Menu"
-,"component.loadingOverlay": "Loading Overlay"
-,"component.table": "Table"
-,"component.treeView": "Tree View"
-,"component.carousel": "Carousel"
-,"component.minimap": "Minimap"
-,"component.compass": "Compass"
-,"component.crosshair": "Crosshair"
-,"component.questTracker": "Quest Tracker"
-,"component.dialogueBox": "Dialogue Box"
-,"component.chatPanel": "Chat Panel"
-,"component.leaderboard": "Leaderboard"
-,"component.currencyDisplay": "Currency Display"
-,"component.buffBar": "Buff Bar"
-,"component.cooldownIcon": "Cooldown Icon"
-,"component.keyPrompt": "Key Prompt"
-,"component.spacer": "Spacer"
-,"component.flowContainer": "Flow Container"
-,"component.masonryGrid": "Masonry Grid"
-,"component.aspectBox": "Aspect Box"
-,"component.safeArea": "Safe Area"
-,"component.stickyHeader": "Sticky Header"
-,"component.sidebarLayout": "Sidebar Layout"
-,"component.twoColumn": "Two Column"
-,"component.threeColumn": "Three Column"
-,"component.centerBox": "Center Box"
-,"component.dockPanel": "Dock Panel"
-,"component.resizablePanel": "Resizable Panel"
-,"component.scrollSnap": "Scroll Snap Area"
-,"component.pageContainer": "Page Container"
-,"component.fieldRow": "Field Row"
-,"component.form": "Form"
-,"component.formSection": "Form Section"
-,"component.listItem": "List Item"
-,"component.panelHeader": "Panel Header"
-,"component.caption": "Caption"
-,"component.subtitle": "Subtitle"
-,"component.overline": "Overline"
-,"component.codeBlock": "Code Block"
-,"component.quote": "Quote"
-,"component.markdownText": "Markdown Text"
-,"component.numberTicker": "Number Ticker"
-,"component.countdownText": "Countdown Text"
-,"component.typewriterText": "Typewriter Text"
-,"component.marquee": "Marquee"
-,"component.highlightText": "Highlight Text"
-,"component.truncatedText": "Truncated Text"
-,"component.labelValue": "Label / Value"
-,"component.timestamp": "Timestamp"
-,"component.currencyText": "Currency Text"
-,"component.percentText": "Percent Text"
-,"component.gradientText": "Gradient Text"
-,"component.outlineText": "Outline Text"
-,"component.videoView": "Video View"
-,"component.renderTextureView": "Render Texture View"
-,"component.imageGallery": "Image Gallery"
-,"component.thumbnail": "Thumbnail"
-,"component.coverImage": "Cover Image"
-,"component.logo": "Logo"
-,"component.placeholderImage": "Placeholder Image"
-,"component.qRCode": "QR Code"
-,"component.portraitFrame": "Portrait Frame"
-,"component.nineSliceImage": "Nine Slice Image"
-,"component.maskedImage": "Masked Image"
-,"component.parallaxLayer": "Parallax Layer"
-,"component.particleHost": "Particle Host"
-,"component.modelView": "3D Model View"
-,"component.numberField": "Number Field"
-,"component.passwordField": "Password Field"
-,"component.knob": "Knob"
-,"component.colorPicker": "Color Picker"
-,"component.colorSwatch": "Color Swatch"
-,"component.gradientPicker": "Gradient Picker"
-,"component.datePicker": "Date Picker"
-,"component.timePicker": "Time Picker"
-,"component.dateRangePicker": "Date Range Picker"
-,"component.calendar": "Calendar"
-,"component.keybindField": "Keybind Field"
-,"component.vectorField": "Vector Field"
-,"component.curveField": "Curve Field"
-,"component.filePicker": "File Picker"
-,"component.volumeSlider": "Volume Slider"
-,"component.toggleButton": "Toggle Button"
-,"component.splitButton": "Split Button"
-,"component.buttonGroup": "Button Group"
-,"component.floatingActionButton": "Floating Action Button"
-,"component.holdButton": "Hold Button"
-,"component.repeatButton": "Repeat Button"
-,"component.radialMenu": "Radial Menu"
-,"component.virtualJoystick": "Virtual Joystick"
-,"component.dPad": "D-Pad"
-,"component.swipeArea": "Swipe Area"
-,"component.dragHandle": "Drag Handle"
-,"component.resizeHandle": "Resize Handle"
-,"component.scrubber": "Scrubber"
-,"component.multiSelect": "Multi Select"
-,"component.comboBox": "Combo Box"
-,"component.autocomplete": "Autocomplete"
-,"component.tagInput": "Tag Input"
-,"component.filterBar": "Filter Bar"
-,"component.sortSelector": "Sort Selector"
-,"component.optionCard": "Option Card"
-,"component.transferList": "Transfer List"
-,"component.checkboxGroup": "Checkbox Group"
-,"component.selectionList": "Selection List"
-,"component.navRail": "Navigation Rail"
-,"component.bottomNav": "Bottom Navigation"
-,"component.navItem": "Navigation Item"
-,"component.menuBar": "Menu Bar"
-,"component.menuItem": "Menu Item"
-,"component.subMenu": "Sub Menu"
-,"component.commandPalette": "Command Palette"
-,"component.searchOverlay": "Search Overlay"
-,"component.backButton": "Back Button"
-,"component.closeButton": "Close Button"
-,"component.wizard": "Wizard"
-,"component.wizardStep": "Wizard Step"
-,"component.anchorNav": "Anchor Navigation"
-,"component.quickAccessBar": "Quick Access Bar"
-,"component.statusDot": "Status Dot"
-,"component.statusPill": "Status Pill"
-,"component.loadingBar": "Loading Bar"
-,"component.meter": "Meter"
-,"component.gauge": "Gauge"
-,"component.sparkline": "Sparkline"
-,"component.trendIndicator": "Trend Indicator"
-,"component.toastStack": "Toast Stack"
-,"component.snackbar": "Snackbar"
-,"component.inlineError": "Inline Error"
-,"component.successCheck": "Success Check"
-,"component.countdownTimer": "Countdown Timer"
-,"component.cooldownBar": "Cooldown Bar"
-,"component.comboMeter": "Combo Meter"
-,"component.scorePopup": "Score Popup"
-,"component.damageNumber": "Damage Number"
-,"component.floatingText": "Floating Text"
-,"component.activityIndicator": "Activity Indicator"
-,"component.connectionStatus": "Connection Status"
-,"component.fpsCounter": "FPS Counter"
-,"component.confirmDialog": "Confirm Dialog"
-,"component.alertDialog": "Alert Dialog"
-,"component.promptDialog": "Prompt Dialog"
-,"component.bottomSheet": "Bottom Sheet"
-,"component.sideSheet": "Side Sheet"
-,"component.lightbox": "Lightbox"
-,"component.coachMark": "Coach Mark"
-,"component.tutorialOverlay": "Tutorial Overlay"
-,"component.spotlight": "Spotlight"
-,"component.backdrop": "Backdrop"
-,"component.hoverCard": "Hover Card"
-,"component.contextPanel": "Context Panel"
-,"component.tableRow": "Table Row"
-,"component.tableHeader": "Table Header"
-,"component.columnHeader": "Column Header"
-,"component.infiniteList": "Infinite List"
-,"component.virtualGrid": "Virtual Grid"
-,"component.treeNode": "Tree Node"
-,"component.kanbanBoard": "Kanban Board"
-,"component.kanbanColumn": "Kanban Column"
-,"component.timelineList": "Timeline"
-,"component.feed": "Feed"
-,"component.commentThread": "Comment Thread"
-,"component.statCard": "Stat Card"
-,"component.kpiTile": "KPI Tile"
-,"component.metricRow": "Metric Row"
-,"component.sectionHeader": "Section Header"
-,"component.propertyRow": "Property Row"
-,"component.keyValueTable": "Key / Value Table"
-,"component.logView": "Log View"
-,"component.barChart": "Bar Chart"
-,"component.lineChart": "Line Chart"
-,"component.areaChart": "Area Chart"
-,"component.pieChart": "Pie Chart"
-,"component.donutChart": "Donut Chart"
-,"component.radarChart": "Radar Chart"
-,"component.scatterPlot": "Scatter Plot"
-,"component.heatmap": "Heatmap"
-,"component.histogram": "Histogram"
-,"component.gaugeChart": "Gauge Chart"
-,"component.funnelChart": "Funnel Chart"
-,"component.stackedBarChart": "Stacked Bar Chart"
-,"component.chartLegend": "Chart Legend"
-,"component.profileCard": "Profile Card"
-,"component.userRow": "User Row"
-,"component.friendListItem": "Friend List Item"
-,"component.presenceDot": "Presence Dot"
-,"component.followButton": "Follow Button"
-,"component.shareSheet": "Share Sheet"
-,"component.reviewCard": "Review Card"
-,"component.ratingSummary": "Rating Summary"
-,"component.commentInput": "Comment Input"
-,"component.mentionList": "Mention List"
-,"component.productCard": "Product Card"
-,"component.priceTag": "Price Tag"
-,"component.discountBadge": "Discount Badge"
-,"component.cartItem": "Cart Item"
-,"component.checkoutSummary": "Checkout Summary"
-,"component.paymentMethodRow": "Payment Method Row"
-,"component.couponField": "Coupon Field"
-,"component.purchaseButton": "Purchase Button"
-,"component.subscriptionCard": "Subscription Card"
-,"component.shopItemCard": "Shop Item Card"
-,"component.currencyPack": "Currency Pack"
-,"component.rewardCard": "Reward Card"
-,"component.settingsRow": "Settings Row"
-,"component.settingsToggleRow": "Settings Toggle Row"
-,"component.settingsSliderRow": "Settings Slider Row"
-,"component.settingsSection": "Settings Section"
-,"component.languageSelector": "Language Selector"
-,"component.volumeRow": "Volume Row"
-,"component.keybindRow": "Keybind Row"
-,"component.accountRow": "Account Row"
-,"component.legalRow": "Legal Row"
-,"component.aboutRow": "About Row"
-,"component.abilityBar": "Ability Bar"
-,"component.skillSlot": "Skill Slot"
-,"component.skillTreeNode": "Skill Tree Node"
-,"component.inventoryGrid": "Inventory Grid"
-,"component.equipmentSlot": "Equipment Slot"
-,"component.characterPortrait": "Character Portrait"
-,"component.partyFrame": "Party Frame"
-,"component.targetFrame": "Target Frame"
-,"component.castBar": "Cast Bar"
-,"component.comboCounter": "Combo Counter"
-,"component.killFeed": "Kill Feed"
-,"component.objectiveMarker": "Objective Marker"
-,"component.waypoint": "Waypoint"
-,"component.ammoCounter": "Ammo Counter"
-,"component.weaponWheel": "Weapon Wheel"
-,"component.interactionPrompt": "Interaction Prompt"
-,"component.subtitleBar": "Subtitle Bar"
-,"component.bossHealthBar": "Boss Health Bar"
-,"component.resourceOrb": "Resource Orb"
-,"component.xpBar": "XP Bar"
-,"component.levelBadge": "Level Badge"
-,"component.rankEmblem": "Rank Emblem"
-,"component.achievementToast": "Achievement Toast"
-,"component.lootPopup": "Loot Popup"
-,"component.nameplate": "Nameplate"
-,"component.chatBubble": "Chat Bubble"
-,"component.emoteWheel": "Emote Wheel"
-,"component.pingWheel": "Ping Wheel"
-,"component.speedometer": "Speedometer"
-,"component.lapTimer": "Lap Timer"
-,"component.mapLegend": "Map Legend"
-,"component.craftingSlot": "Crafting Slot"
-,"component.questCard": "Quest Card"
-,"component.tradePanel": "Trade Panel"
-,"component.healthBar": "Health Bar"
-,"component.shieldBar": "Shield Bar"
-,"component.armorBar": "Armor Bar"
-,"component.manaBar": "Mana Bar"
-,"component.energyBar": "Energy Bar"
-,"component.staminaWheel": "Stamina Wheel"
-,"component.breathMeter": "Breath Meter"
-,"component.hungerMeter": "Hunger Meter"
-,"component.sanityMeter": "Sanity Meter"
-,"component.heatMeter": "Heat Meter"
-,"component.ultimateCharge": "Ultimate Charge"
-,"component.chargeMeter": "Charge Meter"
-,"component.reloadIndicator": "Reload Indicator"
-,"component.threatMeter": "Threat Meter"
-,"component.detectionMeter": "Detection Meter"
-,"component.noiseMeter": "Noise Meter"
-,"component.healthPips": "Health Pips"
-,"component.ammoPips": "Ammo Pips"
-,"component.hitMarker": "Hit Marker"
-,"component.damageIndicator": "Damage Direction Indicator"
-,"component.statusEffectIcon": "Status Effect Icon"
-,"component.abilityQueue": "Ability Queue"
-,"component.stanceSelector": "Stance Selector"
-,"component.grenadeSelector": "Grenade Selector"
-,"component.comboRank": "Combo Rank"
-,"component.accuracyMeter": "Accuracy Meter"
-,"component.judgementText": "Judgement Text"
-,"component.weaponSlot": "Weapon Slot"
-,"component.vehicleHud": "Vehicle HUD"
-,"component.gearIndicator": "Gear Indicator"
-,"component.nitroBar": "Nitro Bar"
-,"component.tachometer": "Tachometer"
-,"component.mapScreen": "Map Screen"
-,"component.mapMarkerList": "Map Marker List"
-,"component.offscreenIndicator": "Off-screen Indicator"
-,"component.lockOnIndicator": "Lock-on Indicator"
-,"component.distanceMeter": "Distance Meter"
-,"component.zoneBanner": "Zone Banner"
-,"component.discoveryToast": "Discovery Toast"
-,"component.travelProgress": "Travel Progress"
-,"component.radar": "Radar"
-,"component.objectiveList": "Objective List"
-,"component.worldTooltip": "World Tooltip"
-,"component.placementGhost": "Placement Ghost"
-,"component.compassMarker": "Compass Marker"
-,"component.depthMeter": "Depth Meter"
-,"component.timeOfDay": "Time of Day"
-,"component.weatherIndicator": "Weather Indicator"
-,"component.letterbox": "Cutscene Letterbox"
-,"component.skipPrompt": "Skip Prompt"
-,"component.itemCard": "Item Card"
-,"component.itemTooltip": "Item Tooltip"
-,"component.itemComparison": "Item Comparison"
-,"component.rarityFrame": "Rarity Frame"
-,"component.durabilityBar": "Durability Bar"
-,"component.stackCount": "Stack Count"
-,"component.itemLevelBadge": "Item Level Badge"
-,"component.paperdoll": "Equipment Paperdoll"
-,"component.loadoutPanel": "Loadout Panel"
-,"component.bagTabs": "Bag Tabs"
-,"component.weightMeter": "Weight Meter"
-,"component.sortFilterBar": "Sort & Filter Bar"
-,"component.craftingRecipe": "Crafting Recipe"
-,"component.craftingQueue": "Crafting Queue"
-,"component.upgradePanel": "Upgrade Panel"
-,"component.enchantPanel": "Enchant Panel"
-,"component.salvagePanel": "Salvage Panel"
-,"component.vendorList": "Vendor List"
-,"component.buybackList": "Buyback List"
-,"component.auctionRow": "Auction Row"
-,"component.mailItem": "Mail Item"
-,"component.currencyBar": "Currency Bar"
-,"component.lootTableRow": "Loot Table Row"
-,"component.chestOpen": "Chest Opening"
-,"component.summonResult": "Summon Result"
-,"component.pityCounter": "Pity Counter"
-,"component.giftClaim": "Gift Claim"
-,"component.collectionAlbum": "Collection Album"
-,"component.codexEntry": "Codex Entry"
-,"component.experienceBar": "Experience Bar"
-,"component.levelUpPopup": "Level Up Popup"
-,"component.skillTree": "Skill Tree"
-,"component.talentGrid": "Talent Grid"
-,"component.skillPointCounter": "Skill Point Counter"
-,"component.battlePassTrack": "Battle Pass Track"
-,"component.seasonTier": "Season Tier"
-,"component.dailyLoginCalendar": "Daily Login Calendar"
-,"component.questLog": "Quest Log"
-,"component.questObjective": "Quest Objective"
-,"component.achievementRow": "Achievement Row"
-,"component.masteryRing": "Mastery Ring"
-,"component.reputationBar": "Reputation Bar"
-,"component.rankProgress": "Rank Progress"
-,"component.unlockNotification": "Unlock Notification"
-,"component.rewardPreview": "Reward Preview"
-,"component.milestoneTrack": "Milestone Track"
-,"component.energyTimer": "Energy Timer"
-,"component.vipLevel": "VIP Level"
-,"component.titleScreen": "Title Screen"
-,"component.mainMenu": "Main Menu"
-,"component.pauseMenu": "Pause Menu"
-,"component.saveSlotList": "Save Slot List"
-,"component.saveSlot": "Save Slot"
-,"component.difficultySelector": "Difficulty Selector"
-,"component.characterSelect": "Character Select"
-,"component.characterPreview": "Character Preview"
-,"component.levelSelect": "Level Select"
-,"component.stageCard": "Stage Card"
-,"component.loadingScreen": "Loading Screen"
-,"component.loadingTip": "Loading Tip"
-,"component.pressStartPrompt": "Press Start Prompt"
-,"component.deathScreen": "Death Screen"
-,"component.respawnTimer": "Respawn Timer"
-,"component.matchResults": "Match Results"
-,"component.scoreBreakdown": "Score Breakdown"
-,"component.starRatingResult": "Star Rating Result"
-,"component.mvpCard": "MVP Card"
-,"component.creditsRoll": "Credits Roll"
-,"component.quitConfirm": "Quit Confirm"
-,"component.controlsDiagram": "Controls Diagram"
-,"component.tutorialHint": "Tutorial Hint"
-,"component.adRewardButton": "Ad Reward Button"
-,"component.rateUsPrompt": "Rate Us Prompt"
-,"component.teamRoster": "Team Roster"
-,"component.scoreboard": "Scoreboard"
-,"component.scoreboardRow": "Scoreboard Row"
-,"component.lobbySlot": "Lobby Slot"
-,"component.readyCheck": "Ready Check"
-,"component.matchmakingStatus": "Matchmaking Status"
-,"component.partyInvite": "Party Invite"
-,"component.guildPanel": "Guild Panel"
-,"component.chatChannelTabs": "Chat Channel Tabs"
-,"component.voiceIndicator": "Voice Indicator"
-,"component.pingBadge": "Ping Badge"
-,"component.hostBadge": "Host Badge"
-,"component.spectatorBar": "Spectator Bar"
-,"component.killCam": "Kill Cam"
-,"component.reportPlayer": "Report Player"
-,"component.friendInviteList": "Friend Invite List"
-,"component.crossplayToggle": "Crossplay Toggle"
-,"component.sessionCode": "Session Code"
-,"component.serverList": "Server List"
-,"component.teamBanner": "Team Banner"
-,"component.ugui.image": "Image"
-,"component.ugui.rawImage": "Raw Image"
-,"component.ugui.panel": "Panel"
-,"component.ugui.text": "Text - TextMeshPro"
-,"component.ugui.textLegacy": "Text (Legacy)"
-,"component.ugui.button": "Button"
-,"component.ugui.buttonTMP": "Button - TextMeshPro"
-,"component.ugui.toggle": "Toggle"
-,"component.ugui.toggleGroup": "Toggle Group"
-,"component.ugui.slider": "Slider"
-,"component.ugui.scrollbar": "Scrollbar"
-,"component.ugui.dropdown": "Dropdown"
-,"component.ugui.dropdownTMP": "Dropdown - TextMeshPro"
-,"component.ugui.inputField": "Input Field (Legacy)"
-,"component.ugui.inputFieldTMP": "Input Field - TextMeshPro"
-,"component.ugui.scrollView": "Scroll View"
-,"component.ugui.mask": "Mask"
-,"component.ugui.rectMask2D": "Rect Mask 2D"
-,"component.ugui.horizontalLayoutGroup": "Horizontal Layout Group"
-,"component.ugui.verticalLayoutGroup": "Vertical Layout Group"
-,"component.ugui.gridLayoutGroup": "Grid Layout Group"
-,"component.ugui.canvas": "Nested Canvas"
-,"component.uitk.visualElement": "Visual Element"
-,"component.uitk.label": "Label"
-,"component.uitk.image": "Image"
-,"component.uitk.box": "Box"
-,"component.uitk.textElement": "Text Element"
-,"component.uitk.bindableElement": "Bindable Element"
-,"component.uitk.iMGUIContainer": "IMGUI Container"
-,"component.uitk.helpBox": "Help Box"
-,"component.uitk.button": "Button"
-,"component.uitk.toggle": "Toggle"
-,"component.uitk.slider": "Slider"
-,"component.uitk.sliderInt": "Slider (Int)"
-,"component.uitk.minMaxSlider": "Min Max Slider"
-,"component.uitk.progressBar": "Progress Bar"
-,"component.uitk.radioButton": "Radio Button"
-,"component.uitk.radioButtonGroup": "Radio Button Group"
-,"component.uitk.dropdownField": "Dropdown Field"
-,"component.uitk.enumField": "Enum Field"
-,"component.uitk.scroller": "Scroller"
-,"component.uitk.repeatButton": "Repeat Button"
-,"component.uitk.toggleButtonGroup": "Toggle Button Group"
-,"component.uitk.textField": "Text Field"
-,"component.uitk.integerField": "Integer Field"
-,"component.uitk.floatField": "Float Field"
-,"component.uitk.vector2Field": "Vector2 Field"
-,"component.uitk.vector3Field": "Vector3 Field"
-,"component.uitk.vector4Field": "Vector4 Field"
-,"component.uitk.rectField": "Rect Field"
-,"component.uitk.objectField": "Object Field"
-,"component.uitk.doubleField": "Double Field"
-,"component.uitk.longField": "Long Field"
-,"component.uitk.unsignedIntegerField": "Unsigned Integer Field"
-,"component.uitk.unsignedLongField": "Unsigned Long Field"
-,"component.uitk.vector2IntField": "Vector2Int Field"
-,"component.uitk.vector3IntField": "Vector3Int Field"
-,"component.uitk.rectIntField": "RectInt Field"
-,"component.uitk.boundsField": "Bounds Field"
-,"component.uitk.boundsIntField": "BoundsInt Field"
-,"component.uitk.hash128Field": "Hash128 Field"
-,"component.uitk.angleField": "Angle Field"
-,"component.uitk.lengthField": "Length Field"
-,"component.uitk.timeValueField": "Time Value Field"
-,"component.uitk.translateField": "Translate Field"
-,"component.uitk.rotateField": "Rotate Field"
-,"component.uitk.scaleField": "Scale Field"
-,"component.uitk.transformOriginField": "Transform Origin Field"
-,"component.uitk.gUIDField": "GUID Field"
-,"component.uitk.buttonStripField": "Button Strip Field"
-,"component.uitk.scrollView": "Scroll View"
-,"component.uitk.listView": "List View"
-,"component.uitk.multiColumnListView": "Multi Column List View"
-,"component.uitk.treeView": "Tree View"
-,"component.uitk.multiColumnTreeView": "Multi Column Tree View"
-,"component.uitk.foldout": "Foldout"
-,"component.uitk.groupBox": "Group Box"
-,"component.uitk.tabView": "Tab View"
-,"component.uitk.tab": "Tab"
-,"component.uitk.twoPaneSplitView": "Two Pane Split View"
-,"component.uitk.popupWindow": "Popup Window"
-,"inspector.section.componentProperties": "Component Properties"
-,"inspector.showAdvanced": "Show advanced properties"
-,"tooltip.inspector.showAdvanced": "Show every property, including the ones you rarely touch."
-,"tooltip.inspector.resetProperty": "Reset to the component default."
-,"tooltip.inspector.searchProperties": "Filter this component's properties by name, key, or description."
-,"prop.group.content": "Content"
-,"prop.group.value": "Value"
-,"prop.group.interaction": "Interaction"
-,"prop.group.data": "Data"
-,"prop.group.appearance": "Appearance"
-,"prop.group.layout": "Layout"
-,"prop.group.behavior": "Behavior"
-,"prop.interactable": "Interactable"
-,"prop.transition": "Transition"
-,"prop.navigation.enabled": "Keyboard / Gamepad Navigation"
-,"prop.emphasis": "Emphasis"
-,"prop.clipContent": "Clip Content"
-,"prop.size": "Size"
-,"prop.value.min": "Min Value"
-,"prop.value.max": "Max Value"
-,"prop.value.wholeNumbers": "Whole Numbers"
-,"prop.value.direction": "Fill Direction"
-,"prop.value.segments": "Segments"
-,"prop.value.showLabel": "Show Value Label"
-,"prop.value.format": "Value Format"
-,"prop.value.animationDuration": "Change Animation (s)"
-,"prop.items.source": "Items Source Key"
-,"prop.items.selection": "Selection Mode"
-,"prop.items.virtualize": "Virtualize"
-,"prop.items.itemSize": "Item Size"
-,"prop.items.spacing": "Item Spacing"
-,"prop.items.orientation": "Orientation"
-,"prop.items.reorderable": "Reorderable"
-,"prop.items.showEmptyState": "Show Empty State"
-,"prop.items.previewCount": "Preview Item Count"
-,"prop.text.richText": "Rich Text"
-,"prop.text.autoSize": "Auto Size"
-,"prop.text.maxLines": "Max Lines"
-,"prop.text.selectable": "Selectable"
-,"prop.text.localizationKey": "Localization Key"
-,"prop.media.sprite": "Sprite"
-,"prop.media.preserveAspect": "Preserve Aspect"
-,"prop.media.raycastTarget": "Raycast Target"
-,"prop.media.maskable": "Maskable"
-,"prop.media.tint": "Tint"
-,"prop.overlay.modal": "Modal"
-,"prop.overlay.dismissOnBackdrop": "Dismiss On Backdrop Click"
-,"prop.overlay.dismissOnEscape": "Dismiss On Cancel Input"
-,"prop.overlay.placement": "Placement"
-,"prop.overlay.backdropOpacity": "Backdrop Opacity"
-,"prop.overlay.trapFocus": "Trap Focus"
-,"prop.overlay.autoDismissSeconds": "Auto Dismiss (s)"
-,"prop.container.scrollable": "Scrollable"
-,"prop.container.blocksRaycast": "Blocks Raycast"
-,"prop.slider.step": "Step"
-,"prop.slider.showTicks": "Show Ticks"
-,"prop.slider.fillHandle": "Show Handle"
-,"prop.range.low": "Low Value"
-,"prop.range.high": "High Value"
-,"prop.range.minGap": "Minimum Gap"
-,"prop.toggle.isOn": "Is On"
-,"prop.toggle.allowIndeterminate": "Allow Indeterminate"
-,"prop.toggle.group": "Toggle Group"
-,"prop.choice.options": "Options"
-,"prop.choice.value": "Selected Index"
-,"prop.choice.placeholder": "Placeholder"
-,"prop.choice.searchable": "Searchable"
-,"prop.choice.maxVisible": "Max Visible Options"
-,"prop.input.placeholder": "Placeholder"
-,"prop.input.maxLength": "Character Limit"
-,"prop.input.contentType": "Content Type"
-,"prop.input.lineType": "Line Type"
-,"prop.input.readOnly": "Read Only"
-,"prop.input.selectAllOnFocus": "Select All On Focus"
-,"prop.input.submitOnEnter": "Submit On Enter"
-,"prop.input.clearButton": "Clear Button"
-,"prop.scroll.horizontal": "Horizontal"
-,"prop.scroll.vertical": "Vertical"
-,"prop.scroll.movement": "Movement Type"
-,"prop.scroll.elasticity": "Elasticity"
-,"prop.scroll.inertia": "Inertia"
-,"prop.scroll.decelerationRate": "Deceleration Rate"
-,"prop.scroll.sensitivity": "Scroll Sensitivity"
-,"prop.scroll.verticalBar": "Vertical Scrollbar"
-,"prop.scroll.horizontalBar": "Horizontal Scrollbar"
-,"prop.tabs.activeIndex": "Active Tab"
-,"prop.tabs.orientation": "Orientation"
-,"prop.tabs.closable": "Closable Tabs"
-,"prop.tabs.scrollable": "Scrollable Strip"
-,"prop.foldout.expanded": "Expanded"
-,"prop.foldout.singleOpen": "Only One Section Open"
-,"prop.button.submitOnHold": "Repeat While Held"
-,"prop.button.holdSeconds": "Hold Duration (s)"
-,"prop.button.busyState": "Has Busy State"
-,"prop.dialog.confirmLabel": "Confirm Label"
-,"prop.dialog.cancelLabel": "Cancel Label"
-,"prop.dialog.destructive": "Destructive Action"
-,"prop.message.severity": "Severity"
-,"prop.message.dismissible": "Dismissible"
-,"prop.message.showIcon": "Show Icon"
-,"prop.table.columns": "Columns"
-,"prop.table.sortable": "Sortable"
-,"prop.table.resizableColumns": "Resizable Columns"
-,"prop.table.stripedRows": "Striped Rows"
-,"prop.table.stickyHeader": "Sticky Header"
-,"prop.stepper.step": "Step"
-,"prop.stepper.wrap": "Wrap Around"
-,"prop.stepper.repeatOnHold": "Repeat While Held"
-,"prop.rating.max": "Star Count"
-,"prop.rating.allowHalf": "Allow Half Steps"
-,"prop.rating.readOnly": "Read Only"
-,"prop.carousel.loop": "Loop"
-,"prop.carousel.autoAdvance": "Auto Advance (s)"
-,"prop.carousel.showIndicators": "Show Page Indicators"
-,"prop.cooldown.duration": "Cooldown (s)"
-,"prop.cooldown.charges": "Charges"
-,"prop.cooldown.showSweep": "Radial Sweep"
-,"prop.cooldown.showKeyHint": "Show Key Hint"
-,"prop.slot.acceptsDrop": "Accepts Drop"
-,"prop.slot.acceptedTypes": "Accepted Item Types"
-,"prop.slot.showCount": "Show Stack Count"
-,"prop.slot.showRarity": "Show Rarity Frame"
-,"prop.health.damageTrail": "Damage Delay Trail"
-,"prop.health.lowThreshold": "Low Threshold"
-,"prop.map.zoom": "Zoom"
-,"prop.map.rotateWithPlayer": "Rotate With Player"
-,"prop.map.clampMarkers": "Clamp Markers To Edge"
-,"prop.map.range": "Range"
-,"inspector.componentParts": "Component Structure"
-,"inspector.section.componentParts": "Component Structure"
-,"inspector.componentParts.description": "Edit library-owned internal parts, or add real child elements that receive the full NexUI Inspector."
-,"inspector.componentParts.internal": "Internal Parts"
-,"inspector.componentParts.selectHint": "Select a part above or click it on the canvas to edit its local transform."
-,"inspector.componentParts.reset": "Reset Part Overrides"
-,"inspector.componentParts.contents": "Authored Contents"
-,"inspector.componentParts.contentsDescription": "These are real hierarchy elements. Select one to edit Position, Size, Rotation, Scale, Style, Binding and Motion."
-,"inspector.section.elementComponents": "Components"
-,"inspector.elementComponents": "Components"
-,"inspector.components.add": "Add Component"
-,"inspector.components.fromPreset": "Made from the {0} preset"
-,"inspector.components.custom": "Custom composition"
-,"inspector.components.decompose": "Decompose"
-,"inspector.components.unknown": "This component is not in this build. Its values are preserved."
-,"inspector.components.noProperties": "No editable properties."
-,"tooltip.inspector.addComponent": "Attach a component. Only components that run on this screen's backend are listed."
-,"tooltip.inspector.componentEnabled": "Enable or disable the component, like Unity's component checkbox."
-,"tooltip.inspector.decompose": "Clear the preset label. The components stay exactly as they are."
-,"ctx.component.remove": "Remove Component"
-,"ctx.component.reset": "Reset Values"
-,"ctx.component.moveUp": "Move Up"
-,"ctx.component.moveDown": "Move Down"
-,"component.type.unknown": "Unknown Component"
-,"component.type.core.element": "Element (Rect)"
-,"component.type.nx.roundedRect": "Rounded Rect"
-,"component.type.nx.gradient": "Gradient"
-,"component.type.nx.softShadow": "Soft Shadow"
-,"component.type.nx.segmentedBar": "Segmented Bar"
-,"component.type.nx.cooldownOverlay": "Cooldown Overlay"
-,"component.type.nx.safeArea": "Safe Area"
-,"component.type.nx.flowLayout": "Flow Layout"
-,"component.type.nx.radialLayout": "Radial Layout"
-,"component.type.nx.autoGrid": "Auto Grid"
-,"component.type.nx.marqueeText": "Marquee Text"
-,"component.type.nx.typewriterText": "Typewriter Text"
-,"component.type.nx.numberTicker": "Number Ticker"
-,"component.type.nx.holdButton": "Hold Button"
-,"component.type.nx.swipeArea": "Swipe Area"
-,"component.type.nx.tooltipTrigger": "Tooltip Trigger"
-,"inspector.components.addScript": "Project Script..."
-,"palette.family.components": "Components"
-,"palette.family.nexuiBase": "NexUI Base"
-,"palette.family.core": "Core"
-,"palette.components.build": "Build by hand"
-,"palette.components.empty": "Empty Element"
-,"tooltip.palette.components.empty": "Creates an element with no components, like Unity's Create Empty."
-,"ctx.components.attachToSelection": "Attach to selection"
-,"ctx.components.createEmptyWith": "New element with this component"
-,"component.type.nx.virtualList": "Virtual List"
-,"component.type.nx.carousel": "Carousel"
-,"component.type.nx.tabGroup": "Tab Group"
+  "tooltip.sync.publish": "Writes only New/Studio-changed screens. In-sync is skipped; backend-changed and conflicts are reported as needing resolution.",
+  "productivity.newScreen": "New Screen",
+  "productivity.layout": "Layout",
+  "productivity.transition": "Transition",
+  "productivity.scenario": "Scenario",
+  "productivity.fixAllSafe": "Fix all safe issues",
+  "productivity.tooltip.newScreen": "Create a connected Screen, Metadata and backend asset bundle.",
+  "productivity.tooltip.layout": "Convert the selection to Auto Layout or recommend anchors.",
+  "productivity.tooltip.transition": "Generate Open and Close Motion Clips from the selection.",
+  "palette.family": "Library",
+  "palette.family.all": "All",
+  "palette.family.nexui": "NexUI",
+  "palette.family.ugui": "Unity uGUI",
+  "palette.family.uitk": "UI Toolkit",
+  "tooltip.palette.family": "Filter the component library by UI family.",
+  "palette.group.containers": "Containers",
+  "palette.group.layout": "Layout",
+  "palette.group.textMedia": "Text & Media",
+  "palette.group.media": "Media",
+  "palette.group.controls": "Controls",
+  "palette.group.selection": "Selection & Input",
+  "palette.group.navigation": "Navigation",
+  "palette.group.feedback": "Feedback",
+  "palette.group.overlay": "Overlay",
+  "palette.group.data": "Data & Collections",
+  "palette.group.charts": "Charts",
+  "palette.group.social": "Social",
+  "palette.group.commerce": "Commerce",
+  "palette.group.settings": "Settings",
+  "palette.group.game": "Game HUD",
+  "palette.group.game.world": "Game World & Map",
+  "palette.group.game.items": "Game Items & Inventory",
+  "palette.group.game.progression": "Game Progression & Rewards",
+  "palette.group.game.menu": "Game Menus & Results",
+  "palette.group.game.multiplayer": "Game Multiplayer",
+  "palette.group.ugui.basic": "Basic",
+  "palette.group.ugui.controls": "Controls",
+  "palette.group.ugui.containers": "Containers & Layout",
+  "palette.group.uitk.basic": "Basic",
+  "palette.group.uitk.controls": "Controls",
+  "palette.group.uitk.fields": "Fields",
+  "palette.group.uitk.containers": "Containers & Collections",
+  "inspector.section.attachedComponents": "Project Scripts",
+  "attachedComponents.help": "MonoBehaviours are applied to the generated uGUI GameObject. UI Toolkit screens keep them in metadata but cannot attach them to a VisualElement.",
+  "attachedComponents.add": "Add Component",
+  "attachedComponents.addTooltip": "Choose a runtime MonoBehaviour to attach when the uGUI prefab is saved.",
+  "attachedComponents.remove": "Remove this Studio-managed component.",
+  "attachedComponents.missing": "This type is not currently available; its reference is preserved.",
+  "attachedComponents.pickerTitle": "Add Component",
+  "palette.tooltip.family": "Library",
+  "palette.tooltip.backends": "Backend support",
+  "palette.tooltip.size": "Default size",
+  "palette.tooltip.states": "Preview states",
+  "palette.tooltip.bindings": "Bindings",
+  "palette.tooltip.events": "Events",
+  "palette.tooltip.hint": "Hover to inspect · Click to add · Right-click for placement options",
+  "palette.support.full": "Full",
+  "palette.support.partial": "Partial",
+  "palette.support.previewOnly": "Preview only",
+  "palette.support.unsupported": "Unsupported",
+  "palette.capability.children": "Accepts children",
+  "palette.capability.interactive": "Interactive",
+  "palette.capability.value": "Value-driven",
+  "palette.capability.collection": "Collection",
+  "palette.capability.overlay": "Overlay",
+  "palette.capability.display": "Display element",
+  "palette.value.none": "None",
+  "palette.family.custom": "Custom",
+  "componentLibrary.title": "Component Library",
+  "componentLibrary.summary": "{0} controls  |  {1} recipes  |  {2} custom",
+  "palette.family.builtin": "Built-In Recipes",
+  "componentLibrary.builtinBadge": "BUILT-IN",
+  "componentLibrary.builtinStats": "{0} elements  ·  {1} exposed  ·  {2} variants",
+  "componentLibrary.builtinHint": "Click to place this package recipe · Right-click to add or favourite",
+  "builtinRecipe.description": "Production-ready {0} composition in the {1} style. Includes editable content, exposed labels, slots, and a disabled-state variant.",
+  "builtinRecipe.category.navigation": "Navigation",
+  "builtinRecipe.category.content": "Content",
+  "builtinRecipe.category.forms": "Forms",
+  "builtinRecipe.category.commerce": "Commerce",
+  "builtinRecipe.category.game": "Game UI",
+  "builtinRecipe.category.feedback": "Feedback & Overlays",
+  "builtinRecipe.archetype.appHeader": "App Header",
+  "builtinRecipe.archetype.bottomNavigation": "Bottom Navigation",
+  "builtinRecipe.archetype.sidebarNavigation": "Sidebar Navigation",
+  "builtinRecipe.archetype.tabStrip": "Tab Strip",
+  "builtinRecipe.archetype.breadcrumbBar": "Breadcrumb Bar",
+  "builtinRecipe.archetype.metricCard": "Metric Card",
+  "builtinRecipe.archetype.featureCard": "Feature Card",
+  "builtinRecipe.archetype.profileCard": "Profile Card",
+  "builtinRecipe.archetype.articleCard": "Article Card",
+  "builtinRecipe.archetype.emptyState": "Empty State",
+  "builtinRecipe.archetype.loginForm": "Login Form",
+  "builtinRecipe.archetype.searchPanel": "Search Panel",
+  "builtinRecipe.archetype.settingsRow": "Settings Row",
+  "builtinRecipe.archetype.filterToolbar": "Filter Toolbar",
+  "builtinRecipe.archetype.feedbackForm": "Feedback Form",
+  "builtinRecipe.archetype.productCard": "Product Card",
+  "builtinRecipe.archetype.cartSummary": "Cart Summary",
+  "builtinRecipe.archetype.pricingCard": "Pricing Card",
+  "builtinRecipe.archetype.inventoryPanel": "Inventory Panel",
+  "builtinRecipe.archetype.questTracker": "Quest Tracker",
+  "builtinRecipe.archetype.partyMember": "Party Member Row",
+  "builtinRecipe.archetype.achievementCard": "Achievement Card",
+  "builtinRecipe.archetype.notificationToast": "Notification Toast",
+  "builtinRecipe.archetype.modalDialog": "Modal Dialog",
+  "builtinRecipe.archetype.loadingPanel": "Loading Panel",
+  "builtinRecipe.theme.midnight": "Midnight",
+  "builtinRecipe.theme.slate": "Slate",
+  "builtinRecipe.theme.ocean": "Ocean",
+  "builtinRecipe.theme.forest": "Forest",
+  "builtinRecipe.theme.ember": "Ember",
+  "builtinRecipe.theme.violet": "Violet",
+  "builtinRecipe.theme.rose": "Rose",
+  "builtinRecipe.theme.gold": "Gold",
+  "builtinRecipe.theme.monoDark": "Mono Dark",
+  "builtinRecipe.theme.monoLight": "Mono Light",
+  "builtinRecipe.theme.glass": "Glass",
+  "builtinRecipe.theme.contrast": "High Contrast",
+  "componentLibrary.newFolder": "New component folder",
+  "componentLibrary.newFolderShort": "+ Folder",
+  "componentLibrary.createFromSelection": "Create component from selection",
+  "componentLibrary.createShort": "+ Custom",
+  "componentLibrary.manage": "Open the full Component Library manager",
+  "componentLibrary.manageShort": "•••",
+  "componentLibrary.folder": "Folder",
+  "componentLibrary.folderPathHint": "Use / to create nested folders, for example Gameplay/HUD.",
+  "componentLibrary.folderExists": "That folder already exists.",
+  "componentLibrary.empty": "No custom components yet. Select a canvas element and use + Custom, or right-click a folder to create one there.",
+  "componentLibrary.customBadge": "CUSTOM",
+  "componentLibrary.customStats": "{0} elements  •  {1} slots  •  {2} exposed  •  {3} variants",
+  "componentLibrary.customHint": "Click to place an instance • Right-click to organize or edit",
+  "componentLibrary.selectionRequired": "Select an element on the Studio canvas first. Its full subtree will become a reusable component.",
+  "componentLibrary.instanceSelection": "This is already a component instance. Detach it first if you want to fork it.",
+  "componentLibrary.saveHint": "Save the reusable component definition as a project asset.",
+  "componentLibrary.createHere": "Create component here",
+  "componentLibrary.newSubfolder": "New subfolder",
+  "componentLibrary.renameFolder": "Rename folder",
+  "componentLibrary.removeFolder": "Remove folder",
+  "componentLibrary.removeFolderConfirm": "Remove this folder? Component assets are kept and moved to the parent folder.",
+  "componentLibrary.moveTo": "Move to folder",
+  "componentLibrary.renameComponent": "Rename component",
+  "componentLibrary.componentName": "Component name",
+  "componentLibrary.editAsset": "Edit definition asset",
+  "componentLibrary.pingAsset": "Show in Project",
+  "componentLibrary.favourite": "Favourite",
+  "common.ok": "OK",
+  "common.cancel": "Cancel",
+  "common.apply": "Apply",
+  "common.remove": "Remove",
+  "attachedComponents.summary": "Runtime Components · {0}",
+  "attachedComponents.target": "Attached to {0} when the uGUI prefab is generated",
+  "attachedComponents.helpTooltip": "Attached MonoBehaviours are serialized as type identities. NexUI only manages entries added here and does not remove components authored directly on the prefab.",
+  "attachedComponents.uguiTooltip": "Fully materialized on the generated uGUI GameObject. UI Toolkit preserves the reference as metadata because VisualElement cannot host MonoBehaviour.",
+  "attachedComponents.empty": "No runtime components attached. Use Add Component to connect project scripts or Unity behaviours to this UI element.",
+  "attachedComponents.missingTitle": "Missing Component",
+  "attachedComponents.sourceUnity": "Unity",
+  "attachedComponents.sourceProject": "Project",
+  "attachedComponents.single": "Single instance",
+  "attachedComponents.editMode": "Runs in Edit Mode",
+  "attachedComponents.requires": "Requires: {0}",
+  "attachedComponents.showScript": "Show script in Project",
+  "attachedComponents.openDocs": "Open documentation",
+  "attachedComponents.categoryUnknown": "Uncategorized",
+  "attachedComponents.descriptionUnity": "Unity runtime behaviour '{0}' attached to the generated UI GameObject.",
+  "attachedComponents.descriptionProject": "Project MonoBehaviour '{0}' attached to this UI element at prefab generation time. Add a Description attribute to the class to show custom help here.",
+  "attachedComponents.tooltipCategory": "Category",
+  "attachedComponents.tooltipAssembly": "Assembly",
+  "attachedComponents.tooltipBackend": "Backend",
+  "attachedComponents.uguiOnly": "uGUI full · UI Toolkit metadata only",
+  "attachedComponents.pickerDescription": "Browse Unity behaviours and project MonoBehaviours. Hover a card to inspect its description and requirements before adding it.",
+  "attachedComponents.searchTooltip": "Search by component name, category, namespace, assembly or description.",
+  "attachedComponents.resultCount": "{0} components",
+  "attachedComponents.noResults": "No component matches this search.",
+  "motionInspector.preset": "Motion Preset",
+  "motionInspector.motionId": "Motion ID",
+  "motionInspector.initial": "Initial",
+  "motionInspector.animate": "Animate",
+  "motionInspector.exit": "Exit",
+  "motionInspector.hover": "Hover",
+  "motionInspector.pressed": "Pressed",
+  "motionInspector.focus": "Focus",
+  "motionInspector.noPreset": "Assign a motion preset to edit its graph and preview the selected variant.",
+  "motionInspector.entryClipTooltip": "Motion clip played when this screen opens.",
+  "motionInspector.exitClipTooltip": "Motion clip played when this screen closes.",
+  "motionInspector.addBindingTooltip": "Add a trigger that plays a motion clip for this UI element.",
+  "motionInspector.previewTitle": "Live Motion Preview",
+  "motionInspector.previewDescription": "The start ghost, travel path, and moving UI show the motion before you apply it.",
+  "motionInspector.replayTooltip": "Replay the live preview from the start.",
+  "motionInspector.sectionTabsTooltip": "Show only one motion editing area at a time to keep the Inspector compact.",
+  "motionInspector.tabSettings": "Settings",
+  "motionInspector.tabSettingsTooltip": "Edit element presets, state variants, and screen transition clips.",
+  "motionInspector.tabExamples": "Examples",
+  "motionInspector.tabExamplesTooltip": "Browse visual motion recipes and open one as an editable preset.",
+  "motionInspector.tabTriggers": "Triggers",
+  "motionInspector.tabTriggersTooltip": "Connect motion clips to clicks, state changes, commands, and lifecycle events.",
+  "motionInspector.elementMotion": "Element Motion",
+  "motionInspector.elementMotionDescription": "Assign a reusable motion preset and map its variants to element states.",
+  "motionInspector.previewAssigned": "Preview assigned",
+  "motionInspector.previewAssignedTooltip": "Play the selected element's compiled motion in the preview above.",
+  "motionInspector.variants": "State Variants",
+  "motionInspector.variantsTooltip": "Variant names connect preset timelines to initial, interaction, focus, and exit states.",
+  "motionInspector.screenMotion": "Screen Enter / Exit",
+  "motionInspector.screenMotionDescription": "Choose clips for screen-level transitions and preview either clip instantly.",
+  "motionInspector.previewEntryClip": "Preview the assigned entry clip on the Studio canvas.",
+  "motionInspector.previewExitClip": "Preview the assigned exit clip on the Studio canvas.",
+  "motionInspector.examples": "Motion Examples",
+  "motionInspector.examplesDescription": "Select a card to see a looping example, then open it as a real editable preset.",
+  "motionInspector.useExample": "Use selected example",
+  "motionInspector.useExampleTooltip": "Open the transition preset editor with this example selected.",
+  "motionInspector.useNamedExample": "Use {0} example",
+  "motionInspector.exampleTooltip": "Click to load this example into the live preview.",
+  "motionInspector.triggerMotion": "Trigger Bindings",
+  "motionInspector.triggerMotionDescription": "Play clips from clicks, state changes, commands, or lifecycle events.",
+  "motionInspector.noSelection": "No UI element selected",
+  "motionInspector.noSelectionDescription": "Select an element on the canvas to author and preview its motion.",
+  "motionInspector.target": "Motion · {0}",
+  "motionInspector.unassigned": "Not assigned",
+  "motionInspector.unassignedDescription": "No motion preset is assigned. Try an example below or assign an existing preset.",
+  "motionInspector.motionSummary": "Compiled into {0} tracks · {1:0.00}s total",
+  "motionInspector.ready": "Ready",
+  "motionInspector.noPresetPreview": "A gentle opacity transition demonstrates the live preview. Choose an example below for more.",
+  "motionInspector.assignedPreviewDescription": "Playing compiled variant '{0}' with runtime easing.",
+  "motionInspector.noBindings": "No trigger bindings yet. Add one to play a clip from an interaction or event.",
+  "motionInspector.bindingTooltip": "This binding links a trigger to its normal and reduced-motion clips.",
+  "motionInspector.trigger": "Trigger",
+  "motionInspector.noBindingsForTarget": "No bindings currently target this UI element.",
+  "motionExample.fade": "Fade In",
+  "motionExample.fadeDescription": "Gently reveals UI by animating opacity from transparent to visible.",
+  "motionExample.slide": "Slide In",
+  "motionExample.slideDescription": "Moves UI in from the left while fading it into place.",
+  "motionExample.scale": "Scale Pop",
+  "motionExample.scaleDescription": "Uses a soft overshoot to pop buttons, cards, or dialogs into view.",
+  "motionExample.toast": "Toast Rise",
+  "motionExample.toastDescription": "Raises a notification from below with a brief eased settle.",
+  "component.section": "Section",
+  "component.toolbar": "Toolbar",
+  "component.scrollArea": "Scroll Area",
+  "component.splitter": "Splitter",
+  "component.accordion": "Accordion",
+  "component.heading": "Heading",
+  "component.richText": "Rich Text",
+  "component.link": "Link",
+  "component.icon": "Icon",
+  "component.avatar": "Avatar",
+  "component.divider": "Divider",
+  "component.badge": "Badge",
+  "component.chip": "Chip / Tag",
+  "component.checkbox": "Checkbox",
+  "component.switch": "Switch",
+  "component.radioGroup": "Radio Group",
+  "component.segmentedControl": "Segmented Control",
+  "component.dropdown": "Dropdown",
+  "component.slider": "Slider",
+  "component.rangeSlider": "Range Slider",
+  "component.stepper": "Stepper",
+  "component.textField": "Text Field",
+  "component.textArea": "Text Area",
+  "component.searchField": "Search Field",
+  "component.rating": "Rating",
+  "component.tabs": "Tabs",
+  "component.tabItem": "Tab Item",
+  "component.appBar": "App Bar",
+  "component.sideNav": "Side Navigation",
+  "component.breadcrumb": "Breadcrumb",
+  "component.pagination": "Pagination",
+  "component.menu": "Menu",
+  "component.stepIndicator": "Step Indicator",
+  "component.alert": "Alert",
+  "component.emptyState": "Empty State",
+  "component.drawer": "Drawer",
+  "component.contextMenu": "Context Menu",
+  "component.loadingOverlay": "Loading Overlay",
+  "component.table": "Table",
+  "component.treeView": "Tree View",
+  "component.carousel": "Carousel",
+  "component.minimap": "Minimap",
+  "component.compass": "Compass",
+  "component.crosshair": "Crosshair",
+  "component.questTracker": "Quest Tracker",
+  "component.dialogueBox": "Dialogue Box",
+  "component.chatPanel": "Chat Panel",
+  "component.leaderboard": "Leaderboard",
+  "component.currencyDisplay": "Currency Display",
+  "component.buffBar": "Buff Bar",
+  "component.cooldownIcon": "Cooldown Icon",
+  "component.keyPrompt": "Key Prompt",
+  "component.spacer": "Spacer",
+  "component.flowContainer": "Flow Container",
+  "component.masonryGrid": "Masonry Grid",
+  "component.aspectBox": "Aspect Box",
+  "component.safeArea": "Safe Area",
+  "component.stickyHeader": "Sticky Header",
+  "component.sidebarLayout": "Sidebar Layout",
+  "component.twoColumn": "Two Column",
+  "component.threeColumn": "Three Column",
+  "component.centerBox": "Center Box",
+  "component.dockPanel": "Dock Panel",
+  "component.resizablePanel": "Resizable Panel",
+  "component.scrollSnap": "Scroll Snap Area",
+  "component.pageContainer": "Page Container",
+  "component.fieldRow": "Field Row",
+  "component.form": "Form",
+  "component.formSection": "Form Section",
+  "component.listItem": "List Item",
+  "component.panelHeader": "Panel Header",
+  "component.caption": "Caption",
+  "component.subtitle": "Subtitle",
+  "component.overline": "Overline",
+  "component.codeBlock": "Code Block",
+  "component.quote": "Quote",
+  "component.markdownText": "Markdown Text",
+  "component.numberTicker": "Number Ticker",
+  "component.countdownText": "Countdown Text",
+  "component.typewriterText": "Typewriter Text",
+  "component.marquee": "Marquee",
+  "component.highlightText": "Highlight Text",
+  "component.truncatedText": "Truncated Text",
+  "component.labelValue": "Label / Value",
+  "component.timestamp": "Timestamp",
+  "component.currencyText": "Currency Text",
+  "component.percentText": "Percent Text",
+  "component.gradientText": "Gradient Text",
+  "component.outlineText": "Outline Text",
+  "component.videoView": "Video View",
+  "component.renderTextureView": "Render Texture View",
+  "component.imageGallery": "Image Gallery",
+  "component.thumbnail": "Thumbnail",
+  "component.coverImage": "Cover Image",
+  "component.logo": "Logo",
+  "component.placeholderImage": "Placeholder Image",
+  "component.qRCode": "QR Code",
+  "component.portraitFrame": "Portrait Frame",
+  "component.nineSliceImage": "Nine Slice Image",
+  "component.maskedImage": "Masked Image",
+  "component.parallaxLayer": "Parallax Layer",
+  "component.particleHost": "Particle Host",
+  "component.modelView": "3D Model View",
+  "component.numberField": "Number Field",
+  "component.passwordField": "Password Field",
+  "component.knob": "Knob",
+  "component.colorPicker": "Color Picker",
+  "component.colorSwatch": "Color Swatch",
+  "component.gradientPicker": "Gradient Picker",
+  "component.datePicker": "Date Picker",
+  "component.timePicker": "Time Picker",
+  "component.dateRangePicker": "Date Range Picker",
+  "component.calendar": "Calendar",
+  "component.keybindField": "Keybind Field",
+  "component.vectorField": "Vector Field",
+  "component.curveField": "Curve Field",
+  "component.filePicker": "File Picker",
+  "component.volumeSlider": "Volume Slider",
+  "component.toggleButton": "Toggle Button",
+  "component.splitButton": "Split Button",
+  "component.buttonGroup": "Button Group",
+  "component.floatingActionButton": "Floating Action Button",
+  "component.holdButton": "Hold Button",
+  "component.repeatButton": "Repeat Button",
+  "component.radialMenu": "Radial Menu",
+  "component.virtualJoystick": "Virtual Joystick",
+  "component.dPad": "D-Pad",
+  "component.swipeArea": "Swipe Area",
+  "component.dragHandle": "Drag Handle",
+  "component.resizeHandle": "Resize Handle",
+  "component.scrubber": "Scrubber",
+  "component.multiSelect": "Multi Select",
+  "component.comboBox": "Combo Box",
+  "component.autocomplete": "Autocomplete",
+  "component.tagInput": "Tag Input",
+  "component.filterBar": "Filter Bar",
+  "component.sortSelector": "Sort Selector",
+  "component.optionCard": "Option Card",
+  "component.transferList": "Transfer List",
+  "component.checkboxGroup": "Checkbox Group",
+  "component.selectionList": "Selection List",
+  "component.navRail": "Navigation Rail",
+  "component.bottomNav": "Bottom Navigation",
+  "component.navItem": "Navigation Item",
+  "component.menuBar": "Menu Bar",
+  "component.menuItem": "Menu Item",
+  "component.subMenu": "Sub Menu",
+  "component.commandPalette": "Command Palette",
+  "component.searchOverlay": "Search Overlay",
+  "component.backButton": "Back Button",
+  "component.closeButton": "Close Button",
+  "component.wizard": "Wizard",
+  "component.wizardStep": "Wizard Step",
+  "component.anchorNav": "Anchor Navigation",
+  "component.quickAccessBar": "Quick Access Bar",
+  "component.statusDot": "Status Dot",
+  "component.statusPill": "Status Pill",
+  "component.loadingBar": "Loading Bar",
+  "component.meter": "Meter",
+  "component.gauge": "Gauge",
+  "component.sparkline": "Sparkline",
+  "component.trendIndicator": "Trend Indicator",
+  "component.toastStack": "Toast Stack",
+  "component.snackbar": "Snackbar",
+  "component.inlineError": "Inline Error",
+  "component.successCheck": "Success Check",
+  "component.countdownTimer": "Countdown Timer",
+  "component.cooldownBar": "Cooldown Bar",
+  "component.comboMeter": "Combo Meter",
+  "component.scorePopup": "Score Popup",
+  "component.damageNumber": "Damage Number",
+  "component.floatingText": "Floating Text",
+  "component.activityIndicator": "Activity Indicator",
+  "component.connectionStatus": "Connection Status",
+  "component.fpsCounter": "FPS Counter",
+  "component.confirmDialog": "Confirm Dialog",
+  "component.alertDialog": "Alert Dialog",
+  "component.promptDialog": "Prompt Dialog",
+  "component.bottomSheet": "Bottom Sheet",
+  "component.sideSheet": "Side Sheet",
+  "component.lightbox": "Lightbox",
+  "component.coachMark": "Coach Mark",
+  "component.tutorialOverlay": "Tutorial Overlay",
+  "component.spotlight": "Spotlight",
+  "component.backdrop": "Backdrop",
+  "component.hoverCard": "Hover Card",
+  "component.contextPanel": "Context Panel",
+  "component.tableRow": "Table Row",
+  "component.tableHeader": "Table Header",
+  "component.columnHeader": "Column Header",
+  "component.infiniteList": "Infinite List",
+  "component.virtualGrid": "Virtual Grid",
+  "component.treeNode": "Tree Node",
+  "component.kanbanBoard": "Kanban Board",
+  "component.kanbanColumn": "Kanban Column",
+  "component.timelineList": "Timeline",
+  "component.feed": "Feed",
+  "component.commentThread": "Comment Thread",
+  "component.statCard": "Stat Card",
+  "component.kpiTile": "KPI Tile",
+  "component.metricRow": "Metric Row",
+  "component.sectionHeader": "Section Header",
+  "component.propertyRow": "Property Row",
+  "component.keyValueTable": "Key / Value Table",
+  "component.logView": "Log View",
+  "component.barChart": "Bar Chart",
+  "component.lineChart": "Line Chart",
+  "component.areaChart": "Area Chart",
+  "component.pieChart": "Pie Chart",
+  "component.donutChart": "Donut Chart",
+  "component.radarChart": "Radar Chart",
+  "component.scatterPlot": "Scatter Plot",
+  "component.heatmap": "Heatmap",
+  "component.histogram": "Histogram",
+  "component.gaugeChart": "Gauge Chart",
+  "component.funnelChart": "Funnel Chart",
+  "component.stackedBarChart": "Stacked Bar Chart",
+  "component.chartLegend": "Chart Legend",
+  "component.profileCard": "Profile Card",
+  "component.userRow": "User Row",
+  "component.friendListItem": "Friend List Item",
+  "component.presenceDot": "Presence Dot",
+  "component.followButton": "Follow Button",
+  "component.shareSheet": "Share Sheet",
+  "component.reviewCard": "Review Card",
+  "component.ratingSummary": "Rating Summary",
+  "component.commentInput": "Comment Input",
+  "component.mentionList": "Mention List",
+  "component.productCard": "Product Card",
+  "component.priceTag": "Price Tag",
+  "component.discountBadge": "Discount Badge",
+  "component.cartItem": "Cart Item",
+  "component.checkoutSummary": "Checkout Summary",
+  "component.paymentMethodRow": "Payment Method Row",
+  "component.couponField": "Coupon Field",
+  "component.purchaseButton": "Purchase Button",
+  "component.subscriptionCard": "Subscription Card",
+  "component.shopItemCard": "Shop Item Card",
+  "component.currencyPack": "Currency Pack",
+  "component.rewardCard": "Reward Card",
+  "component.settingsRow": "Settings Row",
+  "component.settingsToggleRow": "Settings Toggle Row",
+  "component.settingsSliderRow": "Settings Slider Row",
+  "component.settingsSection": "Settings Section",
+  "component.languageSelector": "Language Selector",
+  "component.volumeRow": "Volume Row",
+  "component.keybindRow": "Keybind Row",
+  "component.accountRow": "Account Row",
+  "component.legalRow": "Legal Row",
+  "component.aboutRow": "About Row",
+  "component.abilityBar": "Ability Bar",
+  "component.skillSlot": "Skill Slot",
+  "component.skillTreeNode": "Skill Tree Node",
+  "component.inventoryGrid": "Inventory Grid",
+  "component.equipmentSlot": "Equipment Slot",
+  "component.characterPortrait": "Character Portrait",
+  "component.partyFrame": "Party Frame",
+  "component.targetFrame": "Target Frame",
+  "component.castBar": "Cast Bar",
+  "component.comboCounter": "Combo Counter",
+  "component.killFeed": "Kill Feed",
+  "component.objectiveMarker": "Objective Marker",
+  "component.waypoint": "Waypoint",
+  "component.ammoCounter": "Ammo Counter",
+  "component.weaponWheel": "Weapon Wheel",
+  "component.interactionPrompt": "Interaction Prompt",
+  "component.subtitleBar": "Subtitle Bar",
+  "component.bossHealthBar": "Boss Health Bar",
+  "component.resourceOrb": "Resource Orb",
+  "component.xpBar": "XP Bar",
+  "component.levelBadge": "Level Badge",
+  "component.rankEmblem": "Rank Emblem",
+  "component.achievementToast": "Achievement Toast",
+  "component.lootPopup": "Loot Popup",
+  "component.nameplate": "Nameplate",
+  "component.chatBubble": "Chat Bubble",
+  "component.emoteWheel": "Emote Wheel",
+  "component.pingWheel": "Ping Wheel",
+  "component.speedometer": "Speedometer",
+  "component.lapTimer": "Lap Timer",
+  "component.mapLegend": "Map Legend",
+  "component.craftingSlot": "Crafting Slot",
+  "component.questCard": "Quest Card",
+  "component.tradePanel": "Trade Panel",
+  "component.healthBar": "Health Bar",
+  "component.shieldBar": "Shield Bar",
+  "component.armorBar": "Armor Bar",
+  "component.manaBar": "Mana Bar",
+  "component.energyBar": "Energy Bar",
+  "component.staminaWheel": "Stamina Wheel",
+  "component.breathMeter": "Breath Meter",
+  "component.hungerMeter": "Hunger Meter",
+  "component.sanityMeter": "Sanity Meter",
+  "component.heatMeter": "Heat Meter",
+  "component.ultimateCharge": "Ultimate Charge",
+  "component.chargeMeter": "Charge Meter",
+  "component.reloadIndicator": "Reload Indicator",
+  "component.threatMeter": "Threat Meter",
+  "component.detectionMeter": "Detection Meter",
+  "component.noiseMeter": "Noise Meter",
+  "component.healthPips": "Health Pips",
+  "component.ammoPips": "Ammo Pips",
+  "component.hitMarker": "Hit Marker",
+  "component.damageIndicator": "Damage Direction Indicator",
+  "component.statusEffectIcon": "Status Effect Icon",
+  "component.abilityQueue": "Ability Queue",
+  "component.stanceSelector": "Stance Selector",
+  "component.grenadeSelector": "Grenade Selector",
+  "component.comboRank": "Combo Rank",
+  "component.accuracyMeter": "Accuracy Meter",
+  "component.judgementText": "Judgement Text",
+  "component.weaponSlot": "Weapon Slot",
+  "component.vehicleHud": "Vehicle HUD",
+  "component.gearIndicator": "Gear Indicator",
+  "component.nitroBar": "Nitro Bar",
+  "component.tachometer": "Tachometer",
+  "component.mapScreen": "Map Screen",
+  "component.mapMarkerList": "Map Marker List",
+  "component.offscreenIndicator": "Off-screen Indicator",
+  "component.lockOnIndicator": "Lock-on Indicator",
+  "component.distanceMeter": "Distance Meter",
+  "component.zoneBanner": "Zone Banner",
+  "component.discoveryToast": "Discovery Toast",
+  "component.travelProgress": "Travel Progress",
+  "component.radar": "Radar",
+  "component.objectiveList": "Objective List",
+  "component.worldTooltip": "World Tooltip",
+  "component.placementGhost": "Placement Ghost",
+  "component.compassMarker": "Compass Marker",
+  "component.depthMeter": "Depth Meter",
+  "component.timeOfDay": "Time of Day",
+  "component.weatherIndicator": "Weather Indicator",
+  "component.letterbox": "Cutscene Letterbox",
+  "component.skipPrompt": "Skip Prompt",
+  "component.itemCard": "Item Card",
+  "component.itemTooltip": "Item Tooltip",
+  "component.itemComparison": "Item Comparison",
+  "component.rarityFrame": "Rarity Frame",
+  "component.durabilityBar": "Durability Bar",
+  "component.stackCount": "Stack Count",
+  "component.itemLevelBadge": "Item Level Badge",
+  "component.paperdoll": "Equipment Paperdoll",
+  "component.loadoutPanel": "Loadout Panel",
+  "component.bagTabs": "Bag Tabs",
+  "component.weightMeter": "Weight Meter",
+  "component.sortFilterBar": "Sort & Filter Bar",
+  "component.craftingRecipe": "Crafting Recipe",
+  "component.craftingQueue": "Crafting Queue",
+  "component.upgradePanel": "Upgrade Panel",
+  "component.enchantPanel": "Enchant Panel",
+  "component.salvagePanel": "Salvage Panel",
+  "component.vendorList": "Vendor List",
+  "component.buybackList": "Buyback List",
+  "component.auctionRow": "Auction Row",
+  "component.mailItem": "Mail Item",
+  "component.currencyBar": "Currency Bar",
+  "component.lootTableRow": "Loot Table Row",
+  "component.chestOpen": "Chest Opening",
+  "component.summonResult": "Summon Result",
+  "component.pityCounter": "Pity Counter",
+  "component.giftClaim": "Gift Claim",
+  "component.collectionAlbum": "Collection Album",
+  "component.codexEntry": "Codex Entry",
+  "component.experienceBar": "Experience Bar",
+  "component.levelUpPopup": "Level Up Popup",
+  "component.skillTree": "Skill Tree",
+  "component.talentGrid": "Talent Grid",
+  "component.skillPointCounter": "Skill Point Counter",
+  "component.battlePassTrack": "Battle Pass Track",
+  "component.seasonTier": "Season Tier",
+  "component.dailyLoginCalendar": "Daily Login Calendar",
+  "component.questLog": "Quest Log",
+  "component.questObjective": "Quest Objective",
+  "component.achievementRow": "Achievement Row",
+  "component.masteryRing": "Mastery Ring",
+  "component.reputationBar": "Reputation Bar",
+  "component.rankProgress": "Rank Progress",
+  "component.unlockNotification": "Unlock Notification",
+  "component.rewardPreview": "Reward Preview",
+  "component.milestoneTrack": "Milestone Track",
+  "component.energyTimer": "Energy Timer",
+  "component.vipLevel": "VIP Level",
+  "component.titleScreen": "Title Screen",
+  "component.mainMenu": "Main Menu",
+  "component.pauseMenu": "Pause Menu",
+  "component.saveSlotList": "Save Slot List",
+  "component.saveSlot": "Save Slot",
+  "component.difficultySelector": "Difficulty Selector",
+  "component.characterSelect": "Character Select",
+  "component.characterPreview": "Character Preview",
+  "component.levelSelect": "Level Select",
+  "component.stageCard": "Stage Card",
+  "component.loadingScreen": "Loading Screen",
+  "component.loadingTip": "Loading Tip",
+  "component.pressStartPrompt": "Press Start Prompt",
+  "component.deathScreen": "Death Screen",
+  "component.respawnTimer": "Respawn Timer",
+  "component.matchResults": "Match Results",
+  "component.scoreBreakdown": "Score Breakdown",
+  "component.starRatingResult": "Star Rating Result",
+  "component.mvpCard": "MVP Card",
+  "component.creditsRoll": "Credits Roll",
+  "component.quitConfirm": "Quit Confirm",
+  "component.controlsDiagram": "Controls Diagram",
+  "component.tutorialHint": "Tutorial Hint",
+  "component.adRewardButton": "Ad Reward Button",
+  "component.rateUsPrompt": "Rate Us Prompt",
+  "component.teamRoster": "Team Roster",
+  "component.scoreboard": "Scoreboard",
+  "component.scoreboardRow": "Scoreboard Row",
+  "component.lobbySlot": "Lobby Slot",
+  "component.readyCheck": "Ready Check",
+  "component.matchmakingStatus": "Matchmaking Status",
+  "component.partyInvite": "Party Invite",
+  "component.guildPanel": "Guild Panel",
+  "component.chatChannelTabs": "Chat Channel Tabs",
+  "component.voiceIndicator": "Voice Indicator",
+  "component.pingBadge": "Ping Badge",
+  "component.hostBadge": "Host Badge",
+  "component.spectatorBar": "Spectator Bar",
+  "component.killCam": "Kill Cam",
+  "component.reportPlayer": "Report Player",
+  "component.friendInviteList": "Friend Invite List",
+  "component.crossplayToggle": "Crossplay Toggle",
+  "component.sessionCode": "Session Code",
+  "component.serverList": "Server List",
+  "component.teamBanner": "Team Banner",
+  "component.ugui.image": "Image",
+  "component.ugui.rawImage": "Raw Image",
+  "component.ugui.panel": "Panel",
+  "component.ugui.text": "Text - TextMeshPro",
+  "component.ugui.textLegacy": "Text (Legacy)",
+  "component.ugui.button": "Button",
+  "component.ugui.buttonTMP": "Button - TextMeshPro",
+  "component.ugui.toggle": "Toggle",
+  "component.ugui.toggleGroup": "Toggle Group",
+  "component.ugui.slider": "Slider",
+  "component.ugui.scrollbar": "Scrollbar",
+  "component.ugui.dropdown": "Dropdown",
+  "component.ugui.dropdownTMP": "Dropdown - TextMeshPro",
+  "component.ugui.inputField": "Input Field (Legacy)",
+  "component.ugui.inputFieldTMP": "Input Field - TextMeshPro",
+  "component.ugui.scrollView": "Scroll View",
+  "component.ugui.mask": "Mask",
+  "component.ugui.rectMask2D": "Rect Mask 2D",
+  "component.ugui.horizontalLayoutGroup": "Horizontal Layout Group",
+  "component.ugui.verticalLayoutGroup": "Vertical Layout Group",
+  "component.ugui.gridLayoutGroup": "Grid Layout Group",
+  "component.ugui.canvas": "Nested Canvas",
+  "component.uitk.visualElement": "Visual Element",
+  "component.uitk.label": "Label",
+  "component.uitk.image": "Image",
+  "component.uitk.box": "Box",
+  "component.uitk.textElement": "Text Element",
+  "component.uitk.bindableElement": "Bindable Element",
+  "component.uitk.iMGUIContainer": "IMGUI Container",
+  "component.uitk.helpBox": "Help Box",
+  "component.uitk.button": "Button",
+  "component.uitk.toggle": "Toggle",
+  "component.uitk.slider": "Slider",
+  "component.uitk.sliderInt": "Slider (Int)",
+  "component.uitk.minMaxSlider": "Min Max Slider",
+  "component.uitk.progressBar": "Progress Bar",
+  "component.uitk.radioButton": "Radio Button",
+  "component.uitk.radioButtonGroup": "Radio Button Group",
+  "component.uitk.dropdownField": "Dropdown Field",
+  "component.uitk.enumField": "Enum Field",
+  "component.uitk.scroller": "Scroller",
+  "component.uitk.repeatButton": "Repeat Button",
+  "component.uitk.toggleButtonGroup": "Toggle Button Group",
+  "component.uitk.textField": "Text Field",
+  "component.uitk.integerField": "Integer Field",
+  "component.uitk.floatField": "Float Field",
+  "component.uitk.vector2Field": "Vector2 Field",
+  "component.uitk.vector3Field": "Vector3 Field",
+  "component.uitk.vector4Field": "Vector4 Field",
+  "component.uitk.rectField": "Rect Field",
+  "component.uitk.objectField": "Object Field",
+  "component.uitk.doubleField": "Double Field",
+  "component.uitk.longField": "Long Field",
+  "component.uitk.unsignedIntegerField": "Unsigned Integer Field",
+  "component.uitk.unsignedLongField": "Unsigned Long Field",
+  "component.uitk.vector2IntField": "Vector2Int Field",
+  "component.uitk.vector3IntField": "Vector3Int Field",
+  "component.uitk.rectIntField": "RectInt Field",
+  "component.uitk.boundsField": "Bounds Field",
+  "component.uitk.boundsIntField": "BoundsInt Field",
+  "component.uitk.hash128Field": "Hash128 Field",
+  "component.uitk.angleField": "Angle Field",
+  "component.uitk.lengthField": "Length Field",
+  "component.uitk.timeValueField": "Time Value Field",
+  "component.uitk.translateField": "Translate Field",
+  "component.uitk.rotateField": "Rotate Field",
+  "component.uitk.scaleField": "Scale Field",
+  "component.uitk.transformOriginField": "Transform Origin Field",
+  "component.uitk.gUIDField": "GUID Field",
+  "component.uitk.buttonStripField": "Button Strip Field",
+  "component.uitk.scrollView": "Scroll View",
+  "component.uitk.listView": "List View",
+  "component.uitk.multiColumnListView": "Multi Column List View",
+  "component.uitk.treeView": "Tree View",
+  "component.uitk.multiColumnTreeView": "Multi Column Tree View",
+  "component.uitk.foldout": "Foldout",
+  "component.uitk.groupBox": "Group Box",
+  "component.uitk.tabView": "Tab View",
+  "component.uitk.tab": "Tab",
+  "component.uitk.twoPaneSplitView": "Two Pane Split View",
+  "component.uitk.popupWindow": "Popup Window",
+  "inspector.section.componentProperties": "Component Properties",
+  "inspector.showAdvanced": "Show advanced properties",
+  "tooltip.inspector.showAdvanced": "Show every property, including the ones you rarely touch.",
+  "tooltip.inspector.resetProperty": "Reset to the component default.",
+  "tooltip.inspector.searchProperties": "Filter this component's properties by name, key, or description.",
+  "prop.group.content": "Content",
+  "prop.group.value": "Value",
+  "prop.group.interaction": "Interaction",
+  "prop.group.data": "Data",
+  "prop.group.appearance": "Appearance",
+  "prop.group.layout": "Layout",
+  "prop.group.behavior": "Behavior",
+  "prop.interactable": "Interactable",
+  "prop.transition": "Transition",
+  "prop.navigation.enabled": "Keyboard / Gamepad Navigation",
+  "prop.emphasis": "Emphasis",
+  "prop.clipContent": "Clip Content",
+  "prop.size": "Size",
+  "prop.value.min": "Min Value",
+  "prop.value.max": "Max Value",
+  "prop.value.wholeNumbers": "Whole Numbers",
+  "prop.value.direction": "Fill Direction",
+  "prop.value.segments": "Segments",
+  "prop.value.showLabel": "Show Value Label",
+  "prop.value.format": "Value Format",
+  "prop.value.animationDuration": "Change Animation (s)",
+  "prop.items.source": "Items Source Key",
+  "prop.items.selection": "Selection Mode",
+  "prop.items.virtualize": "Virtualize",
+  "prop.items.itemSize": "Item Size",
+  "prop.items.spacing": "Item Spacing",
+  "prop.items.orientation": "Orientation",
+  "prop.items.reorderable": "Reorderable",
+  "prop.items.showEmptyState": "Show Empty State",
+  "prop.items.previewCount": "Preview Item Count",
+  "prop.text.richText": "Rich Text",
+  "prop.text.autoSize": "Auto Size",
+  "prop.text.maxLines": "Max Lines",
+  "prop.text.selectable": "Selectable",
+  "prop.text.localizationKey": "Localization Key",
+  "prop.media.sprite": "Sprite",
+  "prop.media.preserveAspect": "Preserve Aspect",
+  "prop.media.raycastTarget": "Raycast Target",
+  "prop.media.maskable": "Maskable",
+  "prop.media.tint": "Tint",
+  "prop.overlay.modal": "Modal",
+  "prop.overlay.dismissOnBackdrop": "Dismiss On Backdrop Click",
+  "prop.overlay.dismissOnEscape": "Dismiss On Cancel Input",
+  "prop.overlay.placement": "Placement",
+  "prop.overlay.backdropOpacity": "Backdrop Opacity",
+  "prop.overlay.trapFocus": "Trap Focus",
+  "prop.overlay.autoDismissSeconds": "Auto Dismiss (s)",
+  "prop.container.scrollable": "Scrollable",
+  "prop.container.blocksRaycast": "Blocks Raycast",
+  "prop.slider.step": "Step",
+  "prop.slider.showTicks": "Show Ticks",
+  "prop.slider.fillHandle": "Show Handle",
+  "prop.range.low": "Low Value",
+  "prop.range.high": "High Value",
+  "prop.range.minGap": "Minimum Gap",
+  "prop.toggle.isOn": "Is On",
+  "prop.toggle.allowIndeterminate": "Allow Indeterminate",
+  "prop.toggle.group": "Toggle Group",
+  "prop.choice.options": "Options",
+  "prop.choice.value": "Selected Index",
+  "prop.choice.placeholder": "Placeholder",
+  "prop.choice.searchable": "Searchable",
+  "prop.choice.maxVisible": "Max Visible Options",
+  "prop.input.placeholder": "Placeholder",
+  "prop.input.maxLength": "Character Limit",
+  "prop.input.contentType": "Content Type",
+  "prop.input.lineType": "Line Type",
+  "prop.input.readOnly": "Read Only",
+  "prop.input.selectAllOnFocus": "Select All On Focus",
+  "prop.input.submitOnEnter": "Submit On Enter",
+  "prop.input.clearButton": "Clear Button",
+  "prop.scroll.horizontal": "Horizontal",
+  "prop.scroll.vertical": "Vertical",
+  "prop.scroll.movement": "Movement Type",
+  "prop.scroll.elasticity": "Elasticity",
+  "prop.scroll.inertia": "Inertia",
+  "prop.scroll.decelerationRate": "Deceleration Rate",
+  "prop.scroll.sensitivity": "Scroll Sensitivity",
+  "prop.scroll.verticalBar": "Vertical Scrollbar",
+  "prop.scroll.horizontalBar": "Horizontal Scrollbar",
+  "prop.tabs.activeIndex": "Active Tab",
+  "prop.tabs.orientation": "Orientation",
+  "prop.tabs.closable": "Closable Tabs",
+  "prop.tabs.scrollable": "Scrollable Strip",
+  "prop.foldout.expanded": "Expanded",
+  "prop.foldout.singleOpen": "Only One Section Open",
+  "prop.button.submitOnHold": "Repeat While Held",
+  "prop.button.holdSeconds": "Hold Duration (s)",
+  "prop.button.busyState": "Has Busy State",
+  "prop.dialog.confirmLabel": "Confirm Label",
+  "prop.dialog.cancelLabel": "Cancel Label",
+  "prop.dialog.destructive": "Destructive Action",
+  "prop.message.severity": "Severity",
+  "prop.message.dismissible": "Dismissible",
+  "prop.message.showIcon": "Show Icon",
+  "prop.table.columns": "Columns",
+  "prop.table.sortable": "Sortable",
+  "prop.table.resizableColumns": "Resizable Columns",
+  "prop.table.stripedRows": "Striped Rows",
+  "prop.table.stickyHeader": "Sticky Header",
+  "prop.stepper.step": "Step",
+  "prop.stepper.wrap": "Wrap Around",
+  "prop.stepper.repeatOnHold": "Repeat While Held",
+  "prop.rating.max": "Star Count",
+  "prop.rating.allowHalf": "Allow Half Steps",
+  "prop.rating.readOnly": "Read Only",
+  "prop.carousel.loop": "Loop",
+  "prop.carousel.autoAdvance": "Auto Advance (s)",
+  "prop.carousel.showIndicators": "Show Page Indicators",
+  "prop.cooldown.duration": "Cooldown (s)",
+  "prop.cooldown.charges": "Charges",
+  "prop.cooldown.showSweep": "Radial Sweep",
+  "prop.cooldown.showKeyHint": "Show Key Hint",
+  "prop.slot.acceptsDrop": "Accepts Drop",
+  "prop.slot.acceptedTypes": "Accepted Item Types",
+  "prop.slot.showCount": "Show Stack Count",
+  "prop.slot.showRarity": "Show Rarity Frame",
+  "prop.health.damageTrail": "Damage Delay Trail",
+  "prop.health.lowThreshold": "Low Threshold",
+  "prop.map.zoom": "Zoom",
+  "prop.map.rotateWithPlayer": "Rotate With Player",
+  "prop.map.clampMarkers": "Clamp Markers To Edge",
+  "prop.map.range": "Range",
+  "inspector.componentParts": "Component Structure",
+  "inspector.section.componentParts": "Component Structure",
+  "inspector.componentParts.description": "Edit library-owned internal parts, or add real child elements that receive the full NexUI Inspector.",
+  "inspector.componentParts.internal": "Internal Parts",
+  "inspector.componentParts.selectHint": "Select a part above or click it on the canvas to edit its local transform.",
+  "inspector.componentParts.reset": "Reset Part Overrides",
+  "inspector.componentParts.contents": "Authored Contents",
+  "inspector.componentParts.contentsDescription": "These are real hierarchy elements. Select one to edit Position, Size, Rotation, Scale, Style, Binding and Motion.",
+  "inspector.section.elementComponents": "Components",
+  "inspector.elementComponents": "Components",
+  "inspector.components.add": "Add Component",
+  "inspector.components.fromPreset": "Made from the {0} preset",
+  "inspector.components.custom": "Custom composition",
+  "inspector.components.decompose": "Decompose",
+  "inspector.components.unknown": "This component is not in this build. Its values are preserved.",
+  "inspector.components.noProperties": "No editable properties.",
+  "tooltip.inspector.addComponent": "Attach a component. Only components that run on this screen's backend are listed.",
+  "tooltip.inspector.componentEnabled": "Enable or disable the component, like Unity's component checkbox.",
+  "tooltip.inspector.decompose": "Clear the preset label. The components stay exactly as they are.",
+  "ctx.component.remove": "Remove Component",
+  "ctx.component.reset": "Reset Values",
+  "ctx.component.moveUp": "Move Up",
+  "ctx.component.moveDown": "Move Down",
+  "component.type.unknown": "Unknown Component",
+  "component.type.core.element": "Element (Rect)",
+  "component.type.nx.roundedRect": "Rounded Rect",
+  "component.type.nx.gradient": "Gradient",
+  "component.type.nx.softShadow": "Soft Shadow",
+  "component.type.nx.segmentedBar": "Segmented Bar",
+  "component.type.nx.cooldownOverlay": "Cooldown Overlay",
+  "component.type.nx.safeArea": "Safe Area",
+  "component.type.nx.flowLayout": "Flow Layout",
+  "component.type.nx.radialLayout": "Radial Layout",
+  "component.type.nx.autoGrid": "Auto Grid",
+  "component.type.nx.marqueeText": "Marquee Text",
+  "component.type.nx.typewriterText": "Typewriter Text",
+  "component.type.nx.numberTicker": "Number Ticker",
+  "component.type.nx.holdButton": "Hold Button",
+  "component.type.nx.swipeArea": "Swipe Area",
+  "component.type.nx.tooltipTrigger": "Tooltip Trigger",
+  "inspector.components.addScript": "Project Script...",
+  "palette.family.components": "Components",
+  "palette.family.nexuiBase": "NexUI Base",
+  "palette.family.core": "Core",
+  "palette.components.build": "Build by hand",
+  "palette.components.empty": "Empty Element",
+  "tooltip.palette.components.empty": "Creates an element with no components, like Unity's Create Empty.",
+  "ctx.components.attachToSelection": "Attach to selection",
+  "ctx.components.createEmptyWith": "New element with this component",
+  "component.type.nx.virtualList": "Virtual List",
+  "component.type.nx.carousel": "Carousel",
+  "component.type.nx.tabGroup": "Tab Group",
+  "inspector.components.missingScript": "Missing script: {0}. {1} stored value(s) are preserved and will be restored when the script compiles again.",
+  "inspector.components.scratchFailed": "{0} could not be created for editing. Its stored values are preserved.",
+  "inspector.components.valuesPreserved": "Not editable in this build, values preserved: {0}",
+  "inspector.reference.none": "None",
+  "inspector.reference.element": "Element",
+  "inspector.reference.asset": "Asset...",
+  "inspector.reference.noElements": "No element on this screen provides a {0}",
+  "inspector.reference.pickTooltip": "Point this field at another element on this screen, or at a project asset. Expected type: {0}",
+  "inspector.unityEvent.addTooltip": "Add a listener. Its target can be another element on this screen or a project asset.",
+  "inspector.unityEvent.removeTooltip": "Remove this listener.",
+  "inspector.unityEvent.targetTooltip": "The object whose method runs. Pick an element's GameObject or one of its components.",
+  "inspector.unityEvent.callStateTooltip": "When this listener runs: only in play mode, in edit mode too, or never.",
+  "inspector.unityEvent.empty": "No listeners.",
+  "inspector.unityEvent.noTarget": "Pick a target first",
+  "inspector.unityEvent.noMethods": "No callable methods",
+  "inspector.unityEvent.missingMethod": "Missing: {0}"
 }

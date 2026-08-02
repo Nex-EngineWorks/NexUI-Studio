@@ -11,7 +11,7 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
 {
     public sealed class DesignerSampleSmokeTests
     {
-        private const string Source = "Packages/com.emiteat.nexui.designer/Samples~/DesignerSample/Screens";
+        private const string Source = "Packages/com.nexengineworks.nexui.studio/Samples~/DesignerSample/Screens";
         private const string Temp = "Assets/NexUIDesignerSampleSmokeTemp";
         private static readonly string[] ScreenNames = { "Settings", "Inventory", "ConfirmDialog", "Loading", "HUD" };
 

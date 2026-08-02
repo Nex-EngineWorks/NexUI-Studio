@@ -15,6 +15,29 @@ try {
 }
 catch { Fail "Cannot parse package.json: $($_.Exception.Message)" }
 
+# Keep package contents portable across Windows' case-insensitive filesystem and
+# the case-sensitive filesystems commonly used by Linux and macOS CI agents.
+$portablePaths = [System.Collections.Generic.Dictionary[string, string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+$windowsReservedNames = '^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$'
+foreach ($entry in Get-ChildItem -LiteralPath $packageRoot -Recurse -Force |
+    Where-Object { $_.FullName -notmatch '[\\/]\.git(?:[\\/]|$)' }) {
+    $relativePath = $entry.FullName.Substring($packageRoot.Length).TrimStart([char]'\', [char]'/').Replace('\', '/')
+    if ($portablePaths.ContainsKey($relativePath)) {
+        Fail "Case-insensitive path collision: '$($portablePaths[$relativePath])' and '$relativePath'."
+    }
+    else {
+        $portablePaths.Add($relativePath, $relativePath)
+    }
+
+    if ($entry.Name -match '[<>:"/\\|?*]' -or $entry.Name -match '[. ]$') {
+        Fail "Windows-incompatible path name: $relativePath"
+    }
+    $baseName = [System.IO.Path]::GetFileNameWithoutExtension($entry.Name)
+    if ($baseName -match $windowsReservedNames) {
+        Fail "Windows-reserved path name: $relativePath"
+    }
+}
+
 foreach ($runtimeName in @('Runtime', 'Integrations')) {
     $runtimeRoot = Join-Path $packageRoot $runtimeName
     if (-not (Test-Path -LiteralPath $runtimeRoot)) { continue }
@@ -22,6 +45,23 @@ foreach ($runtimeName in @('Runtime', 'Integrations')) {
         foreach ($match in Select-String -LiteralPath $source.FullName -Pattern '^\s*using\s+UnityEditor(?:\.|\s*;)|\bUnityEditor\.') {
             Fail "Runtime UnityEditor reference: $($source.FullName):$($match.LineNumber)"
         }
+        foreach ($match in Select-String -LiteralPath $source.FullName -Pattern '[''"]cmd(?:\.exe)?[''"]|\bexplorer\.exe\b|\bpowershell\.exe\b|/Applications/|/usr/bin/open|\bxdg-open\b') {
+            Fail "OS-specific process launch in portable source: $($source.FullName):$($match.LineNumber)"
+        }
+    }
+    foreach ($assemblyFile in Get-ChildItem -LiteralPath $runtimeRoot -Recurse -File -Filter '*.asmdef') {
+        try {
+            $assembly = Get-Content -LiteralPath $assemblyFile.FullName -Raw | ConvertFrom-Json
+            if (@($assembly.includePlatforms).Count -gt 0) {
+                Fail "Portable assembly restricts includePlatforms: $($assemblyFile.FullName)"
+            }
+            foreach ($excludedPlatform in @($assembly.excludePlatforms)) {
+                if ([string]$excludedPlatform -match '(?i)(windows|osx|macos|linux)') {
+                    Fail "Portable assembly excludes desktop platform '$excludedPlatform': $($assemblyFile.FullName)"
+                }
+            }
+        }
+        catch { Fail "Cannot parse asmdef '$($assemblyFile.FullName)': $($_.Exception.Message)" }
     }
 }
 

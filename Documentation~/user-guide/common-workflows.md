@@ -140,7 +140,7 @@ Texture Type이 `Sprite`가 아니면 Sprite sub-asset이 없어 드롭이 적�
 
 ### 작업 순서
 
-Component의 root가 될 Element를 선택하고 `Tools > NexUI > Designer > Component Library`에서 저장 폴더를 확인한 뒤 **Create Component From '...'** 을 누릅니다. 이후 같은 창의 **Place Instance** 또는 Assets 탭에서 Definition을 Canvas로 드래그해 배치합니다.
+Component의 root가 될 Element를 선택하고 `Tools > NexUI > Studio > Component Library`에서 저장 폴더를 확인한 뒤 **Create Component From '...'** 을 누릅니다. 이후 같은 창의 **Place Instance** 또는 Assets 탭에서 Definition을 Canvas로 드래그해 배치합니다.
 
 ### 정상 결과
 
@@ -228,11 +228,11 @@ Element Track이나 Screen Entry/Exit 효과를 만들 때 사용합니다.
 
 ### 작업 순서
 
-Element를 선택하고 Inspector의 **Animate > Motion**에서 Motion Clip Editor를 열거나 `Tools > NexUI > Designer > Advanced > Motion Clip Editor`를 사용합니다. Popup은 Entry/Exit Clip 또는 Transition Preset을 지정합니다.
+Element를 선택하고 Inspector의 **Animate > Motion**에서 Motion Clip Editor를 열거나 `Tools > NexUI > Studio > Advanced > Motion Clip Editor`를 사용합니다. Popup은 Entry/Exit Clip 또는 Transition Preset을 지정합니다.
 
 ### 정상 결과
 
-Scrub/Play 시 Designer Surface에 변화가 보이고 Metadata `screenMotion`에 Asset 참조가 저장됩니다.
+Scrub/Play 시 Studio Surface에 변화가 보이고 Metadata `screenMotion`에 Asset 참조가 저장됩니다.
 
 ### 자주 발생하는 문제
 
@@ -280,7 +280,7 @@ Global Toolbar 상태와 Error/Warning 개수가 갱신됩니다.
 
 ### 자주 발생하는 문제
 
-Auto Fix가 없는 규칙도 많습니다. 게임 코드의 Runtime Key 존재 여부는 Designer가 완전히 검증할 수 없습니다.
+Auto Fix가 없는 규칙도 많습니다. 게임 코드의 Runtime Key 존재 여부는 Studio가 완전히 검증할 수 없습니다.
 
 ### 관련 문서
 
@@ -316,7 +316,7 @@ Metadata에서 `.g.uxml/.g.uss`를 만들거나 변경된 화면만 Publish할 �
 
 ### 작업 순서
 
-UI Toolkit Generation 또는 Sync/Publish Window에서 먼저 Dry Run과 Diff를 확인합니다. Generated Marker와 대상 경로를 확인한 뒤 **Use Designer/Publish**를 실행합니다.
+UI Toolkit Generation 또는 Sync/Publish Window에서 먼저 Dry Run과 Diff를 확인합니다. Generated Marker와 대상 경로를 확인한 뒤 **Use Studio/Publish**를 실행합니다.
 
 ### 정상 결과
 

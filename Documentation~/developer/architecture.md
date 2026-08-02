@@ -1,6 +1,6 @@
-# NexUI Designer 아키텍처
+# NexUI Studio 아키텍처
 
-**대상:** Designer를 유지보수하거나 확장하는 개발자  
+**대상:** Studio를 유지보수하거나 확장하는 개발자  
 **경계:** `Runtime/`은 `UnityEditor`를 참조하지 않으며, Editor Window·AssetDatabase·Undo는 `Editor/`에만 둡니다.
 
 ```mermaid
@@ -16,13 +16,13 @@ flowchart TD
     Backend --> Surface["IUISurface Preview"]
 ```
 
-## Designer Session
+## Studio Session
 
 `DesignerSessionRegistry`가 열린 `NexUIDesignerWindow`와 Context를 등록합니다. 포커스를 받은 창이 Active가 되며 Satellite Window는 `DesignerSessions.ActiveContext`만 사용합니다. `IDesignerSessionProvider`를 교체할 수 있어 테스트나 외부 통합에서 Context를 주입할 수 있습니다.
 
 ## UI 수명주기
 
-Context 이벤트를 사용하는 VisualElement는 `ContextBoundSubscriptions`에 handler를 등록합니다. Panel Attach에서 한 번 Subscribe하고 Detach에서 동일 delegate를 Unsubscribe합니다. Designer UI를 Rebuild해도 이전 VisualElement가 Context에 남지 않습니다.
+Context 이벤트를 사용하는 VisualElement는 `ContextBoundSubscriptions`에 handler를 등록합니다. Panel Attach에서 한 번 Subscribe하고 Detach에서 동일 delegate를 Unsubscribe합니다. Studio UI를 Rebuild해도 이전 VisualElement가 Context에 남지 않습니다.
 
 ## 저장 데이터
 
@@ -120,4 +120,4 @@ Expanded Metadata   ← Canvas 렌더, Serializer, Save Preview, Validation의 �
 
 Undo는 변경 대상 Asset에 `Undo.RecordObject`를 호출한 뒤 Dirty를 표시합니다. Drag는 종료 시 한 번 Context에 Commit합니다. Context의 Undo callback이 Preview, Selection과 Validation을 다시 갱신합니다.
 
-Figma는 별도 Editor assembly이며 Core/Designer를 변환하지 않고 API 접근만 확인합니다. Motion Clip Editor, Graph, Scenario, Screen Flow와 QA 도구는 `Editor/Advanced` 또는 `Editor/QA` 아래의 Satellite Tool입니다.
+Figma는 별도 Editor assembly이며 Core/Studio를 변환하지 않고 API 접근만 확인합니다. Motion Clip Editor, Graph, Scenario, Screen Flow와 QA 도구는 `Editor/Advanced` 또는 `Editor/QA` 아래의 Satellite Tool입니다.

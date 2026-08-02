@@ -2,7 +2,7 @@
 
 ## 완성 결과
 
-3×2 Slot, Item Name/Count Binding, 빈 Slot, 선택 상태, Hover/Selected Motion과 Equip Command를 가진 화면을 구성합니다. 완성본은 Designer Sample의 `Screens/Inventory/`에 있습니다.
+3×2 Slot, Item Name/Count Binding, 빈 Slot, 선택 상태, Hover/Selected Motion과 Equip Command를 가진 화면을 구성합니다. 완성본은 Studio Sample의 `Screens/Inventory/`에 있습니다.
 
 ## 사전 준비
 
@@ -31,7 +31,7 @@ InventoryRoot
 
 각 Slot 또는 Detail Label에 Sample Metadata가 사용하는 `inventory.slotN.name`, `inventory.slotN.count`, 빈 상태 Key를 연결합니다. Slot Command는 `inventory.select.slotN`, Equip Button은 `inventory.equip`을 사용합니다. 임의 Key로 바꾸면 Sample Runtime 모델과 함께 바꿔야 합니다.
 
-Designer는 Key만 저장합니다. Sample의 Runtime 코드가 `UIStateStore`와 `UIActionResolver`에 값과 Action을 등록해야 Play Mode에서 동작합니다. [Binding](../user-guide/binding.md)을 참고하세요.
+Studio는 Key만 저장합니다. Sample의 Runtime 코드가 `UIStateStore`와 `UIActionResolver`에 값과 Action을 등록해야 Play Mode에서 동작합니다. [Binding](../user-guide/binding.md)을 참고하세요.
 
 ## Motion과 Scenario
 
@@ -43,7 +43,7 @@ Validate하여 중복 ID, 잘못된 Parent, Missing Motion Target을 해결합�
 
 ## Play Mode 확인
 
-Sample Scene/호스트에서 Inventory를 열고 Slot 선택, 이름·수량 갱신, Equip Command와 닫기를 확인합니다. Designer Interactive Preview는 Command를 실행하지 않습니다.
+Sample Scene/호스트에서 Inventory를 열고 Slot 선택, 이름·수량 갱신, Equip Command와 닫기를 확인합니다. Studio Interactive Preview는 Command를 실행하지 않습니다.
 
 ## 현재 제한
 

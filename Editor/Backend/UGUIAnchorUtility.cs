@@ -46,6 +46,46 @@ namespace emiteat.NexUI.Designer.Editor.Backend
             rt.anchoredPosition = anchoredPosition;
         }
 
+        /// <summary>
+        /// The preset an existing <see cref="RectTransform"/> corresponds to, for Prefab Import.
+        /// </summary>
+        /// <remarks>
+        /// Only the nine corner/edge presets and full stretch are recognised. A hand-anchored rect
+        /// (say, horizontal stretch with a fixed height) has no preset that describes it, so it is
+        /// reported as TopLeft with <paramref name="exact"/> false rather than being silently
+        /// re-anchored - the importer preserves the geometry and tells the user the anchoring is
+        /// approximated.
+        /// </remarks>
+        public static DesignerAnchorPreset Detect(RectTransform rt, out bool exact)
+        {
+            exact = true;
+            if (rt == null) return DesignerAnchorPreset.TopLeft;
+
+            var min = rt.anchorMin;
+            var max = rt.anchorMax;
+
+            if (Approximately(min, Vector2.zero) && Approximately(max, Vector2.one))
+                return DesignerAnchorPreset.Stretch;
+
+            if (!Approximately(min, max)) { exact = false; return DesignerAnchorPreset.TopLeft; }
+
+            if (Approximately(min, new Vector2(0f, 1f))) return DesignerAnchorPreset.TopLeft;
+            if (Approximately(min, new Vector2(0.5f, 1f))) return DesignerAnchorPreset.Top;
+            if (Approximately(min, new Vector2(1f, 1f))) return DesignerAnchorPreset.TopRight;
+            if (Approximately(min, new Vector2(0f, 0.5f))) return DesignerAnchorPreset.Left;
+            if (Approximately(min, new Vector2(0.5f, 0.5f))) return DesignerAnchorPreset.Center;
+            if (Approximately(min, new Vector2(1f, 0.5f))) return DesignerAnchorPreset.Right;
+            if (Approximately(min, Vector2.zero)) return DesignerAnchorPreset.BottomLeft;
+            if (Approximately(min, new Vector2(0.5f, 0f))) return DesignerAnchorPreset.Bottom;
+            if (Approximately(min, new Vector2(1f, 0f))) return DesignerAnchorPreset.BottomRight;
+
+            exact = false;
+            return DesignerAnchorPreset.TopLeft;
+        }
+
+        private static bool Approximately(Vector2 a, Vector2 b)
+            => Mathf.Abs(a.x - b.x) < 0.001f && Mathf.Abs(a.y - b.y) < 0.001f;
+
         private static void Set(RectTransform rt, Vector2 anchorMin, Vector2 anchorMax, Vector2 pivot)
         {
             rt.anchorMin = anchorMin;

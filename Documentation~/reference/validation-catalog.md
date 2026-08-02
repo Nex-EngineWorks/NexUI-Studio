@@ -1,6 +1,6 @@
 # Validation Catalog
 
-Global Toolbar의 **Validate** 또는 `Tools > NexUI > Designer > Validate Current Screen`으로 검사합니다. 결과 행을 선택하면 가능한 경우 관련 Element나 Asset으로 이동합니다. Auto Fix는 실제 `DesignerAutoFixService`에 등록된 항목만 표시합니다.
+Global Toolbar의 **Validate** 또는 `Tools > NexUI > Studio > Validate Current Screen`으로 검사합니다. 결과 행을 선택하면 가능한 경우 관련 Element나 Asset으로 이동합니다. Auto Fix는 실제 `DesignerAutoFixService`에 등록된 항목만 표시합니다.
 
 ## Screen과 Backend
 

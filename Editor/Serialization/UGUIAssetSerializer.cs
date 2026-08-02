@@ -208,7 +208,24 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 // over anything the preset-derived write above assumed.
                 UGUIComponentWriter.Apply(go, element, report);
                 UGUIControlFactory.EnsureAndApply(go, element, report);
-                ApplyAttachedComponents(go, element, report);
+                StudioComponentWriter.EnsureComponents(go, element, report);
+            }
+
+            // Pass 2b: values and references, once every component on every element exists. A field
+            // may point at any element on the screen, including one written later in pass 2.
+            var byStableId = new Dictionary<string, GameObject>(System.StringComparer.Ordinal);
+            foreach (var element in metadata.elements)
+            {
+                if (element == null || string.IsNullOrEmpty(element.stableId)) continue;
+                if (objects.TryGetValue(element.elementId ?? string.Empty, out var go) && go != null)
+                    byStableId[element.stableId] = go;
+            }
+            foreach (var element in metadata.elements)
+            {
+                if (element == null || string.IsNullOrEmpty(element.elementId)) continue;
+                if (!objects.TryGetValue(element.elementId, out var go) || go == null) continue;
+                StudioComponentWriter.ApplyValues(go, element, report,
+                    stableId => byStableId.TryGetValue(stableId ?? string.Empty, out var target) ? target : null);
             }
 
             // Pass 3: reflect Designer sibling order onto the transform (SetSiblingIndex), so the
@@ -381,12 +398,23 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             else if (support == DesignerBackendSupport.Unsupported)
                 report.MarkUnsupported(type, $"'{element.elementId}' ({type}) is not supported on uGUI; only a placeholder GameObject was written.", element.elementId);
 
-            // Tint on any Graphic; add an Image for Image/Button backgrounds when missing.
+            var visualStyle = DesignerPropertyAdapter.Visual(element);
+
+            // Tint on any Graphic. Sprite-less rounded surfaces use NexUI's mesh graphic instead of
+            // requiring a sliced texture; real images keep the stock Image component.
             var graphic = go.GetComponent<Graphic>();
-            if (graphic == null && (isImage || isButton))
+            if (graphic == null && (isImage || isButton || visualStyle.hasOverrides))
             {
-                graphic = go.AddComponent<Image>();
-                report.MarkChanged($"Added Image to '{element.elementId}'");
+                if (element.previewImage == null && visualStyle.cornerRadius > 0f)
+                {
+                    graphic = AddManagedComponent<NXRoundedRect>(go);
+                    report.MarkChanged($"Added rounded surface to '{element.elementId}'");
+                }
+                else
+                {
+                    graphic = AddManagedComponent<Image>(go);
+                    report.MarkChanged($"Added Image to '{element.elementId}'");
+                }
             }
             if (graphic != null)
                 graphic.color = DesignerPropertyAdapter.BackgroundColor(element);
@@ -435,6 +463,13 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             }
             if (graphic != null && visual.material != null) graphic.material = visual.material;
 
+            if (graphic is NXRoundedRect rounded)
+            {
+                rounded.Radius = Mathf.Max(0f, visual.cornerRadius);
+                rounded.BorderWidth = Mathf.Max(0f, visual.borderWidth);
+                rounded.BorderColor = visual.borderColor;
+            }
+
             var outline = go.GetComponent<UnityEngine.UI.Outline>();
             if (visual.borderWidth > 0f || visual.outlineWidth > 0f)
             {
@@ -451,21 +486,45 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             UnityEngine.UI.Shadow shadow = null;
             foreach (var candidate in go.GetComponents<UnityEngine.UI.Shadow>())
                 if (!(candidate is UnityEngine.UI.Outline)) { shadow = candidate; break; }
-            if (visual.dropShadow)
+            var softShadow = go.GetComponent<NXSoftShadow>();
+            if (visual.dropShadow && visual.shadowBlur > 0f && graphic != null)
+            {
+                if (softShadow == null) softShadow = AddManagedComponent<NXSoftShadow>(go);
+                softShadow.ShadowColor = visual.shadowColor;
+                softShadow.Offset = visual.shadowOffset;
+                softShadow.Spread = visual.shadowBlur;
+                if (shadow != null)
+                    RemoveManagedComponents<UnityEngine.UI.Shadow>(go, report, element.elementId,
+                        candidate => !(candidate is UnityEngine.UI.Outline));
+            }
+            else if (visual.dropShadow)
             {
                 shadow = shadow ?? AddManagedComponent<UnityEngine.UI.Shadow>(go);
                 shadow.effectColor = visual.shadowColor;
                 shadow.effectDistance = visual.shadowOffset;
             }
-            else if (shadow != null)
+            else
+            {
+                if (softShadow != null) RemoveManagedComponents<NXSoftShadow>(go, report, element.elementId);
+                if (shadow != null)
                 RemoveManagedComponents<UnityEngine.UI.Shadow>(go, report, element.elementId,
                     candidate => !(candidate is UnityEngine.UI.Outline));
+            }
 
-            if (visual.cornerRadius > 0f && (!(graphic is Image image) || image.sprite == null || !visual.imageSlice))
-                report.MarkSkipped($"'{element.elementId}' numeric corner radius requires a rounded sliced Sprite on uGUI.");
+            if (visual.cornerRadius > 0f && graphic is Image image && (image.sprite == null || !visual.imageSlice))
+                report.MarkSkipped($"'{element.elementId}' uses a stock Image; assign a sliced Sprite or use NX Rounded Rect for numeric radius.");
             if (visual.innerShadow) report.MarkUnsupported("Inner shadow", $"'{element.elementId}' inner shadow is unsupported on stock uGUI.", element.elementId);
             if (visual.blur > 0f) report.MarkUnsupported("Blur", $"'{element.elementId}' blur is unsupported on stock uGUI.", element.elementId);
-            if (visual.gradient != null) report.MarkUnsupported("Gradient", $"'{element.elementId}' gradient requires a custom uGUI material.", element.elementId);
+            var gradient = go.GetComponent<NXGradient>();
+            if (visual.gradient != null && graphic != null)
+            {
+                if (gradient == null) gradient = AddManagedComponent<NXGradient>(go);
+                gradient.StartColor = visual.gradient.Evaluate(0f);
+                gradient.EndColor = visual.gradient.Evaluate(1f);
+                gradient.Angle = 90f;
+            }
+            else if (gradient != null)
+                RemoveManagedComponents<NXGradient>(go, report, element.elementId);
         }
 
         private static void ApplyAutoLayout(GameObject go, DesignerElementMetadata element, DesignerSaveReport report)
@@ -790,11 +849,10 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         private static void CleanupTracker(DesignerAttachedComponentTracker tracker)
         {
             if (tracker == null) return;
-            tracker.managedComponents?.RemoveAll(component => component == null);
-            tracker.managedGeneratedComponents?.RemoveAll(component => component == null);
-            if ((tracker.managedComponents == null || tracker.managedComponents.Count == 0) &&
-                (tracker.managedGeneratedComponents == null || tracker.managedGeneratedComponents.Count == 0))
-                Object.DestroyImmediate(tracker);
+            tracker.Prune();
+            // IsEmpty covers managedByInstance too: dropping the tracker while it still owns a
+            // component would make that component look user-authored on the next save.
+            if (tracker.IsEmpty) Object.DestroyImmediate(tracker);
         }
 
         private static TextAnchor TextAnchorFor(DesignerLayoutAlignment align, DesignerJustifyContent justify)
@@ -841,101 +899,5 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         private static bool Is(string type, string other)
             => string.Equals(type, other, System.StringComparison.OrdinalIgnoreCase);
 
-        private static void ApplyAttachedComponents(GameObject go, DesignerElementMetadata element, DesignerSaveReport report)
-        {
-            var requested = element.attachedComponents ?? new List<DesignerAttachedComponentMetadata>();
-            var desired = new Dictionary<System.Type, int>();
-            foreach (var item in requested)
-            {
-                if (item == null || string.IsNullOrWhiteSpace(item.typeName)) continue;
-                var type = ResolveComponentType(item.typeName);
-                if (type == null || !typeof(MonoBehaviour).IsAssignableFrom(type) || type.IsAbstract || type.ContainsGenericParameters)
-                {
-                    report.MarkUnsupported("Attached component",
-                        $"'{element.elementId}' references unavailable MonoBehaviour '{item.typeName}'. Metadata was preserved.", element.elementId);
-                    continue;
-                }
-                desired.TryGetValue(type, out var count);
-                desired[type] = count + 1;
-            }
-
-            var tracker = go.GetComponent<DesignerAttachedComponentTracker>();
-            if (tracker != null)
-            {
-                tracker.managedComponents ??= new List<Component>();
-                var trackedCounts = new Dictionary<System.Type, int>();
-                foreach (var tracked in tracker.managedComponents)
-                {
-                    if (tracked == null || tracked.gameObject != go) continue;
-                    trackedCounts.TryGetValue(tracked.GetType(), out var trackedCount);
-                    trackedCounts[tracked.GetType()] = trackedCount + 1;
-                }
-                var allowedTrackedCounts = new Dictionary<System.Type, int>();
-                foreach (var pair in trackedCounts)
-                {
-                    desired.TryGetValue(pair.Key, out var wanted);
-                    var userOwnedCount = Mathf.Max(0, go.GetComponents(pair.Key).Length - pair.Value);
-                    allowedTrackedCounts[pair.Key] = Mathf.Max(0, wanted - userOwnedCount);
-                }
-                for (var i = tracker.managedComponents.Count - 1; i >= 0; i--)
-                {
-                    var component = tracker.managedComponents[i];
-                    if (component == null || component.gameObject != go)
-                    {
-                        tracker.managedComponents.RemoveAt(i);
-                        continue;
-                    }
-                    allowedTrackedCounts.TryGetValue(component.GetType(), out var wanted);
-                    var sameTypeBefore = 0;
-                    for (var j = 0; j < i; j++)
-                        if (tracker.managedComponents[j] != null && tracker.managedComponents[j].GetType() == component.GetType())
-                            sameTypeBefore++;
-                    if (sameTypeBefore >= wanted)
-                    {
-                        var componentName = component.GetType().Name;
-                        tracker.managedComponents.RemoveAt(i);
-                        Object.DestroyImmediate(component);
-                        report.MarkChanged($"Removed Designer-managed {componentName} from '{element.elementId}'");
-                    }
-                }
-            }
-
-            foreach (var pair in desired)
-            {
-                var existing = go.GetComponents(pair.Key).Length;
-                for (var i = existing; i < pair.Value; i++)
-                {
-                    try
-                    {
-                        var added = go.AddComponent(pair.Key);
-                        tracker ??= go.AddComponent<DesignerAttachedComponentTracker>();
-                        tracker.managedComponents ??= new List<Component>();
-                        tracker.managedComponents.Add(added);
-                        report.MarkChanged($"Added {pair.Key.Name} to '{element.elementId}'");
-                    }
-                    catch (System.Exception ex)
-                    {
-                        report.Warn($"Could not attach {pair.Key.FullName} to '{element.elementId}': {ex.Message}");
-                        break;
-                    }
-                }
-            }
-
-            CleanupTracker(tracker);
-        }
-
-        private static System.Type ResolveComponentType(string typeName)
-        {
-            var type = System.Type.GetType(typeName, false);
-            if (type != null) return type;
-            var comma = typeName.IndexOf(',');
-            var fullName = comma >= 0 ? typeName.Substring(0, comma).Trim() : typeName.Trim();
-            foreach (var assembly in System.AppDomain.CurrentDomain.GetAssemblies())
-            {
-                type = assembly.GetType(fullName, false);
-                if (type != null) return type;
-            }
-            return null;
-        }
     }
 }

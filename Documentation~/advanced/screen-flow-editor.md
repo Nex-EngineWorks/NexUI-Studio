@@ -6,13 +6,13 @@ Screen Flow Editor는 여러 UI 화면 사이의 흐름을 노드 그래프로 �
 
 `DesignerScreenFlowAsset`은 Motion Graph와 같은 **독립 에셋**입니다. 런타임 UIManager 스택과 별개로, 화면을 **ID로만** 참조하므로 런타임 패키지에 의존성을 만들지 않습니다.
 
-- `Assets > Create > NexUI > Designer > Screen Flow` 또는 툴바의 **Flow 생성** 버튼으로 만듭니다.
+- `Assets > Create > NexUI > Studio > Screen Flow` 또는 툴바의 **Flow 생성** 버튼으로 만듭니다.
 - 노드: `screenId` + 종류(`Screen`/`Overlay`/`Modal`/`PersistentHUD`/`Subflow`) + 위치 + 나가는 전환 목록.
 - 전환: 종류(`Push`/`Pop`/`Replace`/`Overlay`/`Modal`/`Return`) + 대상 노드 + 선택적 `guardKey`(바인딩 bool 가드).
 
 ## 사용법
 
-1. `Tools > NexUI > Designer > Advanced > Screen Flow Editor`를 엽니다.
+1. `Tools > NexUI > Studio > Advanced > Screen Flow Editor`를 엽니다.
 2. **화면 노드 추가**로 노드를 만들고, 노드에서 `Screen`(화면 ID)과 `Kind`를 지정합니다.
 3. 노드의 **+ Transition**으로 나가는 전환을 추가하고, 전환의 출력 포트를 다른 노드의 입력 포트로 드래그해 연결합니다. 전환 행에서 종류와 가드 키를 편집합니다.
 4. **선택을 시작 노드로**로 진입 노드를 지정합니다. 첫 노드는 자동으로 진입 노드가 됩니다.
@@ -31,7 +31,7 @@ Screen Flow Editor는 여러 UI 화면 사이의 흐름을 노드 그래프로 �
 
 ## 아키텍처
 
-- 데이터는 `Runtime/Metadata/DesignerScreenFlowAsset.cs`(Designer.Runtime, UnityEditor 의존 없음).
+- 데이터는 `Runtime/Metadata/DesignerScreenFlowAsset.cs`(Studio.Runtime, UnityEditor 의존 없음).
 - 에디터는 `Editor/Advanced/ScreenFlow/`의 `ScreenFlowView`(GraphView) · `ScreenFlowNodeView` · `ScreenFlowLayout` · `ScreenFlowWindow`로, Motion Graph v2 에디터와 동일한 포트/엣지/Undo 관용구를 따릅니다.
 
 ## 아직 하지 않는 것

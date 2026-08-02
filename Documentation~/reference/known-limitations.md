@@ -12,11 +12,9 @@
 | Motion Graph | Legacy와 v2가 서로 다른 모델입니다. | 에셋 Type과 실행기를 혼용하지 않습니다. |
 | Figma | 첫 Frame Import는 지원하지만 Component Variant, Effect, Image 다운로드와 양방향 Sync는 지원하지 않습니다. | 가져온 Metadata를 Validation하고 복잡한 Style은 Backend에서 보완합니다. |
 | 재사용 Component | Instance를 리사이즈해도 자식은 재배치되지 않습니다. root만 Instance 크기를 따릅니다. | Definition root에 Auto Layout을 켜거나 Definition에서 크기를 정합니다. |
-| 재사용 Component | Definition 전용 편집 모드가 없습니다. Slot·Exposed Property·Variant Rule은 Unity 기본 Inspector에서 채웁니다. | Component Library 창에서 **Edit Asset**으로 이동해 편집합니다. |
 | 재사용 Component | `UpdateFromDefinition`은 버전 스탬프 갱신과 보고까지만 합니다. Property 자동 재매핑은 없습니다. | Validation이 보고한 Override를 직접 Reset하거나 다시 지정합니다. |
 | 재사용 Component | Motion·Theme·Responsive Override는 Variant Rule에 없습니다. | 해당 값은 Instance마다 개별 설정합니다. |
-| Assets 패널 | 읽기 전용입니다. Rename·이동·삭제·생성을 하지 않습니다. | Unity Project 창을 사용합니다. |
-| Assets 패널 | 다중 선택 드래그와 Grid(타일) 보기가 없습니다. Thumbnail은 비동기로 채워집니다. | 한 번에 하나씩 드래그합니다. |
+| Assets 패널 | 임의 폴더로 Move하는 전용 대화상자는 없습니다. Thumbnail은 비동기로 채워집니다. | Project 창으로 이동하거나 대상 폴더에서 작업합니다. |
 | 저장 | 읽기 전용 Package 경로에는 생성 파일을 쓸 수 없습니다. | Import된 Sample 또는 `Assets/` 경로를 사용합니다. |
 | Preview | 실제 입력·폰트·해상도 결과와 다를 수 있습니다. | Play Mode와 Player Build로 재검증합니다. |
 # 생산성 기능 제한사항

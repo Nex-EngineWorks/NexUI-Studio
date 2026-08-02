@@ -76,9 +76,16 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                     else if (support == DesignerBackendSupport.Unsupported)
                         report.MarkUnsupported(element.elementType,
                             $"'{element.elementId}' is unsupported by UI Toolkit.", element.elementId);
-                    if (element.attachedComponents != null && element.attachedComponents.Count > 0)
-                        report.MarkPreviewOnly("Attached components",
-                            $"'{element.elementId}' has MonoBehaviour attachments; these are applied only to uGUI GameObjects.", element.elementId);
+                    // Counted from the one component stack, so a script added after v6 is reported
+                    // even though nothing was written to the legacy list.
+                    var scripts = 0;
+                    foreach (var component in element.components ?? new List<DesignerElementComponent>())
+                        if (component != null && !string.IsNullOrEmpty(component.typeId) &&
+                            !Components.DesignerUIComponentRegistry.IsRegistered(component.typeId))
+                            scripts++;
+                    if (scripts > 0)
+                        report.MarkPreviewOnly("Components",
+                            $"'{element.elementId}' has {scripts} MonoBehaviour attachment(s); these are applied only to uGUI GameObjects.", element.elementId);
                     if (element.componentPartOverrides != null)
                     {
                         var descriptor = DesignerComponentRegistry.Get(element.elementType);

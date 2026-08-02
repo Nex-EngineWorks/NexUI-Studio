@@ -10,7 +10,7 @@
 | Preview Value, Preview Image, Preview Options | Metadata | 주로 Preview 전용 |
 | 선택, Scroll, 열린 Tab | EditorPrefs | Runtime에 저장하지 않음 |
 
-Element ID는 Hierarchy, UXML `name`, Binding, Focus와 Motion target을 연결하는 Stable ID입니다. 변경할 때는 Inspector를 사용해야 Designer가 Parent, Focus, Variant와 Motion 참조를 함께 갱신합니다.
+Element ID는 Hierarchy, UXML `name`, Binding, Focus와 Motion target을 연결하는 Stable ID입니다. 변경할 때는 Inspector를 사용해야 Studio가 Parent, Focus, Variant와 Motion 참조를 함께 갱신합니다.
 
 Backend Asset은 uGUI에서는 Prefab, UI Toolkit에서는 `VisualTreeAsset`입니다. Metadata만 있다고 Runtime UI가 자동으로 생성되는 것은 아닙니다.
 

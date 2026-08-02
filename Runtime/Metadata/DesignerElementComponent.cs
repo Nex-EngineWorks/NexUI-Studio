@@ -39,6 +39,28 @@ namespace emiteat.NexUI.Designer
         Project
     }
 
+    /// <summary>
+    /// Which key space a component's <see cref="DesignerElementComponent.properties"/> use.
+    /// </summary>
+    /// <remarks>
+    /// Two writers exist for a reason. Registry components were authored against a curated schema
+    /// whose keys read like <c>"preserveAspect"</c> and cover the handful of fields a designer
+    /// touches; imported and project components are stored by Unity's own property path
+    /// (<c>"m_PreserveAspect"</c>) and cover everything the type has.
+    ///
+    /// Making the distinction an explicit field rather than inferring it from the key shape is what
+    /// keeps a screen authored in either style loading correctly. <see cref="SchemaKeys"/> is value 0
+    /// so every asset written before this field existed keeps its current behaviour.
+    /// </remarks>
+    public enum DesignerComponentValueFormat
+    {
+        /// <summary>Curated schema keys, written by the registry-backed uGUI writer.</summary>
+        SchemaKeys,
+
+        /// <summary>Unity <c>SerializedProperty</c> paths, written by the universal writer.</summary>
+        PropertyPath
+    }
+
     [Serializable]
     public sealed class DesignerElementComponent
     {
@@ -75,6 +97,18 @@ namespace emiteat.NexUI.Designer
         /// </summary>
         public bool fromPreset;
 
+        /// <summary>
+        /// Which key space <see cref="properties"/> use, and therefore which writer owns this entry.
+        /// </summary>
+        public DesignerComponentValueFormat valueFormat = DesignerComponentValueFormat.SchemaKeys;
+
+        /// <summary>
+        /// True when this entry came from an existing prefab component. On the first save the writer
+        /// binds the entry to that exact component instead of creating a duplicate. The association
+        /// is non-destructive: removing the entry later never deletes the original prefab component.
+        /// </summary>
+        public bool adoptExistingComponent;
+
         public List<DesignerComponentPropertyEntry> properties = new List<DesignerComponentPropertyEntry>();
 
         public DesignerElementComponent() { }
@@ -94,7 +128,9 @@ namespace emiteat.NexUI.Designer
                 source = source,
                 assemblyQualifiedTypeName = assemblyQualifiedTypeName,
                 enabled = enabled,
-                fromPreset = fromPreset
+                fromPreset = fromPreset,
+                valueFormat = valueFormat,
+                adoptExistingComponent = adoptExistingComponent
             };
             if (properties != null)
                 foreach (var entry in properties)

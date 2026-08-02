@@ -42,7 +42,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             if (string.IsNullOrEmpty(path)) return null;
             if (!path.Replace('\\', '/').StartsWith("Assets/", StringComparison.Ordinal))
             {
-                Debug.LogError($"[NexUI] Companion JSON is read-only outside Assets: '{path}'.");
+                Debug.LogError($"[NexUI Studio] Companion JSON is read-only outside Assets: '{path}'.");
                 return null;
             }
 
@@ -60,7 +60,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[NexUI] Failed to export companion JSON '{path}': {ex}");
+                Debug.LogError($"[NexUI Studio] Failed to export companion JSON '{path}': {ex}");
                 return null;
             }
             finally
@@ -80,7 +80,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             try { dto = JsonUtility.FromJson<MetadataFileDto>(File.ReadAllText(path)); }
             catch (Exception ex)
             {
-                Debug.LogError($"[NexUI] Failed to parse '{path}': {ex.Message}");
+                Debug.LogError($"[NexUI Studio] Failed to parse '{path}': {ex.Message}");
                 return false;
             }
             if (dto == null) return false;
@@ -244,8 +244,21 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         {
             public string instanceId;
             public string typeId;
+
+            /// <summary>
+            /// Needed to rebuild a component that has no registry entry. Without these two the
+            /// companion JSON could describe that a project script is attached but never say which.
+            /// </summary>
+            public string source = nameof(DesignerComponentSource.NexUI);
+
+            public string assemblyQualifiedTypeName = "";
+
+            /// <summary>Which key space <see cref="properties"/> use; decides which writer applies them.</summary>
+            public string valueFormat = nameof(DesignerComponentValueFormat.SchemaKeys);
+
             public bool enabled = true;
             public bool fromPreset;
+            public bool adoptExistingComponent;
             public List<ComponentPropertyDto> properties = new();
         }
 
@@ -262,6 +275,21 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             public Vector2 vector2Value;
             public string assetGuid = "";
             public long assetLocalId;
+
+            /// <summary>Serialized payload for shapes the typed fields cannot hold (Vector3, curves, arrays).</summary>
+            public string json = "";
+
+            /// <summary>
+            /// The property's reference, flattened. An element reference is the whole point of the
+            /// universal component model, so dropping it here would make the JSON mirror unusable
+            /// as a source of truth.
+            /// </summary>
+            public string referenceKind = nameof(DesignerReferenceKind.None);
+
+            public string referenceStableElementId = "";
+            public string referenceComponentTypeName = "";
+            public string referenceAssetGuid = "";
+            public long referenceLocalFileId;
         }
 
         [Serializable]
@@ -291,6 +319,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         private sealed class BindingDto
         {
             public string textKey, valueKey, visibilityKey, classKey, commandKey, interactableKey;
+            public string textMode, valueMode, textConverterKey, valueConverterKey;
         }
 
         [Serializable]
@@ -397,6 +426,8 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                         textKey = e.binding?.textKey, valueKey = e.binding?.valueKey,
                         visibilityKey = e.binding?.visibilityKey, classKey = e.binding?.classKey,
                         commandKey = e.binding?.commandKey, interactableKey = e.binding?.interactableKey,
+                        textMode = e.binding?.textMode.ToString(), valueMode = e.binding?.valueMode.ToString(),
+                        textConverterKey = e.binding?.textConverterKey, valueConverterKey = e.binding?.valueConverterKey,
                     },
                     motion = new MotionDto
                     {
@@ -556,6 +587,10 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                     e.binding.classKey = d.binding.classKey;
                     e.binding.commandKey = d.binding.commandKey;
                     e.binding.interactableKey = d.binding.interactableKey;
+                    e.binding.textMode = ParseEnum(d.binding.textMode, emiteat.NexUI.State.UIBindingMode.OneWay);
+                    e.binding.valueMode = ParseEnum(d.binding.valueMode, emiteat.NexUI.State.UIBindingMode.OneWay);
+                    e.binding.textConverterKey = d.binding.textConverterKey;
+                    e.binding.valueConverterKey = d.binding.valueConverterKey;
                 }
                 if (d.motion != null)
                 {
@@ -600,8 +635,12 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 {
                     instanceId = component.instanceId,
                     typeId = component.typeId,
+                    source = component.source.ToString(),
+                    assemblyQualifiedTypeName = component.assemblyQualifiedTypeName ?? "",
+                    valueFormat = component.valueFormat.ToString(),
                     enabled = component.enabled,
                     fromPreset = component.fromPreset,
+                    adoptExistingComponent = component.adoptExistingComponent,
                     properties = ToComponentPropertyDtos(component.properties)
                 });
             }
@@ -619,8 +658,15 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 {
                     instanceId = string.IsNullOrEmpty(dto.instanceId) ? System.Guid.NewGuid().ToString("N") : dto.instanceId,
                     typeId = dto.typeId,
+                    // A JSON file written before these fields existed omits them; the enum defaults
+                    // reproduce exactly the behaviour that file was authored against.
+                    source = ParseEnum(dto.source, DesignerComponentSource.NexUI),
+                    assemblyQualifiedTypeName = string.IsNullOrEmpty(dto.assemblyQualifiedTypeName)
+                        ? null : dto.assemblyQualifiedTypeName,
+                    valueFormat = ParseEnum(dto.valueFormat, DesignerComponentValueFormat.SchemaKeys),
                     enabled = dto.enabled,
                     fromPreset = dto.fromPreset,
+                    adoptExistingComponent = dto.adoptExistingComponent,
                     properties = FromComponentPropertyDtos(dto.properties)
                 });
             }
@@ -646,7 +692,13 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                     colorValue = new ColorDto { r = value.colorValue.r, g = value.colorValue.g, b = value.colorValue.b, a = value.colorValue.a },
                     vector2Value = value.vector2Value,
                     assetGuid = AssetGuid(value.assetValue),
-                    assetLocalId = AssetLocalId(value.assetValue)
+                    assetLocalId = AssetLocalId(value.assetValue),
+                    json = value.json ?? "",
+                    referenceKind = (value.reference?.kind ?? DesignerReferenceKind.None).ToString(),
+                    referenceStableElementId = value.reference?.stableElementId ?? "",
+                    referenceComponentTypeName = value.reference?.componentTypeName ?? "",
+                    referenceAssetGuid = value.reference?.assetGuid ?? "",
+                    referenceLocalFileId = value.reference?.localFileId ?? 0L
                 });
             }
             return result;
@@ -722,7 +774,16 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                         ? new Color(dto.colorValue.r, dto.colorValue.g, dto.colorValue.b, dto.colorValue.a)
                         : Color.white,
                     vector2Value = dto.vector2Value,
-                    assetValue = ResolveAsset<UnityEngine.Object>(dto.assetGuid, dto.assetLocalId)
+                    assetValue = ResolveAsset<UnityEngine.Object>(dto.assetGuid, dto.assetLocalId),
+                    json = string.IsNullOrEmpty(dto.json) ? null : dto.json,
+                    reference = new DesignerObjectReference
+                    {
+                        kind = ParseEnum(dto.referenceKind, DesignerReferenceKind.None),
+                        stableElementId = dto.referenceStableElementId,
+                        componentTypeName = dto.referenceComponentTypeName,
+                        assetGuid = dto.referenceAssetGuid,
+                        localFileId = dto.referenceLocalFileId
+                    }
                 };
                 result.Add(new DesignerComponentPropertyEntry(dto.key, value));
             }

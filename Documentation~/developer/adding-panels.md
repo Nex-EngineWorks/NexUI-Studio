@@ -5,7 +5,7 @@ Panel은 `VisualElement`로 만들고 생성자에서 `NexUIDesignerContext`를 
 ```csharp
 using UnityEngine.UIElements;
 
-namespace emiteat.NexUI.Designer.Editor.UI.Panels
+namespace emiteat.NexUI.Studio.Editor.UI.Panels
 {
     public sealed class ExamplePanel : VisualElement
     {

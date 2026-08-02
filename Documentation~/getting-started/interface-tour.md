@@ -1,9 +1,9 @@
-# Designer 인터페이스 둘러보기
+# Studio 인터페이스 둘러보기
 
-NexUI Designer는 `Tools > NexUI > Designer`에서 엽니다. 화면이 열리면 위에서 아래로 Global Toolbar, 작업 영역, Bottom Drawer가 보입니다. 작업 영역은 Left Sidebar, Canvas, Right Inspector의 세 열로 나뉩니다.
+NexUI Studio는 `Tools > NexUI > Studio`에서 엽니다. 화면이 열리면 위에서 아래로 Global Toolbar, 작업 영역, Bottom Drawer가 보입니다. 작업 영역은 Left Sidebar, Canvas, Right Inspector의 세 열로 나뉩니다.
 
 <!-- TODO Screenshot:
-화면: NexUI Designer 전체 화면
+화면: NexUI Studio 전체 화면
 표시할 항목: 1 Global Toolbar, 2 Left Sidebar, 3 Canvas Toolbar, 4 Canvas, 5 Right Inspector, 6 Bottom Drawer
 권장 해상도: 1600×900 이상
 파일 제안: images/designer-window-overview.png
@@ -79,7 +79,7 @@ Canvas 상단의 `Design / Interactive` 전환은 역할이 다릅니다.
 아래쪽의 **Validation**, **History**, **Graph**, **Preview** 탭입니다. `Toggle`로 접고 펼치며 위쪽 Handle을 드래그해 높이를 바꿉니다.
 
 - **Validation**: Error, Warning, Info와 가능한 Auto Fix를 보여 줍니다.
-- **History**: 최근 Designer 편집 기록입니다.
+- **History**: 최근 Studio 편집 기록입니다.
 - **Graph**: Screen과 Binding 요약입니다.
 - **Preview**: Interactive Preview Log입니다.
 
@@ -87,7 +87,7 @@ Motion Timeline 편집은 Utilities의 **Motion Clip Editor**에서 수행합니
 
 ## Command Palette
 
-Designer에 초점을 둔 뒤 `Ctrl+K` 또는 `Ctrl+Shift+P`를 누릅니다. Save, Validate, Drawer 열기 같은 명령을 검색할 수 있습니다. 키 설정은 `Tools > NexUI > Designer > Preferences > 단축키 설정`에서 바꿉니다.
+Studio에 초점을 둔 뒤 `Ctrl+K` 또는 `Ctrl+Shift+P`를 누릅니다. Save, Validate, Drawer 열기 같은 명령을 검색할 수 있습니다. 키 설정은 `Tools > NexUI > Studio > Preferences > 단축키 설정`에서 바꿉니다.
 
 ## Beginner Mode와 Pro Mode
 
@@ -95,7 +95,7 @@ Global Toolbar 또는 Right Inspector의 **Beginner/Pro** 버튼으로 전환합
 
 ## Satellite Window
 
-Motion Clip Editor, Motion Graph, Motion State Machine, Screen Flow, Scenario Editor와 QA 도구는 별도 창으로 열립니다. 별도 창은 포커스를 가진 Designer Session의 Context를 사용하므로 여러 Designer 창을 열었다면 먼저 대상 Designer 창을 클릭하세요.
+Motion Clip Editor, Motion Graph, Motion State Machine, Screen Flow, Scenario Editor와 QA 도구는 별도 창으로 열립니다. 별도 창은 포커스를 가진 Studio Session의 Context를 사용하므로 여러 Studio 창을 열었다면 먼저 대상 Studio 창을 클릭하세요.
 
 ## 상태 저장
 

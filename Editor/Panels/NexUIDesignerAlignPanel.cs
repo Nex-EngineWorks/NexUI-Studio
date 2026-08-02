@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using emiteat.NexUI.Designer.Editor.Commands;
 using emiteat.NexUI.Designer.Editor.Localization;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace emiteat.NexUI.Designer.Editor.Panels
@@ -37,10 +39,14 @@ namespace emiteat.NexUI.Designer.Editor.Panels
 
             Add(MakeDivider());
             Add(MakeGroupLabel(DesignerLocalization.T("toolbar.group.layer")));
-            AddButton(_layerButtons, "Fwd", context.BringSelectionForward, DesignerLocalization.T("tooltip.toolbar.bringForward") + " (Ctrl+])");
-            AddButton(_layerButtons, "Back", context.SendSelectionBackward, DesignerLocalization.T("tooltip.toolbar.sendBackward") + " (Ctrl+[)");
-            AddButton(_layerButtons, "Front", context.BringSelectionToFront, DesignerLocalization.T("tooltip.toolbar.bringToFront") + " (Ctrl+Shift+])");
-            AddButton(_layerButtons, "Bottom", context.SendSelectionToBack, DesignerLocalization.T("tooltip.toolbar.sendToBack") + " (Ctrl+Shift+[)");
+            AddButton(_layerButtons, "Fwd", context.BringSelectionForward, DesignerLocalization.T("tooltip.toolbar.bringForward") +
+                " (" + UIDesignerShortcut.Format(KeyCode.RightBracket, primary: true) + ")");
+            AddButton(_layerButtons, "Back", context.SendSelectionBackward, DesignerLocalization.T("tooltip.toolbar.sendBackward") +
+                " (" + UIDesignerShortcut.Format(KeyCode.LeftBracket, primary: true) + ")");
+            AddButton(_layerButtons, "Front", context.BringSelectionToFront, DesignerLocalization.T("tooltip.toolbar.bringToFront") +
+                " (" + UIDesignerShortcut.Format(KeyCode.RightBracket, primary: true, shift: true) + ")");
+            AddButton(_layerButtons, "Bottom", context.SendSelectionToBack, DesignerLocalization.T("tooltip.toolbar.sendToBack") +
+                " (" + UIDesignerShortcut.Format(KeyCode.LeftBracket, primary: true, shift: true) + ")");
 
             void RefreshButtons(IReadOnlyList<DesignerElementMetadata> selection)
             {

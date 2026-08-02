@@ -480,7 +480,7 @@ namespace emiteat.NexUI.Designer.Editor.AI
 
         private static void ValidateAttachedComponent(NexUIAIAction action, string label, bool removing, NexUIAIPlanValidation result)
         {
-            var type = DesignerMonoBehaviourTypes.Resolve(action.componentType);
+            var type = StudioComponentTypeIndex.Resolve(action.componentType);
             if (type == null || !typeof(MonoBehaviour).IsAssignableFrom(type) || type.IsAbstract || type.ContainsGenericParameters)
                 result.Errors.Add($"{label} references unavailable MonoBehaviour '{action.componentType}'.");
             if (removing && string.IsNullOrWhiteSpace(action.componentType))
@@ -730,18 +730,27 @@ namespace emiteat.NexUI.Designer.Editor.AI
                 case NexUIAIActionTypes.AttachComponent:
                     context.UpdateElement(context.Metadata.Find(action.targetId), element =>
                     {
-                        element.attachedComponents ??= new List<DesignerAttachedComponentMetadata>();
-                        var type = DesignerMonoBehaviourTypes.Resolve(action.componentType);
-                        var identity = DesignerMonoBehaviourTypes.Identity(type);
-                        if (!element.attachedComponents.Exists(item => DesignerMonoBehaviourTypes.Resolve(item?.typeName) == type))
-                            element.attachedComponents.Add(new DesignerAttachedComponentMetadata { typeName = identity });
+                        // Writes into the one component stack, not the legacy type-name-only list:
+                        // an AI-placed script must be editable in the Inspector like any other.
+                        var type = StudioComponentTypeIndex.Resolve(action.componentType);
+                        var typeId = DesignerProjectComponentIds.FromQualifiedName(
+                            StudioComponentTypeIndex.Identity(type));
+                        if (!DesignerElementComponentAccess.Has(element, typeId))
+                            DesignerElementComponentAccess.AttachProject(element, type);
                     }, "NexUI AI Attach Component");
                     break;
                 case NexUIAIActionTypes.DetachComponent:
                     context.UpdateElement(context.Metadata.Find(action.targetId), element =>
                     {
-                        var type = DesignerMonoBehaviourTypes.Resolve(action.componentType);
-                        element.attachedComponents?.RemoveAll(item => DesignerMonoBehaviourTypes.Resolve(item?.typeName) == type);
+                        var type = StudioComponentTypeIndex.Resolve(action.componentType);
+                        var typeId = DesignerProjectComponentIds.FromQualifiedName(
+                            StudioComponentTypeIndex.Identity(type));
+
+                        // The legacy list is still cleared here so a detach on a pre-v6 screen that
+                        // has not been migrated yet does not leave the component behind.
+                        element.attachedComponents?.RemoveAll(
+                            item => StudioComponentTypeIndex.Resolve(item?.typeName) == type);
+                        element.components?.RemoveAll(c => c != null && c.typeId == typeId);
                     }, "NexUI AI Detach Component");
                     break;
                 case NexUIAIActionTypes.SetComponentVariant:

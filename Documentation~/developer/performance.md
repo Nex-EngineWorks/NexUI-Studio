@@ -1,6 +1,6 @@
 # 성능 측정과 예산
 
-Designer의 비용 표시는 제작 단계의 휴리스틱입니다. 배포 판단은 실제 Device의 Unity Profiler, UI Toolkit Debugger와 Frame Debugger로 검증하세요.
+Studio의 비용 표시는 제작 단계의 휴리스틱입니다. 배포 판단은 실제 Device의 Unity Profiler, UI Toolkit Debugger와 Frame Debugger로 검증하세요.
 
 ## uGUI
 
@@ -13,7 +13,7 @@ Designer의 비용 표시는 제작 단계의 휴리스틱입니다. 배포 판�
 
 - Panel Settings의 Vertex Budget, Atlas와 복잡한 USS Selector를 실제 Frame에서 측정합니다.
 - `overflow: hidden`은 사각 Clip에 적합하지만 중첩 Clip과 대량 Text는 별도 확인이 필요합니다.
-- Designer의 Batch/Vertex 추정치는 경고 신호이지 실제 Draw Call 수가 아닙니다.
+- Studio의 Batch/Vertex 추정치는 경고 신호이지 실제 Draw Call 수가 아닙니다.
 
 Editor Profiler Marker에는 Canvas/Hierarchy/Timeline Rebuild, Preview Apply, Validation, Publish와 UXML/USS Generation이 포함됩니다. 반복 Repaint가 의심되면 이 Marker부터 확인하세요.
 

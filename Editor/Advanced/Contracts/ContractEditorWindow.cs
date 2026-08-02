@@ -55,7 +55,7 @@ namespace emiteat.NexUI.Designer.Editor.Contracts
             {
                 var written = ContractCodeGenerator.Generate(_asset);
                 if (!string.IsNullOrEmpty(written))
-                    Debug.Log($"[NexUI Designer] Generated constants at {written}");
+                    Debug.Log($"[NexUI Studio] Generated constants at {written}");
             }
             EditorGUILayout.EndHorizontal();
 

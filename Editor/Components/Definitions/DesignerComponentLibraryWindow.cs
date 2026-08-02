@@ -30,7 +30,7 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
         protected override string TitleKey => "panel.componentLibrary";
         protected override string TooltipKey => "tooltip.componentLibrary";
 
-        [MenuItem("Tools/NexUI/Component Library", priority = NexUIDesignerMenu.PriorityWindows + 4)]
+        [MenuItem("Tools/Nex/NexUI Studio/Component Library", priority = NexUIDesignerMenu.PriorityWindows + 4)]
         public static void Open() => GetWindow<DesignerComponentLibraryWindow>();
 
         protected override void OnEnable()
@@ -163,8 +163,8 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
                 _usages = DesignerComponentLibrary.FindUsages(_selected);
                 _usagesFor = _selected;
             }
-            if (GUILayout.Button("Edit Asset"))
-                Selection.activeObject = _selected;
+            if (GUILayout.Button("Edit Definition"))
+                DesignerComponentDefinitionEditorWindow.Open(_selected);
             EditorGUILayout.EndHorizontal();
 
             if (context?.Metadata == null)
@@ -274,6 +274,90 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
         {
             _status = message;
             _statusKind = kind;
+        }
+    }
+
+    /// <summary>Focused authoring surface for a reusable component's element tree and contract.</summary>
+    public sealed class DesignerComponentDefinitionEditorWindow : EditorWindow
+    {
+        [SerializeField] private DesignerComponentDefinitionAsset _definition;
+        [SerializeField] private Vector2 _scroll;
+        private SerializedObject _serialized;
+
+        public static void Open(DesignerComponentDefinitionAsset definition)
+        {
+            var window = GetWindow<DesignerComponentDefinitionEditorWindow>();
+            window.titleContent = new GUIContent("Component Definition");
+            window.minSize = new Vector2(430f, 420f);
+            window.SetDefinition(definition);
+            window.Show();
+        }
+
+        [MenuItem("CONTEXT/DesignerComponentDefinitionAsset/Edit in NexUI")]
+        private static void OpenFromContext(MenuCommand command)
+            => Open(command.context as DesignerComponentDefinitionAsset);
+
+        private void OnEnable()
+        {
+            titleContent = new GUIContent("Component Definition");
+            if (_definition != null) _serialized = new SerializedObject(_definition);
+        }
+
+        private void SetDefinition(DesignerComponentDefinitionAsset definition)
+        {
+            _definition = definition;
+            _serialized = definition == null ? null : new SerializedObject(definition);
+            Repaint();
+        }
+
+        private void OnGUI()
+        {
+            var picked = (DesignerComponentDefinitionAsset)EditorGUILayout.ObjectField(
+                "Definition", _definition, typeof(DesignerComponentDefinitionAsset), false);
+            if (picked != _definition) SetDefinition(picked);
+            if (_definition == null || _serialized == null)
+            {
+                EditorGUILayout.HelpBox("Choose a Component Definition asset.", MessageType.Info);
+                return;
+            }
+
+            _serialized.Update();
+            _scroll = EditorGUILayout.BeginScrollView(_scroll);
+            Section("Identity", "displayName", "category", "description", "tags", "thumbnail", "defaultSize", "version");
+            using (new EditorGUI.DisabledScope(true)) EditorGUILayout.TextField("Component Id", _definition.componentId);
+            Section("Element Tree", "rootElementId", "elements");
+            if (_definition.Root == null)
+                EditorGUILayout.HelpBox("A definition needs at least one root element.", MessageType.Error);
+            Section("Instance Contract", "exposedProperties", "slots", "variantProperties", "variantRules");
+            EditorGUILayout.EndScrollView();
+
+            if (_serialized.ApplyModifiedProperties())
+            {
+                EditorUtility.SetDirty(_definition);
+                DesignerComponentLibrary.Invalidate();
+            }
+
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Bump Version"))
+            {
+                Undo.RecordObject(_definition, "Bump NexUI Component Version");
+                _definition.version = Mathf.Max(1, _definition.version + 1);
+                EditorUtility.SetDirty(_definition);
+            }
+            if (GUILayout.Button("Ping Asset")) EditorGUIUtility.PingObject(_definition);
+            if (GUILayout.Button("Open Library")) DesignerComponentLibraryWindow.Open();
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private void Section(string title, params string[] propertyNames)
+        {
+            EditorGUILayout.Space(5f);
+            EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
+            foreach (var propertyName in propertyNames)
+            {
+                var property = _serialized.FindProperty(propertyName);
+                if (property != null) EditorGUILayout.PropertyField(property, true);
+            }
         }
     }
 }

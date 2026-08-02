@@ -6,7 +6,7 @@
 | 요소 | Element | Screen을 구성하며 Stable ID를 가진 항목 |
 | 컴포넌트 | Component | Panel, Button 등 Element의 역할 |
 | 계층 | Hierarchy/Layers | Parent와 Sibling 관계 |
-| 메타데이터 | Metadata | Designer 제작 정보를 저장하는 에셋 |
+| 메타데이터 | Metadata | Studio 제작 정보를 저장하는 에셋 |
 | 백엔드 | Backend | uGUI 또는 UI Toolkit 구현 |
 | 바인딩 | Binding | 상태 Key와 표시 속성의 연결 |
 | 명령 | Command | 사용자 동작이 호출하는 Action Key |

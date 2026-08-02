@@ -161,7 +161,7 @@ namespace emiteat.NexUI.Designer.Editor
         {
             if (definition != CurrentScreen && HasUnsavedChanges && !Application.isBatchMode)
             {
-                var choice = EditorUtility.DisplayDialogComplex("NexUI Designer",
+                var choice = EditorUtility.DisplayDialogComplex("NexUI Studio",
                     "There are unsaved Designer changes. Save before switching screens?", "Save", "Cancel", "Discard");
                 if (choice == 1) return false;
                 if (choice == 0 && Save().HasErrors) return false;
@@ -186,7 +186,7 @@ namespace emiteat.NexUI.Designer.Editor
             if (metadata == Metadata) return true;
             if (HasUnsavedChanges && !Application.isBatchMode)
             {
-                var choice = EditorUtility.DisplayDialogComplex("NexUI Designer",
+                var choice = EditorUtility.DisplayDialogComplex("NexUI Studio",
                     "There are unsaved Designer changes. Save before switching metadata?", "Save", "Cancel", "Discard");
                 if (choice == 1) return false;
                 if (choice == 0 && Save().HasErrors) return false;
@@ -443,7 +443,7 @@ namespace emiteat.NexUI.Designer.Editor
                 report.Error($"Metadata '{Metadata.name}' belongs to screen '{Metadata.screenId}', not '{CurrentScreen.ScreenId}'.");
                 LastSaveReport = report;
                 SaveCompleted?.Invoke(report);
-                Debug.LogError("[NexUI Designer] " + report.Details());
+                Debug.LogError("[NexUI Studio] " + report.Details());
                 return report;
             }
 
@@ -455,7 +455,7 @@ namespace emiteat.NexUI.Designer.Editor
             {
                 LastSaveReport = report;
                 SaveCompleted?.Invoke(report);
-                Debug.LogError("[NexUI Designer] Save blocked by validation. " + report.Details());
+                Debug.LogError("[NexUI Studio] Save blocked by validation. " + report.Details());
                 Validate();
                 return report;
             }
@@ -517,11 +517,11 @@ namespace emiteat.NexUI.Designer.Editor
             }
 
             if (report.HasErrors)
-                Debug.LogError("[NexUI Designer] " + report.Details());
+                Debug.LogError("[NexUI Studio] " + report.Details());
             else if (report.HasWarnings)
-                Debug.LogWarning("[NexUI Designer] " + report.Details());
+                Debug.LogWarning("[NexUI Studio] " + report.Details());
             else
-                Debug.Log("[NexUI Designer] " + report.Details());
+                Debug.Log("[NexUI Studio] " + report.Details());
 
             LastSaveReport = report;
             SaveCompleted?.Invoke(report);
@@ -669,6 +669,12 @@ namespace emiteat.NexUI.Designer.Editor
         /// Adds metadata entries for named backend elements (UXML names / prefab GameObject
         /// names) that have no metadata yet. Returns the number of elements added.
         /// </summary>
+        /// <summary>
+        /// Report from the last Prefab Import, so a panel can show what was skipped or approximated
+        /// instead of the user having to read the console.
+        /// </summary>
+        public DesignerSaveReport LastImportReport { get; private set; }
+
         public int SyncMetadataFromBackend()
         {
             if (Metadata == null || CurrentScreen == null) return 0;
@@ -681,14 +687,16 @@ namespace emiteat.NexUI.Designer.Editor
             }
             else if (CurrentScreen.backendAsset.backend == UIRenderBackend.UGUI && asset is GameObject prefab)
             {
-                Undo.RecordObject(Metadata, "Sync Metadata From Prefab");
-                foreach (var t in prefab.GetComponentsInChildren<Transform>(true))
-                {
-                    if (t == prefab.transform) continue;
-                    if (Metadata.Find(t.name) != null) continue;
-                    Metadata.elements.Add(new DesignerElementMetadata { elementId = t.name, displayName = t.name, elementType = "Custom" });
-                    added++;
-                }
+                Undo.RecordObject(Metadata, "Import Prefab");
+
+                // Full import, not the name-only stubs this used to create: geometry, the component
+                // stack and every serialized value come across, so the screen is actually editable
+                // rather than being a list of empty placeholders named after GameObjects.
+                var result = StudioPrefabImporter.ImportInto(Metadata, prefab);
+                added = result.Elements.Count;
+                LastImportReport = result.Report;
+                Debug.Log("[NexUI Studio] " + result.Report.Details());
+
                 if (added > 0)
                 {
                     EditorUtility.SetDirty(Metadata);
@@ -949,6 +957,10 @@ namespace emiteat.NexUI.Designer.Editor
             foreach (var element in Metadata.elements)
                 if (element != null && !string.IsNullOrEmpty(element.elementId)) occupied.Add(element.elementId);
             var idMap = new Dictionary<string, string>();
+
+            // Component references are stored by stable id, so re-pointing a copy at its own children
+            // needs the stable-id map as well as the public elementId one.
+            var stableIdMap = new Dictionary<string, string>();
             var pairs = new List<(DesignerElementMetadata source, DesignerElementMetadata clone)>();
 
             foreach (var source in sourceList)
@@ -962,6 +974,8 @@ namespace emiteat.NexUI.Designer.Editor
 
                 var clone = DesignerMetadataUtility.Clone(source);
                 clone.stableId = Guid.NewGuid().ToString("N");
+                if (!string.IsNullOrEmpty(source.stableId) && !stableIdMap.ContainsKey(source.stableId))
+                    stableIdMap.Add(source.stableId, clone.stableId);
                 clone.elementId = newId;
                 clone.displayName = string.IsNullOrEmpty(source.displayName)
                     ? (source.elementId ?? "Element") + " Copy"
@@ -977,6 +991,7 @@ namespace emiteat.NexUI.Designer.Editor
                 if (!string.IsNullOrEmpty(pair.source.parentId) && idMap.TryGetValue(pair.source.parentId, out var parentId))
                     clone.parentId = parentId;
                 RemapFocus(clone.focus, idMap);
+                DesignerMetadataUtility.RemapComponentReferences(clone, stableIdMap);
                 Metadata.elements.Add(clone);
             }
 
@@ -1465,7 +1480,7 @@ namespace emiteat.NexUI.Designer.Editor
         public bool DiscardUnsavedChanges()
         {
             if (HasExternalAssetChanges() && !Application.isBatchMode &&
-                !EditorUtility.DisplayDialog("NexUI Designer - External Changes",
+                !EditorUtility.DisplayDialog("NexUI Studio - External Changes",
                     "The open screen or metadata was modified outside this Designer session. Discarding will also revert those external changes to the last Designer baseline.",
                     "Discard All Changes", "Cancel"))
                 return false;
@@ -1531,7 +1546,7 @@ namespace emiteat.NexUI.Designer.Editor
                 if (candidate == null || candidate.screenId != screen.ScreenId) continue;
                 if (match != null)
                 {
-                    Debug.LogWarning($"[NexUI Designer] Multiple metadata assets target screen '{screen.ScreenId}'. Select one explicitly.");
+                    Debug.LogWarning($"[NexUI Studio] Multiple metadata assets target screen '{screen.ScreenId}'. Select one explicitly.");
                     return null;
                 }
                 match = candidate;

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using emiteat.NexUI.Designer.Editor.Common;
+using emiteat.NexUI.Designer.Editor.Commands;
 
 namespace emiteat.NexUI.Designer.Editor.Refactor
 {
@@ -52,7 +53,7 @@ namespace emiteat.NexUI.Designer.Editor.Refactor
             EditorGUILayout.EndHorizontal();
 
             if (_lastApplied >= 0)
-                EditorGUILayout.HelpBox($"renamed {_lastApplied} reference(s). Ctrl+Z to rollback.", MessageType.Info);
+                EditorGUILayout.HelpBox($"renamed {_lastApplied} reference(s). {UIDesignerShortcut.PrimaryModifierLabel}+Z to rollback.", MessageType.Info);
 
             if (_preview != null)
                 EditorGUILayout.HelpBox(_preview.Count == 0

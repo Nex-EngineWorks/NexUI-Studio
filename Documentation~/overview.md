@@ -46,7 +46,7 @@ Unity의 UI 제작은 그렇지 않았습니다.
 | Framer Motion | Motion Clip · Motion Graph · Motion State Machine ([문서](motion/overview.md)) |
 | React DevTools | Runtime Snapshot & Diff, Preview Log ([문서](advanced/runtime-debugging.md)) |
 | npm 컴포넌트 라이브러리 | 패키지 내장 컴포넌트 레시피 300종 |
-| JSX → DOM | Designer Metadata → uGUI 프리팹 / UXML + USS 코드 생성 |
+| JSX → DOM | Studio Metadata → uGUI 프리팹 / UXML + USS 코드 생성 |
 
 ---
 
@@ -54,7 +54,7 @@ Unity의 UI 제작은 그렇지 않았습니다.
 
 | 축 | 내용 |
 |---|---|
-| 패키지 | 런타임 프레임워크 `com.emiteat.nexui`, 에디터 저작 도구 `com.emiteat.nexui.designer` |
+| 패키지 | 런타임 프레임워크 `com.nexengineworks.nexui`, 에디터 저작 도구 `com.nexengineworks.nexui.studio` |
 | 규모 | Runtime/Editor 어셈블리와 EditMode/PlayMode 자동 테스트 포함(정확한 개수는 현재 Test Runner XML 기준) |
 | 대상 | Unity 6000.4 (6.x), uGUI 2.0 / UI Toolkit 동시 지원 |
 | 컴포넌트 | Descriptor 529종(NexUI 448 · Unity uGUI 22 · UI Toolkit 59) + 복합 레시피 300종 + 프로젝트 커스텀 정의. Runtime Widget 구현 개수와는 다름 |
@@ -65,7 +65,7 @@ Unity의 UI 제작은 그렇지 않았습니다.
 
 ## 3. 패키지와 어셈블리 구조
 
-### 3.1 런타임 — `com.emiteat.nexui`
+### 3.1 런타임 — `com.nexengineworks.nexui`
 
 게임 빌드에 포함되는 프레임워크입니다. 에디터 의존성이 없습니다.
 
@@ -85,14 +85,14 @@ Unity의 UI 제작은 그렇지 않았습니다.
 
 에디터 보조 어셈블리: `Editor.ProjectSetup`, `Editor.Validator`, `Editor.Migration`, `Editor.IDGenerator`, `Editor.DebugTools`, `Editor.Settings`.
 
-### 3.2 저작 도구 — `com.emiteat.nexui.designer`
+### 3.2 저작 도구 — `com.nexengineworks.nexui.studio`
 
 Unity 에디터 확장입니다. 런타임 패키지에 의존하고, 그 반대는 없습니다.
 
 | 폴더 | 역할 |
 |---|---|
 | `Runtime/Metadata` | 화면 편집 데이터(ScriptableObject). 빌드에 남지만 런타임 로직은 없음 |
-| `Editor/Core` | Designer 컨텍스트, 선택, Undo, 좌표/계층 유틸, 창 |
+| `Editor/Core` | Studio 컨텍스트, 선택, Undo, 좌표/계층 유틸, 창 |
 | `Editor/UI` | 셸(패널 분리·도킹), 패널, 컨트롤 |
 | `Editor/Viewport` | 캔버스 렌더링, 눈금자, 가이드, 스냅, 오버레이 |
 | `Editor/Components` | 컴포넌트 레지스트리 · 카탈로그 · 캔버스 프리뷰 렌더러 |
@@ -108,7 +108,7 @@ Unity 에디터 확장입니다. 런타임 패키지에 의존하고, 그 반대
 ## 4. 핵심 개념
 
 - **Screen Definition** — 런타임이 아는 화면의 정체(ID, 레이어, 백엔드 에셋, 정책).
-- **Designer Metadata** — 편집용 데이터(요소 트리, 위치, 스타일, 바인딩, 모션). 런타임 정의와 분리되어 있어, 저장 전까지 어떤 것도 게임에 영향을 주지 않습니다.
+- **Studio Metadata** — 편집용 데이터(요소 트리, 위치, 스타일, 바인딩, 모션). 런타임 정의와 분리되어 있어, 저장 전까지 어떤 것도 게임에 영향을 주지 않습니다.
 - **Element** — 메타데이터상의 UI 조각. `elementType` 문자열로 컴포넌트 종류를 가리키며, `stableId`로 백엔드 오브젝트와 영구 연결됩니다.
 - **Backend** — 출력 대상(uGUI 프리팹 또는 UI Toolkit UXML/USS). 미리보기 서피스도 백엔드가 제공합니다.
 - **Binding** — 요소와 런타임 상태 키의 연결. 채널은 Text / Value / Visibility / Class / Command / Interactable.
@@ -132,12 +132,12 @@ Unity 에디터 확장입니다. 런타임 패키지에 의존하고, 그 반대
 
 ---
 
-## 6. Designer(저작 도구) 기능
+## 6. Studio(저작 도구) 기능
 
 ### 6.1 창과 레이아웃
 
-- 하나의 Designer 창에 Explorer(계층·라이브러리·에셋) / Canvas / Inspector / Output 드로어가 배치됩니다.
-- 각 패널은 **⧉** 버튼으로 독립 `EditorWindow`로 분리됩니다. 별도 도킹 시스템을 만들지 않고 Unity의 도킹·탭·멀티모니터·레이아웃 저장을 그대로 씁니다. `Tools/NexUI/Panels/…`로 개별 패널을 열 수 있고, `Dock All Back Into Designer`로 되돌립니다.
+- 하나의 Studio 창에 Explorer(계층·라이브러리·에셋) / Canvas / Inspector / Output 드로어가 배치됩니다.
+- 각 패널은 **⧉** 버튼으로 독립 `EditorWindow`로 분리됩니다. 별도 도킹 시스템을 만들지 않고 Unity의 도킹·탭·멀티모니터·레이아웃 저장을 그대로 씁니다. `Tools/NexUI/Panels/…`로 개별 패널을 열 수 있고, `Dock All Back Into Studio`로 되돌립니다.
 - 각 영역에는 이름과 현재 용도를 알려주는 캡션이 있습니다(예: `EXPLORER — 열려 있는 화면의 구조`).
 
 ### 6.2 캔버스 편집
@@ -173,7 +173,7 @@ Motion Clip Editor(전문 타임라인: 재생·마커·자동 키·복사/반�
 
 ### 7.0 요소는 컴포넌트들의 컨테이너입니다
 
-2026-07-30부터 Designer의 요소는 **Unity의 GameObject와 같은 구조**입니다. 요소 자체는 이름과 사각형만 갖고, 무엇인지는 **붙어 있는 컴포넌트**가 결정합니다.
+2026-07-30부터 Studio의 요소는 **Unity의 GameObject와 같은 구조**입니다. 요소 자체는 이름과 사각형만 갖고, 무엇인지는 **붙어 있는 컴포넌트**가 결정합니다.
 
 - 팔레트의 `Button`은 타입이 아니라 **프리셋**입니다 — `Core.Element + UGUI.Image + UGUI.Button`을 찍어 줄 뿐이고, 그 뒤로는 전부 끄고·순서 바꾸고·지울 수 있습니다. **분해**는 프리셋 라벨만 지웁니다(구성은 애초부터 컴포넌트였으므로 구조는 그대로).
 - 붙일 수 있는 컴포넌트는 세 계열입니다: **Unity uGUI**, **UI Toolkit**, **NexUI Base**(Unity에 없어서 매번 직접 만들던 것들). 화면 백엔드에서 동작하는 것만 Add Component 목록에 나옵니다.
@@ -254,7 +254,7 @@ UXML 출력에서 NexUI Base를 **커스텀 요소 태그**로 낼지(`<emiteat.
 
 ### 7.5 Add Component (임의 MonoBehaviour 부착)
 
-Unity Inspector의 Add Component와 같은 흐름을 Designer 요소에 제공합니다. 메타데이터에는 어셈블리 한정 타입 이름만 저장하고(선택 어셈블리가 없어도 화면이 열립니다), 저장 시 프리팹 오브젝트에 부착합니다. `DesignerAttachedComponentTracker`가 **Designer가 붙인 것만** 기록하므로, 사용자가 프리팹에 직접 붙인 같은 타입 컴포넌트를 도구가 지우지 않습니다.
+Unity Inspector의 Add Component와 같은 흐름을 Studio 요소에 제공합니다. 메타데이터에는 어셈블리 한정 타입 이름만 저장하고(선택 어셈블리가 없어도 화면이 열립니다), 저장 시 프리팹 오브젝트에 부착합니다. `DesignerAttachedComponentTracker`가 **Studio가 붙인 것만** 기록하므로, 사용자가 프리팹에 직접 붙인 같은 타입 컴포넌트를 도구가 지우지 않습니다.
 
 ### 7.6 확장 방법
 
@@ -269,7 +269,7 @@ Unity Inspector의 Add Component와 같은 흐름을 Designer 요소에 제공�
 `LoadPrefabContents → 수정 → SaveAsPrefabAsset → UnloadPrefabContents` 패턴으로 기존 참조와 사용자 작업물을 보존합니다.
 
 - 매칭은 **stableId 우선**, 없으면 elementId 태그, 마지막으로 이름. 중복 식별자는 에러로 보고하고 **아무것도 쓰지 않습니다**.
-- Designer가 만든 오브젝트만 이름을 바꾸고, 사용자 소유 오브젝트는 건드리지 않습니다(`NexUIElementOwnership`).
+- Studio가 만든 오브젝트만 이름을 바꾸고, 사용자 소유 오브젝트는 건드리지 않습니다(`NexUIElementOwnership`).
 - 위치는 부모 상대 좌표로 변환 후 앵커 프리셋을 적용하고, 형제 순서를 `SetSiblingIndex`로 반영합니다.
 - Auto Layout은 Horizontal/Vertical/Grid LayoutGroup으로, 클리핑은 RectMask2D로, 그림자/아웃라인은 uGUI 이펙트로 매핑합니다.
 - 스톡 컨트롤은 7.3처럼 Unity 기본 팩토리로 생성합니다.
@@ -282,7 +282,7 @@ Unity Inspector의 Add Component와 같은 흐름을 Designer 요소에 제공�
 
 ### 8.3 Sync & Publish
 
-파일 존재 여부와 Designer/파일/직전 발행 해시를 비교해 `New · InSync · DesignerChanged · BackendChanged · Conflict`를 판정하는 3-way 동기화입니다. LCS 라인 Diff를 보고 "Designer 쪽 사용" / "백엔드 쪽 채택"을 고르며, Publish는 변경된 화면만 씁니다. → [Sync와 Publish](advanced/sync-and-publish.md)
+파일 존재 여부와 Studio/파일/직전 발행 해시를 비교해 `New · InSync · DesignerChanged · BackendChanged · Conflict`를 판정하는 3-way 동기화입니다. LCS 라인 Diff를 보고 "Studio 쪽 사용" / "백엔드 쪽 채택"을 고르며, Publish는 변경된 화면만 씁니다. → [Sync와 Publish](advanced/sync-and-publish.md)
 
 ### 8.4 저장 리포트
 
@@ -338,7 +338,7 @@ Unity Inspector의 Add Component와 같은 흐름을 Designer 요소에 제공�
 [설치](getting-started/installation.md) · [빠른 시작](getting-started/quick-start.md) · [첫 화면 만들기](getting-started/first-screen.md) · [인터페이스 둘러보기](getting-started/interface-tour.md) · [Sample 둘러보기](getting-started/sample-tour.md)
 
 ### 사용 가이드
-[Designer 창](user-guide/designer-window.md) · [Screen과 Metadata](user-guide/screen-and-metadata.md) · [Canvas 편집](user-guide/canvas-editing.md) · [Hierarchy와 Layout](user-guide/hierarchy-and-layout.md) · [Assets 패널](user-guide/assets-panel.md) · [Inspector와 Style](user-guide/inspector-and-style.md) · [Binding](user-guide/binding.md) · [자주 쓰는 작업](user-guide/common-workflows.md) · [AI 어시스턴트](user-guide/ai-assistant.md) · [Preview와 Scenario](user-guide/preview-and-scenarios.md) · [Validation과 Save](user-guide/validation-and-save.md) · [Validation Auto Fix](user-guide/validation-auto-fix.md) · [화면 생성 마법사](user-guide/screen-creation-wizard.md) · [전환 프리셋](user-guide/transition-presets.md) · [Auto Layout 변환과 Anchor](user-guide/layout-conversion-and-anchor.md) · [uGUI Backend](user-guide/ugui-backend.md) · [UI Toolkit Backend](user-guide/ui-toolkit-backend.md)
+[Studio 창](user-guide/designer-window.md) · [Screen과 Metadata](user-guide/screen-and-metadata.md) · [Canvas 편집](user-guide/canvas-editing.md) · [Hierarchy와 Layout](user-guide/hierarchy-and-layout.md) · [Assets 패널](user-guide/assets-panel.md) · [Inspector와 Style](user-guide/inspector-and-style.md) · [Binding](user-guide/binding.md) · [자주 쓰는 작업](user-guide/common-workflows.md) · [AI 어시스턴트](user-guide/ai-assistant.md) · [Preview와 Scenario](user-guide/preview-and-scenarios.md) · [Validation과 Save](user-guide/validation-and-save.md) · [Validation Auto Fix](user-guide/validation-auto-fix.md) · [화면 생성 마법사](user-guide/screen-creation-wizard.md) · [전환 프리셋](user-guide/transition-presets.md) · [Auto Layout 변환과 Anchor](user-guide/layout-conversion-and-anchor.md) · [uGUI Backend](user-guide/ugui-backend.md) · [UI Toolkit Backend](user-guide/ui-toolkit-backend.md)
 
 ### 모션
 [선택 가이드](motion/overview.md) · [Motion Clip](motion/motion-clip-editor.md) · [Motion Graph](motion/motion-graph-editor.md) · [레시피](motion/recipes.md)

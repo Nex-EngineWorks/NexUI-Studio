@@ -1,6 +1,6 @@
 # 범용 Component 편집 시스템 — 설계
 
-NexUI Designer를 "미리 등록된 컴포넌트 모음"에서 "Unity Inspector처럼 임의의 컴포넌트를 편집하는
+NexUI Studio를 "미리 등록된 컴포넌트 모음"에서 "Unity Inspector처럼 임의의 컴포넌트를 편집하는
 UI 제작 환경"으로 바꾸기 위한 설계. **코드를 고치기 전에 쓰는 문서이며, 구현이 진행되면 이 문서의
 지원 표를 함께 갱신한다.**
 
@@ -25,7 +25,7 @@ UI 제작 환경"으로 바꾸기 위한 설계. **코드를 고치기 전에 �
 - **리플렉션 스키마**: `DesignerReflectedSchema`가 `[SerializeField]`/public 필드를 Unity 직렬화
   규칙대로 읽고 `[Range]`/`[Tooltip]`을 이미 반영
 - **타입 탐색**: `TypeCache.GetTypesDerivedFrom<MonoBehaviour>()` 사용 중 (캐시는 없음)
-- **소유권 추적**: `DesignerAttachedComponentTracker`가 Designer 소유 컴포넌트와 사용자 컴포넌트를
+- **소유권 추적**: `DesignerAttachedComponentTracker`가 Studio 소유 컴포넌트와 사용자 컴포넌트를
   구분 — Phase 8의 "임의 삭제 금지"가 부분 충족
 - **속성 bag**: `DesignerComponentPropertyBag` — 변경한 값만 저장, 모르는 키 보존
 - **Save Report**: `Changed/Added/Skipped/PreviewOnly/Unsupported` 채널 존재
@@ -102,9 +102,9 @@ Prefab 저장
 
 ## 5. Assembly 의존성
 
-- `emiteat.NexUI.Designer.Runtime` — 데이터 모델만. **UnityEditor 참조 없음**
-- `emiteat.NexUI.Designer.Editor` — 타입 탐색·인스펙터·Drawer·Prefab 적용. UnityEditor 사용
-- 런타임 패키지(`com.emiteat.nexui`)는 이 시스템을 참조하지 않는다. 빌드에는 생성된 실제
+- `emiteat.NexUI.Studio.Runtime` — 데이터 모델만. **UnityEditor 참조 없음**
+- `emiteat.NexUI.Studio.Editor` — 타입 탐색·인스펙터·Drawer·Prefab 적용. UnityEditor 사용
+- 런타임 패키지(`com.nexengineworks.nexui`)는 이 시스템을 참조하지 않는다. 빌드에는 생성된 실제
   Component와 NexUI Binding/Motion/Screen만 남는다
 
 ## 6. 마이그레이션 전략
@@ -113,7 +113,7 @@ Prefab 저장
 
 1. `element.attachedComponents`의 각 항목을 `element.components`에 추가.
    `source = Project`, `assemblyQualifiedTypeName = typeName`, `instanceId = 새 GUID`
-2. `attachedComponents`는 **비우지 않고 그대로 둔다.** 구버전 Designer에서 열었을 때 컴포넌트가
+2. `attachedComponents`는 **비우지 않고 그대로 둔다.** 구버전 Studio에서 열었을 때 컴포넌트가
    사라지지 않도록 한 버전 동안 병행 기록한다(읽기는 `components`만)
 3. 기존 `components` 항목에는 `source`를 `typeId` 접두사에서 추론해 채운다
    (`UGUI.` → UGUI, `UITK.` → UIToolkit, `NX.`/그 외 → NexUI)
@@ -123,15 +123,29 @@ Prefab 저장
 
 | 단계 | 내용 | 상태 |
 |---|---|---|
-| 1 | 데이터 모델 확장 + 마이그레이션 v6 | 진행 |
-| 2 | 타입 인덱스(TypeCache 캐시) + Add Component UI | 예정 |
-| 3 | SerializedObject 기반 제네릭 인스펙터 | 예정 |
-| 4 | Object/Element 참조 | 예정 |
-| 5 | Prefab 적용(속성·참조) | 예정 |
+| 1 | 데이터 모델 확장 + 마이그레이션 v6 | 완료 |
+| 2 | 타입 인덱스(TypeCache 캐시) + Add Component UI | 완료 — `StudioComponentTypeIndex`, `StudioAddComponentPicker` |
+| 3 | SerializedObject 기반 제네릭 인스펙터 | 완료 — `StudioScratchComponentHost`, `StudioSerializedComponentBridge`, `StudioGenericComponentEditor` |
+| 4 | Object/Element 참조 | 완료 — `StudioReferenceUtility`, `StudioReferenceRow` |
+| 5 | Prefab 적용(속성·참조) | 완료 — `StudioComponentWriter` |
 | 6 | Definition/Instance 오버라이드 확장 | 예정 |
 | 7 | Prefab Import | 예정 |
 | 8 | UnityEvent | 예정 |
 | 9 | Template 재분류 | 예정 |
+
+### 7.1 1~5단계의 알려진 범위
+
+- 제네릭 인스펙터는 **레지스트리에 없는** Component(프로젝트 스크립트, 일반 Unity 컴포넌트)에만
+  적용된다. `UGUI.*` / `UITK.*` / `NX.*` 등록 타입은 기존 `DesignerReflectedSchema` 경로를 그대로
+  쓴다 — 저장 키가 스키마 키(`preserveAspect`)와 property path(`m_PreserveAspect`)로 달라서,
+  전환하면 기존 화면의 값이 유실되기 때문이다. 통합은 키 마이그레이션과 함께 별도로 한다.
+- Element 참조 행은 **최상위 object 필드**에만 붙는다. 중첩 `[Serializable]` 안의 object 필드는
+  `PropertyField`가 그리므로 에셋만 지정할 수 있다(값은 정상 저장·복원됨).
+- Component **순서**는 소유권 추적과 `ComponentUtility`를 통해 Prefab에 반영한다. Import된
+  Component는 Adopted로 연결되어 Stack에서 제거해도 원본 Component를 삭제하지 않는다.
+- `ManagedReference`(`[SerializeReference]`), `ExposedReference`, `Hash128` 값을 메타데이터로
+  왕복 저장한다. 로드할 수 없는 Managed type은 값 원문을 유지하고 Unsupported로 보고한다.
+- double 필드는 json 경로로 저장해 정밀도를 유지한다.
 
 **최소 수직 슬라이스**(1~5의 최소 경로)를 먼저 닫는다: 사용자 MonoBehaviour 검색 → Add Component
 → float/string/Object 참조 편집 → Undo → Prefab 저장 → 재로드.
