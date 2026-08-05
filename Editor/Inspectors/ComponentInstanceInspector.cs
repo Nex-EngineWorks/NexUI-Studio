@@ -162,7 +162,7 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
 
         private static string DefinitionValue(DesignerComponentDefinitionAsset definition, DesignerComponentExposedProperty exposed)
         {
-            var target = definition.Find(exposed.targetElementId);
+            var target = definition.ResolveTarget(exposed.targetStableId, exposed.targetElementId);
             var value = target != null ? DesignerPropertyApplier.Read(target, exposed.propertyId) : null;
             return value != null ? DesignerPropertyRegistry.Serialize(value) : DesignerPropertyRegistry.Serialize(exposed.defaultValue);
         }
@@ -204,11 +204,38 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
             if (count > 0) AfterChange();
         }
 
+        /// <summary>
+        /// Reconciles the instance, then - only when something genuinely cannot be re-pointed - offers
+        /// to drop those overrides.
+        /// </summary>
+        /// <remarks>
+        /// The offer comes after the repair pass rather than before it, so the user is asked about the
+        /// overrides that are actually stranded instead of the ones a rename merely moved. Declining is
+        /// the safe default: the reconcile has already happened either way.
+        /// </remarks>
         private void UpdateFromDefinition(DesignerElementMetadata element)
         {
             var result = DesignerComponentService.UpdateFromDefinition(Context.Metadata, element);
             Report(result);
+
+            var stranded = CountStranded(result);
+            if (stranded > 0 && EditorUtility.DisplayDialog("Reset unresolved overrides?",
+                    $"{stranded} override(s) on '{element.elementId}' point at something the definition no longer has, " +
+                    "so they have no effect.\n\nRemove them? Their values cannot be recovered afterwards.",
+                    "Remove", "Keep Them"))
+            {
+                Report(DesignerComponentService.UpdateFromDefinition(Context.Metadata, element, resetUnresolved: true));
+            }
+
             AfterChange();
+        }
+
+        private static int CountStranded(DesignerComponentOperationResult result)
+        {
+            var count = 0;
+            foreach (var warning in result.Warnings)
+                if (warning.Contains("no longer resolves")) count++;
+            return count;
         }
 
         private void Detach(DesignerElementMetadata element)
@@ -219,7 +246,7 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
                     "Detach", "Cancel"))
                 return;
 
-            var result = DesignerComponentService.Detach(Context.Metadata, element);
+            var result = DesignerComponentService.Detach(Context.Metadata, element, Context.VariantContext);
             Report(result);
             AfterChange();
         }
@@ -227,6 +254,7 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
         private static void Report(DesignerComponentOperationResult result)
         {
             var message = "[NexUI Studio] " + result.Message;
+            foreach (var note in result.Notes) message += "\n  ✓ " + note;
             foreach (var warning in result.Warnings) message += "\n  • " + warning;
             if (!result.Success) UnityEngine.Debug.LogError(message);
             else if (result.Warnings.Count > 0) UnityEngine.Debug.LogWarning(message);

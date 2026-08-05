@@ -12,7 +12,12 @@ namespace emiteat.NexUI.Designer.Editor.Validation
     /// </summary>
     public static class DesignerComponentValidation
     {
-        public static void Validate(DesignerMetadataAsset metadata, string screenId, List<DesignerValidationIssue> issues)
+        /// <param name="variantContext">
+        /// Canvas resolution / input mode, so a variant rule conditioned on them is judged the same way
+        /// here as on the canvas. Omitted from a caller with no canvas.
+        /// </param>
+        public static void Validate(DesignerMetadataAsset metadata, string screenId, List<DesignerValidationIssue> issues,
+            DesignerComponentVariantContext variantContext = default)
         {
             if (metadata == null) return;
             if (!DesignerComponentExpander.HasInstances(metadata))
@@ -21,7 +26,7 @@ namespace emiteat.NexUI.Designer.Editor.Validation
                 return;
             }
 
-            var expansion = DesignerComponentExpander.Expand(metadata, DesignerComponentLibrary.Resolver);
+            var expansion = DesignerComponentExpander.Expand(metadata, DesignerComponentLibrary.Resolver, variantContext);
             try
             {
                 foreach (var issue in expansion.Issues)
@@ -117,7 +122,9 @@ namespace emiteat.NexUI.Designer.Editor.Validation
                         issues.Add(Definition(definition, "component-exposed-duplicate-name",
                             $"exposes '{exposed.propertyName}' more than once.", "Remove the duplicate.", screenId, element.elementId));
 
-                    if (definition.Find(exposed.targetElementId) == null)
+                    // Through the stable id, so an element the author merely renamed does not read as
+                    // a missing one - that is the whole point of recording the identity.
+                    if (definition.ResolveTarget(exposed.targetStableId, exposed.targetElementId) == null)
                         issues.Add(Definition(definition, "component-exposed-target-missing",
                             $"exposed property '{exposed.propertyName}' targets element '{exposed.targetElementId}', which does not exist.",
                             "Retarget the exposed property, or restore the element.", screenId, element.elementId));
@@ -159,6 +166,9 @@ namespace emiteat.NexUI.Designer.Editor.Validation
                 case DesignerComponentExpansionIssueKind.BudgetExceeded:
                     return DesignerValidationSeverity.Error;
                 case DesignerComponentExpansionIssueKind.RecoveredByComponentId:
+                // Not a mistake in the screen: a headless caller simply has no canvas to judge a
+                // resolution-conditioned rule against. The canvas and the save both do.
+                case DesignerComponentExpansionIssueKind.MissingVariantContext:
                     return DesignerValidationSeverity.Info;
                 default:
                     return DesignerValidationSeverity.Warning;
@@ -180,6 +190,7 @@ namespace emiteat.NexUI.Designer.Editor.Validation
                 case DesignerComponentExpansionIssueKind.UnappliedOverride:          return "component-override-unapplied";
                 case DesignerComponentExpansionIssueKind.UnknownVariantProperty:     return "component-variant-unknown";
                 case DesignerComponentExpansionIssueKind.UnknownVariantValue:        return "component-variant-value-unknown";
+                case DesignerComponentExpansionIssueKind.MissingVariantContext:      return "component-variant-context-missing";
                 case DesignerComponentExpansionIssueKind.VersionMismatch:            return "component-version-mismatch";
                 case DesignerComponentExpansionIssueKind.EmptyDefinition:            return "component-definition-empty";
                 case DesignerComponentExpansionIssueKind.BudgetExceeded:             return "component-expansion-budget";

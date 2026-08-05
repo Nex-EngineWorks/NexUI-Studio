@@ -303,6 +303,15 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
             menu.AddItem(new GUIContent("Rename"), false, () => BeginRename(entry));
             if (!entry.IsFolder)
                 menu.AddItem(new GUIContent("Duplicate"), false, () => Duplicate(entry));
+
+            // Move acts on the whole selection when the clicked row is part of it, the way every other
+            // file browser behaves; right-clicking outside the selection acts on that row alone.
+            var moveTargets = MoveTargets(entry);
+            menu.AddItem(new GUIContent(moveTargets.Count > 1
+                    ? $"Move {moveTargets.Count} Items To Folder…"
+                    : "Move To Folder…"),
+                false, () => BeginMove(moveTargets));
+
             menu.AddItem(new GUIContent("Delete"), false, () => Delete(entry));
             menu.AddSeparator("");
             menu.AddItem(new GUIContent(DesignerLocalization.T("ctx.asset.copyPath")), false,
@@ -394,6 +403,69 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
                 Debug.LogWarning($"NexUI Assets: could not duplicate '{entry.Path}'.");
             AssetDatabase.SaveAssets();
             Refresh();
+        }
+
+        /// <summary>The paths a move should act on when <paramref name="entry"/> was right-clicked.</summary>
+        private List<string> MoveTargets(DesignerAssetEntry entry)
+        {
+            if (!_selectedPaths.Contains(entry.Path)) return new List<string> { entry.Path };
+            var targets = new List<string>(_selectedPaths);
+            targets.Sort(System.StringComparer.OrdinalIgnoreCase);
+            return targets;
+        }
+
+        /// <summary>
+        /// Opens the destination picker and applies the move.
+        /// </summary>
+        /// <remarks>
+        /// The picker is given the same rule the move itself uses, so a folder it lets the user choose
+        /// is a folder the move will accept. Confirmation is explicit because
+        /// <see cref="AssetDatabase.MoveAsset"/> cannot be undone - unlike Rename, there is no way back
+        /// from a mis-click across a large selection.
+        /// </remarks>
+        private void BeginMove(List<string> sources)
+        {
+            var effective = DesignerAssetBrowser.WithoutNestedSources(sources);
+            if (effective.Count == 0) return;
+
+            DesignerFolderPickerWindow.Open(
+                effective.Count > 1 ? $"Move {effective.Count} Items" : "Move " + DesignerAssetBrowser.LeafName(effective[0]),
+                _folder,
+                folder => BlockedForAll(effective, folder),
+                folder =>
+                {
+                    var label = effective.Count > 1
+                        ? $"Move {effective.Count} items into '{DesignerAssetBrowser.LeafName(folder)}'?"
+                        : $"Move '{DesignerAssetBrowser.LeafName(effective[0])}' into '{DesignerAssetBrowser.LeafName(folder)}'?";
+                    if (!EditorUtility.DisplayDialog("Move assets?",
+                            label + "\n\nMoving assets cannot be undone.", "Move", "Cancel")) return;
+
+                    var result = DesignerAssetBrowser.Move(effective, folder);
+                    foreach (var failure in result.Failed) Debug.LogWarning($"NexUI Assets: {failure}");
+                    foreach (var skipped in result.Skipped) Debug.Log($"NexUI Assets: {skipped}");
+
+                    _selectedPaths.Clear();
+                    foreach (var moved in result.Moved) _selectedPaths.Add(moved);
+                    Refresh();
+                    _status.text = result.Summary();
+                });
+        }
+
+        /// <summary>
+        /// Why <paramref name="folder"/> is refused for the whole selection, or null when at least one
+        /// source can go there. A folder is only disabled when nothing in the selection could move into
+        /// it - disabling it because one of twenty items is already there would be unhelpful.
+        /// </summary>
+        private static string BlockedForAll(List<string> sources, string folder)
+        {
+            string firstReason = null;
+            foreach (var source in sources)
+            {
+                var reason = DesignerAssetBrowser.MoveBlockedReason(source, folder);
+                if (reason == null) return null;
+                firstReason ??= reason;
+            }
+            return firstReason;
         }
 
         private void Delete(DesignerAssetEntry entry)

@@ -112,6 +112,10 @@ namespace emiteat.NexUI.Designer
         public List<string> classes = new List<string>();
 
         public DesignerBindingMetadata binding = new DesignerBindingMetadata();
+
+        /// <summary>Authored trigger / condition / action rules owned by this element.</summary>
+        public List<DesignerInteractionRule> interactions = new List<DesignerInteractionRule>();
+
         public DesignerMotionMetadata motion = new DesignerMotionMetadata();
         public DesignerThemeMetadata theme = new DesignerThemeMetadata();
         public DesignerAutoLayoutMetadata autoLayout = new DesignerAutoLayoutMetadata();
@@ -160,5 +164,22 @@ namespace emiteat.NexUI.Designer
 
         public string accessibilityLabel;
         public AccessibilityRole accessibilityRole = AccessibilityRole.None;
+
+        /// <summary>
+        /// Stable, human-written handle an automated test finds this element by, e.g.
+        /// <c>store.item.purchase</c>. Empty for elements no test needs to reach.
+        /// </summary>
+        /// <remarks>
+        /// Deliberately separate from <see cref="elementId"/>. The element id is an authoring
+        /// convenience that gets renamed as a screen is reworked, and a test suite that keys off it
+        /// breaks every time someone tidies up. An automation id is a promise to the test suite:
+        /// it survives renames, restructures and even the element being rebuilt, because it is only
+        /// ever changed deliberately.
+        ///
+        /// It is not <see cref="stableId"/> either - that is a GUID nobody can read, and a test
+        /// that says <c>Find("store.item.purchase")</c> documents its own intent while
+        /// <c>Find("8f2a...")</c> does not.
+        /// </remarks>
+        public string automationId;
     }
 }

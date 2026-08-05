@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using emiteat.NexUI.Core;
 using emiteat.NexUI.Designer.Editor.Backend;
 using emiteat.NexUI.Designer.Editor.Components;
+using emiteat.NexUI.Designer.Editor.Components.Serialization;
 using emiteat.NexUI.Integrations.UGUI;
 using emiteat.NexUI.Designer.Editor.Properties;
 using TMPro;
@@ -151,6 +152,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                     go = UGUIControlFactory.Create(element);
                     go.transform.SetParent(root.transform, false);
                     UGUIControlFactory.MatchLayer(go, root);
+                    TrackFactoryComponents(go);
                     created = true;
                     report.MarkCreated("Prefab element", $"Created element '{element.elementId}'", element.elementId);
                 }
@@ -240,7 +242,155 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                     go.transform.SetSiblingIndex(index);
             }
 
+            ReportOwnership(root, metadata, objects, report);
             ReportOrphans(root, usedObjects, report);
+        }
+
+        /// <summary>
+        /// States, in the Validation / Save report, exactly what this save was allowed to overwrite.
+        /// </summary>
+        /// <remarks>
+        /// Every other line in the report is a consequence of this boundary, but the boundary itself was
+        /// never written down - so "Preserved user-authored HorizontalLayoutGroup" read as a failure
+        /// rather than as the rule working. Naming the two halves turns the individual notes into
+        /// something a user can act on: what the Studio rewrites on every save, and what only they can
+        /// change.
+        ///
+        /// The counts come from the prefab that is about to be written, not from the metadata, so they
+        /// describe the real object rather than the intent.
+        /// </remarks>
+        internal static void ReportOwnership(GameObject root, DesignerMetadataAsset metadata,
+            Dictionary<string, GameObject> objects, DesignerSaveReport report)
+        {
+            var designerOwned = 0;
+            var adopted = 0;
+            var manualComponents = 0;
+            var manualElements = new List<string>();
+
+            foreach (var pair in objects)
+            {
+                var go = pair.Value;
+                if (go == null) continue;
+
+                var tag = go.GetComponent<NxUGuiBindingTag>();
+                if (tag != null && tag.ownership == NexUIElementOwnership.DesignerOwned) designerOwned++;
+                else adopted++;
+
+                var manual = ManualComponentNames(go, metadata?.Find(pair.Key));
+                if (manual.Count == 0) continue;
+                manualComponents += manual.Count;
+                if (manualElements.Count < 8)
+                    manualElements.Add($"{pair.Key} ({string.Join(", ", manual)})");
+            }
+
+            // Only objects that sit outside every Studio element are counted. An object *inside* one -
+            // a Button's caption child, say - may well have been created by this serializer, and
+            // claiming it as the user's would make the boundary statement wrong in the common case.
+            var outside = 0;
+            foreach (var transform in root.GetComponentsInChildren<Transform>(includeInactive: true))
+                if (transform != root.transform && !HasTaggedAncestor(transform, root.transform)) outside++;
+
+            report.MarkOwnership("Studio-owned",
+                (report.IsPreview
+                    ? "Will be rewritten: rect, anchors, active state and the authored component stack of "
+                    : "Rewritten on every save: rect, anchors, active state and the authored component stack of ") +
+                $"{objects.Count} element(s) - {designerOwned} created by the Studio, {adopted} adopted from the prefab.");
+
+            if (manualComponents > 0)
+                report.MarkOwnership("Manual",
+                    $"Left untouched: {manualComponents} component(s) you added in the Prefab. " +
+                    $"Add them to the element's stack in the Studio if you want their values saved. " +
+                    (manualElements.Count > 0 ? string.Join("; ", manualElements) : string.Empty));
+
+            if (outside > 0)
+                report.MarkOwnership("Manual",
+                    $"Left untouched: {outside} object(s) outside every Studio element. " +
+                    "Import the prefab to bring them into the screen.");
+
+            // Only meaningful after a real write: in a dry run the missing entries are the elements the
+            // save is about to create, not elements it failed to apply.
+            if (!report.IsPreview && metadata != null && objects.Count < CountedElements(metadata))
+                report.MarkOwnership("Studio-owned",
+                    $"{CountedElements(metadata) - objects.Count} metadata element(s) were not applied; see the errors above.");
+        }
+
+        /// <summary>
+        /// Records the components <see cref="UGUIControlFactory"/> put on a freshly created object.
+        /// </summary>
+        /// <remarks>
+        /// A stock control arrives with its parts already attached - <c>CreatePanel</c> brings an
+        /// <c>Image</c>, <c>CreateSlider</c> a <c>Slider</c> - and none of them went through
+        /// <see cref="AddManagedComponent{T}"/>, so nothing recorded that the Studio had made them.
+        /// The overwrite-scope report would then have called the Studio's own Image a component the
+        /// user added by hand, which is the one thing that statement must never get wrong.
+        ///
+        /// They go in the legacy <c>managedComponents</c> list rather than the generated one: that list
+        /// is read for adoption but never for removal, so recording a part here can pair it with a
+        /// stack entry and can never delete it behind the user's back.
+        /// </remarks>
+        private static void TrackFactoryComponents(GameObject go)
+        {
+            var components = go.GetComponents<Component>();
+            if (components.Length <= 1) return;
+
+            var tracker = go.GetComponent<DesignerAttachedComponentTracker>() ??
+                          go.AddComponent<DesignerAttachedComponentTracker>();
+            tracker.managedComponents ??= new List<Component>();
+            foreach (var component in components)
+            {
+                if (component == null || component is Transform ||
+                    component is CanvasRenderer || component is DesignerAttachedComponentTracker) continue;
+                if (!tracker.managedComponents.Contains(component)) tracker.managedComponents.Add(component);
+            }
+        }
+
+        /// <summary>Whether <paramref name="transform"/> or any ancestor up to <paramref name="root"/> is a Studio element.</summary>
+        private static bool HasTaggedAncestor(Transform transform, Transform root)
+        {
+            for (var current = transform; current != null && current != root.parent; current = current.parent)
+                if (current.GetComponent<NxUGuiBindingTag>() != null) return true;
+            return false;
+        }
+
+        private static int CountedElements(DesignerMetadataAsset metadata)
+        {
+            var count = 0;
+            foreach (var element in metadata.elements)
+                if (element != null && !string.IsNullOrEmpty(element.elementId)) count++;
+            return count;
+        }
+
+        /// <summary>
+        /// Components on <paramref name="go"/> that neither writer owns - the ones a user added in the
+        /// Prefab and that a save must therefore neither rewrite nor remove.
+        /// </summary>
+        /// <remarks>
+        /// Two signals, because neither alone is complete. The tracker knows what the Studio created,
+        /// but the registry writer adopts an existing component without recording anything, so the
+        /// element's own stack is consulted too: if the element declares an <c>Image</c>, whichever
+        /// Image is on the object is written by this save and is not the user's to keep.
+        /// </remarks>
+        private static List<string> ManualComponentNames(GameObject go, DesignerElementMetadata element)
+        {
+            var declared = new HashSet<System.Type>();
+            foreach (var entry in element?.components ?? new List<DesignerElementComponent>())
+            {
+                var type = StudioReferenceUtility.ResolveComponentType(entry);
+                if (type != null) declared.Add(type);
+            }
+
+            var names = new List<string>();
+            var tracker = go.GetComponent<DesignerAttachedComponentTracker>();
+            foreach (var component in go.GetComponents<Component>())
+            {
+                if (component == null) continue;
+                if (component is Transform || component is NxUGuiBindingTag ||
+                    component is DesignerAttachedComponentTracker || component is CanvasRenderer) continue;
+                if (tracker != null && tracker.Owns(component)) continue;
+                if (declared.Contains(component.GetType())) continue;
+                names.Add(component.GetType().Name);
+            }
+            return names;
         }
 
         private static void ReportOrphans(GameObject root, HashSet<GameObject> usedObjects, DesignerSaveReport report)

@@ -50,6 +50,37 @@ namespace emiteat.NexUI.Designer.Editor.Components.Serialization
         public static bool IsUnityEvent(Type fieldType)
             => fieldType != null && typeof(UnityEventBase).IsAssignableFrom(fieldType);
 
+        /// <summary>
+        /// Serialized UnityEvent fields that are engine plumbing rather than something an author
+        /// wires up. Matched on the field name, which is the last segment of the property path.
+        /// </summary>
+        /// <remarks>
+        /// A deny-list rather than a naming rule, because the obvious rule does not work: the
+        /// <c>m_</c> prefix is just Unity's serialized-field convention and marks
+        /// <c>Button.m_OnClick</c> and <c>InputField.m_OnValueChanged</c> as much as it marks this.
+        /// The real criterion is "Unity's own inspector does not draw it", which cannot be derived
+        /// from the type or the name, so it is listed explicitly.
+        ///
+        /// <c>Graphic.m_OnCullStateChanged</c> is the case that prompted this: it is a
+        /// rect-culling notification the canvas system raises, invisible in Unity's own Image
+        /// inspector, and surfacing it produced an empty listener on every Image that then failed
+        /// validation and blocked Save.
+        /// </remarks>
+        private static readonly HashSet<string> NonAuthorableEvents = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "m_OnCullStateChanged"
+        };
+
+        /// <summary>False for engine-internal events that should be neither edited nor validated.</summary>
+        public static bool IsAuthorableEvent(string propertyPath)
+        {
+            if (string.IsNullOrEmpty(propertyPath)) return false;
+
+            var lastDot = propertyPath.LastIndexOf('.');
+            var fieldName = lastDot >= 0 ? propertyPath.Substring(lastDot + 1) : propertyPath;
+            return !NonAuthorableEvents.Contains(fieldName);
+        }
+
         // ---- Paths -------------------------------------------------------------------------------
 
         private static string CallsSize(string key) => key + ".m_PersistentCalls.m_Calls.Array.size";

@@ -128,6 +128,20 @@ namespace emiteat.NexUI.Designer.Editor.Validation
 
                     if (targetType == null) continue; // the missing reference above already covers it
 
+                    // A listener with no method chosen is unconfigured, not broken. Unity's own
+                    // event editor produces exactly this the moment a row is added, so treating it
+                    // as an error blocks Save on a half-finished edit - and the message reads
+                    // "calls '', which X does not have", which describes nothing the user can act on.
+                    // It gets the same severity as the sibling no-target case: it will never run.
+                    if (string.IsNullOrEmpty(call.MethodName))
+                    {
+                        issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning,
+                            "NEXUI-EVENT-NO-METHOD",
+                            $"'{element.elementId}' {componentName}.{eventKey} listener {i + 1} has no method selected and will never run.",
+                            "Pick a method, or remove the listener.", screenId, element.elementId));
+                        continue;
+                    }
+
                     if (!emiteat.NexUI.Designer.Editor.Components.Serialization.StudioUnityEventModel.MethodExists(call, targetType))
                         issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error,
                             "NEXUI-EVENT-MISSING-METHOD",
@@ -149,7 +163,15 @@ namespace emiteat.NexUI.Designer.Editor.Validation
             foreach (var entry in component.properties)
             {
                 if (entry?.key == null || !entry.key.EndsWith(marker, System.StringComparison.Ordinal)) continue;
-                keys.Add(entry.key.Substring(0, entry.key.Length - marker.Length));
+
+                var key = entry.key.Substring(0, entry.key.Length - marker.Length);
+
+                // Screens authored before engine-internal events were excluded still carry them in
+                // their metadata, so the filter has to run here too rather than only at capture.
+                if (!emiteat.NexUI.Designer.Editor.Components.Serialization.StudioUnityEventModel.IsAuthorableEvent(key))
+                    continue;
+
+                keys.Add(key);
             }
             return keys;
         }
@@ -248,11 +270,35 @@ namespace emiteat.NexUI.Designer.Editor.Validation
                     if (replacement == null) { unresolved++; continue; }
 
                     component.typeId = replacement;
+                    AdoptReplacementValueFormat(component, replacement);
                     PruneUnknownValues(component);
                     replaced++;
                 }
             }
             return replaced;
+        }
+
+        /// <summary>
+        /// Puts the entry back on the value path its new type actually has.
+        /// </summary>
+        /// <remarks>
+        /// A uGUI entry is stored by Unity property path because there is a real component behind it. A
+        /// UI Toolkit control has no <c>System.Type</c> at all - it is generated into UXML - so leaving
+        /// the entry on the property-path writer after a backend swap would make it look like a script
+        /// the build cannot resolve, and the save would report a missing component instead of writing
+        /// the control.
+        /// </remarks>
+        private static void AdoptReplacementValueFormat(DesignerElementComponent component, string replacement)
+        {
+            if (DesignerUIComponentRegistry.Get(replacement)?.BackingType != null)
+            {
+                component.valueFormat = DesignerComponentValueFormat.PropertyPath;
+                component.adoptExistingComponent = true;
+                return;
+            }
+            component.valueFormat = DesignerComponentValueFormat.SchemaKeys;
+            component.adoptExistingComponent = false;
+            component.assemblyQualifiedTypeName = null;
         }
 
         /// <summary>Drops values the new component type has no field for, so nothing silently misapplies.</summary>

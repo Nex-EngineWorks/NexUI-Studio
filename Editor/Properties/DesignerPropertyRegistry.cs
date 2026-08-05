@@ -120,6 +120,24 @@ namespace emiteat.NexUI.Designer.Editor.Properties
             Add(DesignerPropertyId.TextOutline, "text.outline", DesignerPropertyValueType.Boolean, DesignerPropertyBackendSupport.Supported, DesignerPropertyBackendSupport.Fallback);
             Add(DesignerPropertyId.RuntimeVisible, "runtimeVisible", DesignerPropertyValueType.Boolean, usage: DesignerPropertyUsage.Override | DesignerPropertyUsage.Binding);
 
+            // Motion and Theme are driven by NexUI's own runtime rather than by a backend widget, so
+            // they behave identically on uGUI and UI Toolkit. They are override-only: animating the
+            // choice of animation, or binding it to game state, is not a thing either system does.
+            const DesignerPropertyUsage overrideOnly = DesignerPropertyUsage.Override;
+            Add(DesignerPropertyId.MotionPreset, "motion.preset", DesignerPropertyValueType.AssetReference, usage: overrideOnly);
+            Add(DesignerPropertyId.MotionId, "motion.id", DesignerPropertyValueType.String, usage: overrideOnly);
+            Add(DesignerPropertyId.MotionInitialVariant, "motion.initial", DesignerPropertyValueType.String, usage: overrideOnly);
+            Add(DesignerPropertyId.MotionAnimateVariant, "motion.animate", DesignerPropertyValueType.String, usage: overrideOnly);
+            Add(DesignerPropertyId.MotionExitVariant, "motion.exit", DesignerPropertyValueType.String, usage: overrideOnly);
+            Add(DesignerPropertyId.MotionHoverVariant, "motion.hover", DesignerPropertyValueType.String, usage: overrideOnly);
+            Add(DesignerPropertyId.MotionPressedVariant, "motion.pressed", DesignerPropertyValueType.String, usage: overrideOnly);
+            Add(DesignerPropertyId.MotionFocusVariant, "motion.focus", DesignerPropertyValueType.String, usage: overrideOnly);
+
+            Add(DesignerPropertyId.ThemeAsset, "theme.asset", DesignerPropertyValueType.AssetReference, usage: overrideOnly);
+            Add(DesignerPropertyId.ThemeId, "theme.id", DesignerPropertyValueType.String, usage: overrideOnly);
+            Add(DesignerPropertyId.ThemeClasses, "theme.classes", DesignerPropertyValueType.String, usage: overrideOnly);
+            Add(DesignerPropertyId.ThemeTokens, "theme.tokens", DesignerPropertyValueType.String, usage: overrideOnly);
+
             Alias("rect.x", DesignerPropertyId.Position); Alias("rect.y", DesignerPropertyId.Position);
             Alias("rect.width", DesignerPropertyId.Width); Alias("rect.height", DesignerPropertyId.Height);
             Alias("visible", DesignerPropertyId.RuntimeVisible); Alias("color", DesignerPropertyId.Tint);
@@ -233,6 +251,21 @@ namespace emiteat.NexUI.Designer.Editor.Properties
                 case DesignerPropertyValueType.Enum:
                     valid = !string.IsNullOrWhiteSpace(source);
                     break;
+            }
+
+            // The two list-valued theme fields travel as text, so a malformed list has to be refused
+            // here - the codec would otherwise drop the bad entries and the user would see a value
+            // silently shrink rather than an error.
+            var listError = id switch
+            {
+                DesignerPropertyId.ThemeClasses => DesignerThemeValueCodec.ValidateClasses(source),
+                DesignerPropertyId.ThemeTokens => DesignerThemeValueCodec.ValidateTokens(source),
+                _ => null
+            };
+            if (listError != null)
+            {
+                error = listError;
+                return false;
             }
 
             if (!valid)

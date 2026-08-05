@@ -2,6 +2,36 @@
 
 ## [Unreleased]
 
+### Variant Rule이 Motion·Theme·환경 조건을 다룹니다
+- **Motion·Theme를 Property로 승격했습니다.** `DesignerPropertyId`에 `motion.preset`·`motion.id`·`motion.hover/pressed/focus/initial/animate/exit`·`theme.asset`·`theme.id`·`theme.classes`·`theme.tokens`를 추가했습니다(기존 값은 그대로, 뒤에만 append). Variant Rule뿐 아니라 Instance Override·Exposed Property·화면 Variant까지 같은 배관으로 이 값들을 다룹니다 — 지금까지는 어느 쪽에서도 불가능했습니다.
+- Class·Token 같은 목록 값은 텍스트 형식(`a b c`, `key=value;key=value`)으로 저장됩니다. 단일 값 슬롯 하나로 Override·JSON·Exposed Property 배관 전체를 그대로 쓰기 위한 선택이고, 구분자가 섞인 값은 저작 시점에 거부합니다.
+- **Variant Rule에 해상도·입력모드 조건을 넣을 수 있습니다.** Variant 축 없이 조건만 가진 Rule도 유효해서, "좁은 캔버스에서는 Compact"를 Component 안에서 표현합니다. 캔버스 해상도/입력 장치를 바꾸면 Expansion이 무효화되어 즉시 반영되고, Save·Save Preview·Validation·Detach가 모두 **같은 캔버스 환경**을 기준으로 판단합니다.
+- 캔버스가 없는 호출자(헤드리스 검증 등)에서는 환경 조건 Rule을 적용하지 않고 그 사실을 Info로 보고합니다. 해상도를 임의로 가정해 캔버스와 다른 트리를 만들어내지 않기 위해서입니다.
+
+### Override가 이름 변경을 견딥니다
+- Override와 Exposed Property가 대상 요소의 **`stableId`를 함께 기록**합니다. 지금까지는 `targetElementId` 하나로 가리켰기 때문에, Definition에서 요소 이름을 바꾸면 그 요소를 가리키던 모든 Instance Override가 조용히 무효가 됐습니다. 이제 이름 변경은 아무 일도 아닙니다 — Expansion·Validation·Inspector가 모두 stableId로 먼저 찾습니다.
+- `Update From Definition`이 실제로 재매핑합니다: 이름이 바뀐 대상은 새 이름으로 다시 가리키고, stableId가 없던 옛 Override는 지금 기록해 두며(다음 이름 변경부터 안전), Definition 자신의 Exposed Property·Variant Rule Override도 같이 채웁니다. 무엇을 고쳤는지 `Notes`로 따로 보고합니다 — 사용자가 조치할 필요 없는 수리가 경고처럼 읽히지 않도록.
+- 정말로 **삭제된** 대상만 경고로 남습니다. 이 경우에만 "제거할까요?"를 묻고, 기본값은 유지입니다(요소는 되살릴 수 있지만 값은 아닙니다).
+- Swap은 새 Definition 기준으로 stableId를 다시 기록합니다. 남겨둔 stableId가 옛 Definition을 가리키는 일이 없습니다.
+
+### 재사용 Component Instance 리사이즈 전파
+- Instance를 리사이즈하면 Definition이 기여한 자식들이 함께 재배치됩니다. 지금까지는 Expansion이 하위 트리를 **평행이동만** 해서, 200×120 카드를 400 폭으로 늘려도 배경은 200폭 그대로였습니다.
+- 규칙은 각 요소에 이미 저장돼 있는 **Anchor Preset**을 제약으로 읽는 것입니다 — 가장자리 Anchor는 그 가장자리와의 거리를, 중앙 Anchor는 중심으로부터의 오프셋을 유지하고, Stretch는 양쪽 여백을 유지하며 늘어납니다. uGUI가 같은 Anchor로 하는 동작과 같으므로 캔버스와 저장 결과가 따로 놀지 않습니다. 손자 요소는 자기 부모의 새 크기를 따라 단계적으로 계산됩니다.
+- Auto Layout이 켜진 요소의 자식은 건드리지 않습니다. Layout이 어차피 다시 배치하므로 여기서 계산해봐야 덮어써질 값입니다.
+- Definition 크기와 같은 Instance는 이전 빌드와 완전히 동일하게 전개됩니다(회귀 테스트 포함).
+
+### Assets 패널 Move
+- 컨텍스트 메뉴에 **Move To Folder…**를 추가했습니다. 프로젝트 폴더를 검색·탐색하는 전용 대화상자에서 대상을 고르고, 대화상자 안에서 새 폴더를 만들 수도 있습니다. 갈 수 없는 폴더는 이유와 함께 비활성으로 표시되므로 고른 뒤에 거부당하는 일이 없습니다.
+- 선택한 행이 현재 선택에 포함되면 선택 전체를, 아니면 그 행만 옮깁니다. 폴더와 그 안의 파일을 함께 선택한 경우 폴더만 한 번 옮겨지고 내용물은 딸려갑니다.
+- 이름이 겹치면 실패시키지 않고 고유 이름을 붙입니다(Project 창과 같은 동작). 규칙에 걸린 항목은 건너뛰고, Unity가 거부한 항목은 Unity의 메시지 그대로 보고합니다. 전체가 한 번의 Asset 편집 블록 안에서 처리되어 파일마다 재임포트하지 않습니다.
+- `AssetDatabase.MoveAsset`에는 Undo가 없으므로 이동 전 확인 대화상자에서 그 사실을 명시합니다.
+
+### uGUI Prefab 저장 범위 완성
+- **Animator를 비롯한 Unity 내장 Component를 붙일 수 있습니다.** Add Component 색인이 `MonoBehaviour`가 아니라 `Component` 전체를 훑습니다. Animator는 스크립트가 아니라 엔진 클래스라서 지금까지 목록에 아예 나오지 않았고, 그래서 Prefab 저장이 소유할 수도 없었습니다. Element가 이미 소유한 것들(`Transform`/`RectTransform`/`CanvasRenderer`)과 Serializer가 찍는 식별 Component만 제외 목록으로 빠집니다.
+- **등록 Component도 `SerializedObject` 경로를 씁니다.** 큐레이션 스키마는 bool·int·float·string·Color·Vector2·enum·Object 참조만 이름 붙일 수 있어서 `TMP_Text.margin`(Vector4), `LayoutGroup.padding`(RectOffset), `RectMask2D.softness`(Vector2Int) 같은 필드를 편집도 저장도 못 했습니다 — 정작 등록되지 않은 사용자 스크립트에서는 되던 필드입니다. 이제 실행 타입이 있는 등록 Component는 Property Path로 저장되어, Unity의 Inspector Drawer와 `SerializedProperty`가 표현하는 모든 형태를 그대로 다룹니다. Button의 `onClick` 같은 UnityEvent도 여기에 포함됩니다.
+- **저장 리포트가 덮어쓰기 경계를 명시합니다.** "Overwrite scope" 항목이 Studio가 매 저장마다 다시 쓰는 범위(Rect·Anchor·활성 상태·Component Stack)와 손대지 않는 범위(Prefab에서 직접 붙인 Component, Studio Element 바깥 오브젝트)를 개수와 이름으로 보고합니다. 기존의 "Preserved user-authored ..." 줄이 실패가 아니라 규칙이 동작한 결과로 읽힙니다.
+- 기존 메타데이터는 그대로입니다. `SchemaKeys` 형식으로 저장된 화면은 계속 레지스트리 Writer가 처리하고, 스키마 키로 값을 읽던 코드는 두 키 공간(`segments` ↔ `m_Segments`)을 모두 조회합니다. Backend 전환 시에는 새 타입에 맞는 값 경로로 함께 옮겨집니다.
+
 ### 2026-08-02 completion sweep
 - Completed imported-Prefab component adoption, ownership-safe removal, stack ordering, and first-save round-trip coverage.
 - Added `[SerializeReference]`, `ExposedReference`, and `Hash128` property preservation.

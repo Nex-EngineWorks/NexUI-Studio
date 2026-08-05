@@ -118,7 +118,10 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
             report.MarkConflict("identity", "conflict");
             report.MarkOrphan("element", "orphan");
             report.MarkUserImpact("fallback", "impact");
+            report.MarkOwnership("backend", "ownership");
 
+            // Iterating the enum means a newly added impact kind fails here until it is marked
+            // above - which is the point, since an unreported category is a save the user cannot see.
             foreach (DesignerSaveImpactKind kind in System.Enum.GetValues(typeof(DesignerSaveImpactKind)))
                 Assert.That(report.Count(kind), Is.EqualTo(1), kind.ToString());
             Assert.That(report.IsPreview, Is.True);

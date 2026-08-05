@@ -12,7 +12,17 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         PreviewOnly,
         Conflict,
         Orphan,
-        UserImpact
+        UserImpact,
+
+        /// <summary>
+        /// States which part of the backend asset the save owns and which part it leaves to the user.
+        /// </summary>
+        /// <remarks>
+        /// Neither a change nor a limitation, so it belongs in neither list: it is the boundary the
+        /// other entries are read against. "Preserved user-authored LayoutGroup" only means something
+        /// once you know the serializer would otherwise have written that component.
+        /// </remarks>
+        Ownership
     }
 
     public sealed class DesignerSaveImpact
@@ -53,6 +63,9 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         /// <summary>Fatal problems that stopped part of the save.</summary>
         public readonly List<string> Errors = new List<string>();
 
+        /// <summary>What the save owned and overwrote, and what it deliberately left alone.</summary>
+        public readonly List<string> Ownership = new List<string>();
+
         public bool HasErrors => Errors.Count > 0;
         public bool HasWarnings => Warnings.Count > 0;
 
@@ -78,6 +91,10 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         }
         public void MarkUserImpact(string subject, string message, string elementId = null)
             => AddImpact(DesignerSaveImpactKind.UserImpact, message, subject, elementId);
+
+        /// <summary>Records one statement about the overwrite boundary of this save.</summary>
+        public void MarkOwnership(string subject, string message, string elementId = null)
+            => AddImpact(DesignerSaveImpactKind.Ownership, message, subject, elementId);
         public void Warn(string message)
         {
             Warnings.Add(message);
@@ -101,6 +118,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         {
             AddImpactOnly(kind, message, subject, elementId, path, writesToDisk);
             if (kind == DesignerSaveImpactKind.Created || kind == DesignerSaveImpactKind.Modified) Changed.Add(message);
+            else if (kind == DesignerSaveImpactKind.Ownership) Ownership.Add(message);
             else if (kind == DesignerSaveImpactKind.Skipped || kind == DesignerSaveImpactKind.Unsupported ||
                      kind == DesignerSaveImpactKind.PreviewOnly || kind == DesignerSaveImpactKind.Orphan) Skipped.Add(message);
         }
@@ -118,6 +136,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             if (other == null) return;
             Changed.AddRange(other.Changed);
             Skipped.AddRange(other.Skipped);
+            Ownership.AddRange(other.Ownership);
             Warnings.AddRange(other.Warnings);
             Errors.AddRange(other.Errors);
             Impacts.AddRange(other.Impacts);
@@ -141,6 +160,8 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         {
             var sb = new StringBuilder();
             sb.AppendLine(Summary());
+            // The boundary goes first: every line below it is read against "what did this save own".
+            Append(sb, "Overwrite scope", Ownership);
             Append(sb, "Written", Changed);
             Append(sb, "Skipped / preview-only", Skipped);
             Append(sb, "Warnings", Warnings);

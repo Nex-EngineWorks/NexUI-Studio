@@ -49,9 +49,16 @@ namespace emiteat.NexUI.Designer.Editor.Components
     }
 
     /// <summary>
-    /// The searchable index of every MonoBehaviour that can be attached to an element.
+    /// The searchable index of every component that can be attached to an element.
     /// </summary>
     /// <remarks>
+    /// The index covers <see cref="Component"/>, not just <see cref="MonoBehaviour"/>. Unity's built-in
+    /// components - <c>Animator</c> above all - are ordinary engine classes rather than scripts, so a
+    /// MonoBehaviour-only walk left them unreachable from Add Component and therefore unownable by the
+    /// prefab writer. Everything the writer can materialize belongs in this list; what cannot sensibly
+    /// live on a UI element is named in <see cref="Excluded"/> instead of being filtered out by base
+    /// class, so a type Unity adds later shows up without a code change.
+    ///
     /// Built once per domain from <see cref="TypeCache"/> rather than on every Add Component click:
     /// walking every loaded assembly and reading attributes per type is measured in tens of
     /// milliseconds on a real project, which is a visible stall on a menu that is opened constantly.
@@ -236,7 +243,7 @@ namespace emiteat.NexUI.Designer.Editor.Components
         private static List<StudioComponentTypeEntry> Build()
         {
             var entries = new List<StudioComponentTypeEntry>(512);
-            foreach (var type in TypeCache.GetTypesDerivedFrom<MonoBehaviour>())
+            foreach (var type in TypeCache.GetTypesDerivedFrom<Component>())
             {
                 if (!IsAttachable(type)) continue;
 
@@ -265,6 +272,24 @@ namespace emiteat.NexUI.Designer.Editor.Components
         }
 
         /// <summary>
+        /// Types that are real components but must never be offered in Add Component.
+        /// </summary>
+        /// <remarks>
+        /// Each entry is excluded because something else already owns it, not because it is exotic:
+        /// the element owns its own transform, uGUI manages the <c>CanvasRenderer</c> behind every
+        /// <c>Graphic</c>, and the two bookkeeping components are stamped by the serializer as the
+        /// record of what the Studio owns - letting a user attach one by hand would make that record
+        /// lie. Everything else Unity ships is attachable.
+        /// </remarks>
+        private static readonly HashSet<string> Excluded = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "UnityEngine.Transform",
+            "UnityEngine.RectTransform",
+            "UnityEngine.CanvasRenderer",
+            "emiteat.NexUI.Integrations.UGUI.NxUGuiBindingTag"
+        };
+
+        /// <summary>
         /// Whether a type can exist on a prefab's GameObject at all. Abstract and open generic types
         /// cannot be instantiated, editor-assembly behaviours do not exist in a player, and obsolete
         /// types are not something a new screen should be authored against.
@@ -277,6 +302,7 @@ namespace emiteat.NexUI.Designer.Editor.Components
 
             // The Studio's own bookkeeping component is written by the serializer, never chosen by hand.
             if (type == typeof(DesignerAttachedComponentTracker)) return false;
+            if (Excluded.Contains(type.FullName ?? string.Empty)) return false;
 
             if (type.Namespace != null && type.Namespace.StartsWith("UnityEditor", StringComparison.Ordinal))
                 return false;

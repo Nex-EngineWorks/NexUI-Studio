@@ -28,6 +28,7 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
         UnappliedOverride,
         UnknownVariantProperty,
         UnknownVariantValue,
+        MissingVariantContext,
         VersionMismatch,
         EmptyDefinition,
         BudgetExceeded
@@ -115,6 +116,15 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
         /// asset is returned unchanged (no allocation, identical behaviour to pre-Phase-3 callers).
         /// </summary>
         public static DesignerComponentExpansion Expand(DesignerMetadataAsset authored, IDesignerComponentDefinitionResolver resolver)
+            => Expand(authored, resolver, DesignerComponentVariantContext.Unknown);
+
+        /// <param name="variantContext">
+        /// Canvas resolution / input mode that variant rules with an environment condition are judged
+        /// against. Pass <see cref="DesignerComponentVariantContext.Unknown"/> from a caller with no
+        /// canvas; such rules are then skipped and reported rather than guessed at.
+        /// </param>
+        public static DesignerComponentExpansion Expand(DesignerMetadataAsset authored,
+            IDesignerComponentDefinitionResolver resolver, DesignerComponentVariantContext variantContext)
         {
             var result = new DesignerComponentExpansion();
             if (authored == null)
@@ -154,7 +164,7 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
                 // Skip elements produced by an outer expansion - those are handled by the recursion
                 // that created them, and re-entering here would double-expand them.
                 if (result.DefinitionElementByElementId.ContainsKey(host.elementId)) continue;
-                ExpandHost(expanded, host, host.elementId, resolver, result, new List<string>(), 0, budget);
+                ExpandHost(expanded, host, host.elementId, resolver, result, new List<string>(), 0, budget, variantContext);
             }
 
             DesignerHierarchyUtility.NormalizeSiblingIndices(expanded);
@@ -173,7 +183,8 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
         /// </summary>
         private static void ExpandHost(DesignerMetadataAsset expanded, DesignerElementMetadata host, string ownerInstanceId,
             IDesignerComponentDefinitionResolver resolver, DesignerComponentExpansion result,
-            List<string> definitionStack, int depth, ExpansionBudget budget)
+            List<string> definitionStack, int depth, ExpansionBudget budget,
+            DesignerComponentVariantContext variantContext)
         {
             var reference = host.componentInstance;
             var definition = resolver?.Resolve(reference.definitionGuid, reference.definitionId);
@@ -274,8 +285,13 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
             result.DefinitionElementByElementId[mergedRoot.elementId] = definitionRoot.elementId;
             result.OwnerInstanceByElementId[mergedRoot.elementId] = ownerInstanceId;
 
+            // The merged root already carries the instance's size; without this the definition's own
+            // children keep the size they had in the definition, which is what made resizing an
+            // instance move only its root.
+            DesignerInstanceResize.Apply(clones, mergedRoot.elementId, definitionRoot.rect.size);
+
             // ---- Variant rules, then instance overrides (instance always wins) ----------------
-            ApplyVariantRules(definition, reference, idMap, clones, ownerInstanceId, result);
+            ApplyVariantRules(definition, reference, idMap, clones, ownerInstanceId, result, variantContext);
             ApplyOverrides(definition, reference.overrides, idMap, clones, ownerInstanceId, result, "instance");
 
             // ---- Splice into the expanded asset ----------------------------------------------
@@ -293,7 +309,7 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
                 var clone = clones[i];
                 if (i == 0) continue; // the merged root's own reference is the one we just expanded
                 if (clone.componentInstance == null || !clone.componentInstance.IsInstance) continue;
-                ExpandHost(expanded, clone, ownerInstanceId, resolver, result, definitionStack, depth + 1, budget);
+                ExpandHost(expanded, clone, ownerInstanceId, resolver, result, definitionStack, depth + 1, budget, variantContext);
             }
             definitionStack.RemoveAt(definitionStack.Count - 1);
         }
@@ -351,7 +367,8 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
         }
 
         private static void ApplyVariantRules(DesignerComponentDefinitionAsset definition, DesignerComponentInstanceMetadata reference,
-            Dictionary<string, string> idMap, List<DesignerElementMetadata> clones, string ownerInstanceId, DesignerComponentExpansion result)
+            Dictionary<string, string> idMap, List<DesignerElementMetadata> clones, string ownerInstanceId,
+            DesignerComponentExpansion result, DesignerComponentVariantContext variantContext)
         {
             // Validate the instance's selections against the definition's axes before evaluating.
             foreach (var selection in reference.variantSelections)
@@ -385,17 +402,50 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
 
             foreach (var rule in definition.variantRules)
             {
-                if (rule == null || string.IsNullOrEmpty(rule.propertyName)) continue;
-                var property = definition.FindVariantProperty(rule.propertyName);
-                var selected = reference.GetVariantSelection(rule.propertyName);
-                if (string.IsNullOrEmpty(selected))
-                    selected = property != null ? property.EffectiveDefault : null;
-                if (!string.Equals(selected, rule.equalsValue, StringComparison.Ordinal)) continue;
+                if (rule == null) continue;
 
-                ApplyOverrides(definition, rule.overrides, idMap, clones, ownerInstanceId, result, "variant " + rule.propertyName);
+                // A rule with no variant axis is legal when it is conditioned on the environment
+                // instead - that is how "compact below 900px" is expressed without inventing a
+                // variant property nobody selects.
+                if (string.IsNullOrEmpty(rule.propertyName) && !rule.HasEnvironmentCondition) continue;
+
+                if (!string.IsNullOrEmpty(rule.propertyName))
+                {
+                    var property = definition.FindVariantProperty(rule.propertyName);
+                    var selected = reference.GetVariantSelection(rule.propertyName);
+                    if (string.IsNullOrEmpty(selected))
+                        selected = property != null ? property.EffectiveDefault : null;
+                    if (!string.Equals(selected, rule.equalsValue, StringComparison.Ordinal)) continue;
+                }
+
+                if (!variantContext.Matches(rule, out var missingContext))
+                {
+                    if (missingContext != null)
+                        result.Issues.Add(new DesignerComponentExpansionIssue
+                        {
+                            Kind = DesignerComponentExpansionIssueKind.MissingVariantContext,
+                            InstanceElementId = ownerInstanceId,
+                            Message = $"Rule '{RuleLabel(rule)}' of '{definition.EffectiveDisplayName}' was not applied because {missingContext}.",
+                            Fix = "Expand from the Studio canvas, which supplies the resolution and input mode these rules are judged against."
+                        });
+                    continue;
+                }
+
+                ApplyOverrides(definition, rule.overrides, idMap, clones, ownerInstanceId, result, "variant " + RuleLabel(rule));
                 SetVisibility(rule.hiddenElementIds, idMap, clones, false);
                 SetVisibility(rule.shownElementIds, idMap, clones, true);
             }
+        }
+
+        /// <summary>Readable name of a rule for reports, including one driven only by the environment.</summary>
+        private static string RuleLabel(DesignerComponentVariantRule rule)
+        {
+            if (!string.IsNullOrEmpty(rule.propertyName)) return rule.propertyName + " = " + rule.equalsValue;
+            var parts = new List<string>();
+            if (rule.constrainResolution)
+                parts.Add($"{rule.minResolution.x}×{rule.minResolution.y}..{rule.maxResolution.x}×{rule.maxResolution.y}");
+            if (rule.constrainInputMode) parts.Add(rule.inputMode.ToString());
+            return parts.Count == 0 ? "(unconditional)" : string.Join(", ", parts);
         }
 
         private static void SetVisibility(List<string> definitionElementIds, Dictionary<string, string> idMap,
@@ -420,8 +470,11 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
             {
                 if (item == null) continue;
 
-                var targetElementId = item.targetElementId;
                 var propertyId = item.propertyId;
+                // The stable id is the identity; the element id is the readable label and the fallback
+                // for data written before stable ids were recorded.
+                var targetStableId = item.targetStableId;
+                var targetElementId = item.targetElementId;
                 if (!string.IsNullOrEmpty(item.exposedPropertyName))
                 {
                     var exposed = definition.FindExposed(item.exposedPropertyName);
@@ -436,9 +489,15 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
                         });
                         continue;
                     }
+                    targetStableId = exposed.targetStableId;
                     targetElementId = exposed.targetElementId;
                     propertyId = exposed.propertyId;
                 }
+
+                // Resolving through the definition (rather than straight into idMap) is what lets a
+                // renamed element still be found: idMap is keyed by the definition's *current* ids.
+                var definitionTarget = definition.ResolveTarget(targetStableId, targetElementId);
+                if (definitionTarget != null) targetElementId = definitionTarget.elementId;
 
                 if (string.IsNullOrEmpty(targetElementId) || !idMap.TryGetValue(targetElementId, out var expandedId))
                 {

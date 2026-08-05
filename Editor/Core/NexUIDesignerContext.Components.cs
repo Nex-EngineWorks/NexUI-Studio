@@ -85,7 +85,7 @@ namespace emiteat.NexUI.Designer.Editor
                 if (_expansionValid) return _expansion;
                 using var scope = ExpansionMarker.Auto();
                 _expansion?.Dispose();
-                _expansion = DesignerComponentExpander.Expand(Metadata, DesignerComponentLibrary.Resolver);
+                _expansion = DesignerComponentExpander.Expand(Metadata, DesignerComponentLibrary.Resolver, VariantContext);
                 _expansionValid = true;
                 return _expansion;
             }

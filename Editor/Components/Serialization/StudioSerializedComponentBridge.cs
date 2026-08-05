@@ -65,7 +65,11 @@ namespace emiteat.NexUI.Designer.Editor.Components.Serialization
 
                 if (StudioUnityEventModel.IsUnityEvent(StudioPropertyReflection.FieldTypeOf(iterator)))
                 {
-                    paths.Add(iterator.propertyPath);
+                    // Engine-internal events are left alone entirely: not captured, so not written
+                    // back either, so whatever the backend asset already holds survives untouched.
+                    if (StudioUnityEventModel.IsAuthorableEvent(iterator.propertyPath))
+                        paths.Add(iterator.propertyPath);
+
                     enterChildren = false; // its innards belong to the event model
                     continue;
                 }

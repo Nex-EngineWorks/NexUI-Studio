@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using emiteat.NexUI.Abstractions;
 using UnityEngine;
 
 namespace emiteat.NexUI.Designer
@@ -25,6 +26,14 @@ namespace emiteat.NexUI.Designer
         public string displayName;
         /// <summary>Definition-local <see cref="DesignerElementMetadata.elementId"/> this property writes to.</summary>
         public string targetElementId;
+
+        /// <summary>
+        /// Definition-local <see cref="DesignerElementMetadata.stableId"/> of the same target, so
+        /// renaming the element inside the definition does not break the exposed property either.
+        /// Empty on definitions authored before this field existed.
+        /// </summary>
+        public string targetStableId;
+
         public DesignerPropertyId propertyId;
         public DesignerPropertyValue defaultValue = new DesignerPropertyValue();
     }
@@ -82,12 +91,29 @@ namespace emiteat.NexUI.Designer
     /// "When <see cref="propertyName"/> equals <see cref="equalsValue"/>, apply these overrides and
     /// visibility changes." Rules are evaluated in declaration order before instance overrides, so an
     /// instance override always wins over a variant rule.
+    ///
+    /// A rule may additionally - or instead - be conditioned on the authoring resolution and input
+    /// mode, which is how a component expresses "use the compact arrangement on a narrow screen"
+    /// without the definition having to own screen-level responsive rules.
     /// </summary>
     [Serializable]
     public sealed class DesignerComponentVariantRule
     {
+        /// <summary>Empty for a rule driven only by <see cref="constrainResolution"/>/<see cref="constrainInputMode"/>.</summary>
         public string propertyName;
         public string equalsValue;
+
+        /// <summary>Applies only within <see cref="minResolution"/>..<see cref="maxResolution"/>.</summary>
+        public bool constrainResolution;
+        public Vector2Int minResolution = new Vector2Int(0, 0);
+        public Vector2Int maxResolution = new Vector2Int(9999, 9999);
+
+        /// <summary>Applies only under <see cref="inputMode"/>.</summary>
+        public bool constrainInputMode;
+        public UIInputMode inputMode;
+
+        /// <summary>True when the rule depends on the authoring environment rather than only on a variant axis.</summary>
+        public bool HasEnvironmentCondition => constrainResolution || constrainInputMode;
         public List<DesignerComponentPropertyOverride> overrides = new List<DesignerComponentPropertyOverride>();
         /// <summary>Definition-local element ids forced to <c>runtimeVisible = false</c> when the rule matches.</summary>
         public List<string> hiddenElementIds = new List<string>();
@@ -150,6 +176,28 @@ namespace emiteat.NexUI.Designer
                     return elements[i];
             return null;
         }
+
+        /// <summary>The element carrying <paramref name="stableId"/>, or null.</summary>
+        public DesignerElementMetadata FindByStableId(string stableId)
+        {
+            if (string.IsNullOrEmpty(stableId)) return null;
+            for (int i = 0; i < elements.Count; i++)
+                if (elements[i] != null && elements[i].stableId == stableId)
+                    return elements[i];
+            return null;
+        }
+
+        /// <summary>
+        /// The element an override or exposed property points at, preferring the stable id.
+        /// </summary>
+        /// <remarks>
+        /// The element id is only the fallback, and only for data written before stable ids were
+        /// recorded. Preferring it would reintroduce the exact failure this pair exists to prevent: a
+        /// renamed element whose id was reused by a different element would silently retarget the
+        /// override at the wrong thing.
+        /// </remarks>
+        public DesignerElementMetadata ResolveTarget(string stableId, string elementId)
+            => FindByStableId(stableId) ?? Find(elementId);
 
         /// <summary>
         /// The sub-tree root: the explicitly named <see cref="rootElementId"/> when it resolves,

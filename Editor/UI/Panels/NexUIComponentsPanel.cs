@@ -16,6 +16,17 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
     {
         private const string FamilyFilterPrefKey = "NexUI.Designer.Components.FamilyFilter";
 
+        /// <summary>
+        /// Marks a card that lists a raw component type rather than a placeable element.
+        /// </summary>
+        /// <remarks>
+        /// These cards carry no preview on purpose: <c>UGUI.Image</c> here is the Image
+        /// <em>component</em>, something you attach to an element, not an element you can render a
+        /// thumbnail of. The class exists so styling and tests can tell the two kinds apart instead
+        /// of assuming every card in the palette is previewable.
+        /// </remarks>
+        public const string ComponentTypeCardClass = "nexui-component-type-card";
+
         private readonly NexUIDesignerContext _context;
         private readonly VisualElement _content;
         private readonly VisualElement _details;
@@ -39,18 +50,29 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
         /// only ships one backend can narrow the list without losing the other family's entries from
         /// screens that already use them.
         /// </summary>
+        /// <remarks>
+        /// The numbers are explicit because this enum is persisted in EditorPrefs. A member added
+        /// in the middle renumbers every member after it, and every user's saved preference then
+        /// silently means something else - which is exactly what happened to <see cref="BuiltIn"/>
+        /// when <see cref="Components"/> was inserted ahead of it: the legacy value stopped being
+        /// recognised and its migration never ran again. Append new members, never insert.
+        /// </remarks>
         private enum FamilyFilter
         {
-            All,
-            NexUI,
-            UGUI,
-            UIToolkit,
-            Custom,
+            All = 0,
+            NexUI = 1,
+            UGUI = 2,
+            UIToolkit = 3,
+            Custom = 4,
+
+            /// <summary>
+            /// Legacy persisted value from the brief standalone Built-In library. Migrated to
+            /// <see cref="NexUI"/> in the constructor and intentionally absent from the popup.
+            /// </summary>
+            BuiltIn = 5,
+
             /// <summary>The raw component types themselves, not presets built from them.</summary>
-            Components,
-            // Legacy persisted value from the brief standalone Built-In library. It is migrated
-            // to NexUI in the constructor and is intentionally absent from the popup choices.
-            BuiltIn
+            Components = 6
         }
 
         public NexUIComponentsPanel(NexUIDesignerContext context)
@@ -419,6 +441,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
                 tooltip = DesignerLocalization.T("tooltip.palette.components.empty")
             };
             empty.AddToClassList("nexui-component-card");
+            empty.AddToClassList(ComponentTypeCardClass);
             empty.userData = DesignerLocalization.T("palette.components.empty");
             _cards.Add(empty);
             emptyGrid.Add(empty);
@@ -436,6 +459,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
                 tooltip = string.IsNullOrEmpty(type.Description) ? label : label + "\n" + type.Description
             };
             button.AddToClassList("nexui-component-card");
+            button.AddToClassList(ComponentTypeCardClass);
             button.userData = label + " " + type.TypeId;
             button.RegisterCallback<ContextClickEvent>(evt =>
             {

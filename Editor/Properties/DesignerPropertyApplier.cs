@@ -170,6 +170,37 @@ namespace emiteat.NexUI.Designer.Editor.Properties
                 case DesignerPropertyId.RuntimeVisible:
                     element.runtimeVisible = value.boolValue; return true;
 
+                // ---- Motion ---------------------------------------------------------------
+                // A variant is a name inside the preset, so switching preset and switching variant
+                // are separate overrides: a rule that only swaps the hover animation must not have
+                // to restate which preset the element uses.
+                case DesignerPropertyId.MotionPreset:
+                    Motion(element).motionPreset = value.assetValue as emiteat.NexUI.Motion.UIMotionPreset; return true;
+                case DesignerPropertyId.MotionId:
+                    Motion(element).motionId = value.stringValue; return true;
+                case DesignerPropertyId.MotionInitialVariant:
+                    Motion(element).initialVariant = value.stringValue; return true;
+                case DesignerPropertyId.MotionAnimateVariant:
+                    Motion(element).animateVariant = value.stringValue; return true;
+                case DesignerPropertyId.MotionExitVariant:
+                    Motion(element).exitVariant = value.stringValue; return true;
+                case DesignerPropertyId.MotionHoverVariant:
+                    Motion(element).hoverVariant = value.stringValue; return true;
+                case DesignerPropertyId.MotionPressedVariant:
+                    Motion(element).pressedVariant = value.stringValue; return true;
+                case DesignerPropertyId.MotionFocusVariant:
+                    Motion(element).focusVariant = value.stringValue; return true;
+
+                // ---- Theme ----------------------------------------------------------------
+                case DesignerPropertyId.ThemeAsset:
+                    Theme(element).themeRef = value.assetValue as emiteat.NexUI.Theme.UITheme; return true;
+                case DesignerPropertyId.ThemeId:
+                    Theme(element).themeId = value.stringValue; return true;
+                case DesignerPropertyId.ThemeClasses:
+                    Theme(element).classes = DesignerThemeValueCodec.ParseClasses(value.stringValue); return true;
+                case DesignerPropertyId.ThemeTokens:
+                    Theme(element).tokenOverrides = DesignerThemeValueCodec.ParseTokens(value.stringValue); return true;
+
                 // Auto Layout lives on its own metadata block; Texture/Gradient have no authored
                 // representation at all and fall through to false (reported, never guessed).
                 default:
@@ -204,9 +235,33 @@ namespace emiteat.NexUI.Designer.Editor.Properties
                     return new DesignerPropertyValue { type = DesignerPropertyValueType.AssetReference, assetValue = element.previewImage };
                 case DesignerPropertyId.ChildOrder: return I(element.siblingIndex);
                 case DesignerPropertyId.ImageFill: return F(element.previewValue);
+
+                case DesignerPropertyId.MotionPreset: return A(Motion(element).motionPreset);
+                case DesignerPropertyId.MotionId: return S(Motion(element).motionId);
+                case DesignerPropertyId.MotionInitialVariant: return S(Motion(element).initialVariant);
+                case DesignerPropertyId.MotionAnimateVariant: return S(Motion(element).animateVariant);
+                case DesignerPropertyId.MotionExitVariant: return S(Motion(element).exitVariant);
+                case DesignerPropertyId.MotionHoverVariant: return S(Motion(element).hoverVariant);
+                case DesignerPropertyId.MotionPressedVariant: return S(Motion(element).pressedVariant);
+                case DesignerPropertyId.MotionFocusVariant: return S(Motion(element).focusVariant);
+
+                case DesignerPropertyId.ThemeAsset: return A(Theme(element).themeRef);
+                case DesignerPropertyId.ThemeId: return S(Theme(element).themeId);
+                case DesignerPropertyId.ThemeClasses: return S(DesignerThemeValueCodec.FormatClasses(Theme(element).classes));
+                case DesignerPropertyId.ThemeTokens: return S(DesignerThemeValueCodec.FormatTokens(Theme(element).tokenOverrides));
+
                 default: return null;
             }
         }
+
+        private static DesignerMotionMetadata Motion(DesignerElementMetadata element)
+            => element.motion ??= new DesignerMotionMetadata();
+
+        private static DesignerThemeMetadata Theme(DesignerElementMetadata element)
+            => element.theme ??= new DesignerThemeMetadata();
+
+        private static DesignerPropertyValue A(UnityEngine.Object asset)
+            => new DesignerPropertyValue { type = DesignerPropertyValueType.AssetReference, assetValue = asset };
 
         /// <summary>
         /// Auto-layout properties live on <see cref="DesignerAutoLayoutMetadata"/> rather than the

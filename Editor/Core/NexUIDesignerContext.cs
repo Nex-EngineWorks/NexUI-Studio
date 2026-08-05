@@ -31,6 +31,15 @@ namespace emiteat.NexUI.Designer.Editor
         private const string LastMetadataGuidKey = PrefPrefix + "LastMetadataGuid";
         private int _elementCounter = 1;
         private int _groupCounter = 1;
+
+        /// <summary>Document revision the current validation results describe. -1 = never validated.</summary>
+        private int _validatedRevision = -1;
+
+        /// <summary>
+        /// Per-element validation results carried between passes. Starts empty, so the first
+        /// validation after opening a document computes everything.
+        /// </summary>
+        private readonly Validation.NexValidationCache _validationCache = new Validation.NexValidationCache();
         private const int MaxRecentActions = 50;
         private static readonly ProfilerMarker CanvasRebuildMarker = new ProfilerMarker("NexUI.Designer.Canvas.Rebuild");
         private static readonly ProfilerMarker ValidationMarker = new ProfilerMarker("NexUI.Designer.Validation");
@@ -59,6 +68,21 @@ namespace emiteat.NexUI.Designer.Editor
         /// history browser.
         /// </summary>
         public IReadOnlyList<string> RecentActions => _recentActions;
+
+        /// <summary>
+        /// What has changed in the open document, so derived work can be redone for the changed
+        /// part instead of the whole screen.
+        /// </summary>
+        /// <remarks>
+        /// Capture <c>Changes.Revision</c> at the end of a pass and ask <c>Changes.Since(revision)</c>
+        /// at the start of the next one. Combine with <see cref="Incremental.NexDependencyGraph"/>
+        /// to widen the changed set to everything that depends on it.
+        ///
+        /// This is the replacement for the single dirty boolean the designer used to hang
+        /// everything off; that flag forced validation, preview and the flattened component tree
+        /// to redo all of their work on every keystroke.
+        /// </remarks>
+        public Incremental.NexDocumentRevision Changes { get; } = new Incremental.NexDocumentRevision();
 
         public event Action RecentActionsChanged;
 
@@ -94,9 +118,17 @@ namespace emiteat.NexUI.Designer.Editor
         public ThemeRegistry PreviewThemeRegistry { get; private set; }
         public INexUIDesignerBackend CurrentBackend { get; private set; }
         public Vector2Int Resolution { get; private set; }
-        public float Zoom { get; private set; }
-        public bool SnapEnabled { get; private set; }
-        public float GridSize { get; private set; }
+
+        /// <summary>
+        /// Window arrangement - zoom, snapping, tool, open panels. Owned by
+        /// <see cref="DesignerViewState"/>; these properties forward to it so the context's public
+        /// surface is unchanged.
+        /// </summary>
+        public DesignerViewState View { get; }
+
+        public float Zoom => View.Zoom;
+        public bool SnapEnabled => View.SnapEnabled;
+        public float GridSize => View.GridSize;
         public string PreviewState { get; private set; }
         public string InputMode { get; private set; }
         public IReadOnlyList<string> ValidationMessages => _validationMessages;
@@ -105,12 +137,12 @@ namespace emiteat.NexUI.Designer.Editor
         public DesignerSaveReport LastSavePreviewReport { get; private set; }
         public int ErrorCount { get; private set; }
         public int WarningCount { get; private set; }
-        public DesignerTool CurrentTool { get; private set; }
-        public DesignerSidebarTab SidebarTab { get; private set; }
-        public DesignerInspectorTab InspectorTab { get; private set; }
-        public DesignerBottomTab BottomTab { get; private set; }
-        public bool BottomDrawerOpen { get; private set; }
-        public float BottomDrawerHeight { get; private set; }
+        public DesignerTool CurrentTool => View.CurrentTool;
+        public DesignerSidebarTab SidebarTab => View.SidebarTab;
+        public DesignerInspectorTab InspectorTab => View.InspectorTab;
+        public DesignerBottomTab BottomTab => View.BottomTab;
+        public bool BottomDrawerOpen => View.BottomDrawerOpen;
+        public float BottomDrawerHeight => View.BottomDrawerHeight;
 
         public event Action<UIScreenDefinition> ScreenChanged;
         public event Action<DesignerSaveReport> SaveCompleted;
@@ -139,17 +171,9 @@ namespace emiteat.NexUI.Designer.Editor
             PreviewMotionPlayer = new BuiltInMotionPlayer();
             PreviewThemeRegistry = new ThemeRegistry();
             Resolution = new Vector2Int(1920, 1080);
-            Zoom = EditorPrefs.GetFloat(PrefPrefix + "Zoom", 0.5f);
-            SnapEnabled = EditorPrefs.GetBool(PrefPrefix + "Snap", true);
-            GridSize = EditorPrefs.GetFloat(PrefPrefix + "GridSize", 8f);
             PreviewState = "Normal";
             InputMode = "Keyboard";
-            CurrentTool = (DesignerTool)EditorPrefs.GetInt(PrefPrefix + "Tool", (int)DesignerTool.Select);
-            SidebarTab = (DesignerSidebarTab)EditorPrefs.GetInt(PrefPrefix + "SidebarTab", (int)DesignerSidebarTab.Layers);
-            InspectorTab = (DesignerInspectorTab)EditorPrefs.GetInt(PrefPrefix + "InspectorTab", (int)DesignerInspectorTab.Design);
-            BottomTab = (DesignerBottomTab)EditorPrefs.GetInt(PrefPrefix + "BottomTab", (int)DesignerBottomTab.Validation);
-            BottomDrawerOpen = EditorPrefs.GetBool(PrefPrefix + "BottomOpen", false);
-            BottomDrawerHeight = EditorPrefs.GetFloat(PrefPrefix + "BottomHeight", 220f);
+            View = new DesignerViewState(PrefPrefix);
             DesignerBackendRegistry.RegisterDefaults();
             Undo.undoRedoPerformed += OnUndoRedoPerformed;
             EditorApplication.projectChanged += OnProjectAssetsChanged;
@@ -201,6 +225,13 @@ namespace emiteat.NexUI.Designer.Editor
         {
             Metadata = metadata;
             _expansionValid = false;
+
+            // A different document entirely: describing the difference from the previous one would
+            // cost more than redoing the work, so consumers are told to start over.
+            Changes.Reset();
+            _validationCache.InvalidateAll();
+            _validatedRevision = -1;
+
             StoreAssetGuid(LastMetadataGuidKey, metadata);
             CaptureMetadataBaseline();
             var metadataChangedOnOpen = false;
@@ -447,7 +478,7 @@ namespace emiteat.NexUI.Designer.Editor
                 return report;
             }
 
-            var preflightIssues = DesignerValidationService.Validate(CurrentScreen, Metadata);
+            var preflightIssues = DesignerValidationService.Validate(CurrentScreen, Metadata, VariantContext);
             foreach (var issue in preflightIssues)
                 if (issue.Severity == DesignerValidationSeverity.Error)
                     report.Error($"Validation {issue.Code}: {issue.Message}  →  {issue.Fix}");
@@ -468,7 +499,7 @@ namespace emiteat.NexUI.Designer.Editor
             // tree. The expansion is a throw-away in-memory asset, so the authored metadata is never
             // reshaped by a save - which also means we must save the authored asset ourselves, since
             // the serializer only knows about the copy it was handed.
-            var expansion = DesignerComponentExpander.Expand(Metadata, DesignerComponentLibrary.Resolver);
+            var expansion = DesignerComponentExpander.Expand(Metadata, DesignerComponentLibrary.Resolver, VariantContext);
             try
             {
                 foreach (var issue in expansion.Issues)
@@ -537,17 +568,36 @@ namespace emiteat.NexUI.Designer.Editor
         /// <summary>Inspects the next backend save without dirtying or writing any asset.</summary>
         public DesignerSaveReport PreviewSave()
         {
-            var report = DesignerSavePreviewService.Preview(CurrentScreen, Metadata);
+            var report = DesignerSavePreviewService.Preview(CurrentScreen, Metadata, VariantContext);
             LastSavePreviewReport = report;
             SavePreviewCompleted?.Invoke(report);
             return report;
         }
 
+        /// <summary>
+        /// Re-runs validation and republishes the issue list, counts and
+        /// <see cref="ValidationChanged"/>.
+        /// </summary>
+        /// <remarks>
+        /// Always synchronous and always complete: callers such as Save and Auto Fix read
+        /// <see cref="ErrorCount"/> on the next line. What the change tracker buys is not a
+        /// shorter list but less work to produce the same one - the per-element rules are reused
+        /// for elements that did not change, while every whole-document rule still runs.
+        /// </remarks>
         public void Validate()
         {
             using var markerScope = ValidationMarker.Auto();
+
+            // Drop cached per-element issues for whatever moved since the last pass. Structural
+            // edits and unattributable ones report "everything", which clears the cache outright.
+            var changes = Changes.Since(_validatedRevision);
+            if (changes.Everything) _validationCache.InvalidateAll();
+            else _validationCache.Invalidate(changes.ElementIds);
+
+            _validatedRevision = Changes.Revision;
             _validationIssues.Clear();
-            _validationIssues.AddRange(DesignerValidationService.Validate(CurrentScreen, Metadata));
+            _validationIssues.AddRange(
+                DesignerValidationService.Validate(CurrentScreen, Metadata, VariantContext, _validationCache));
 
             _validationMessages.Clear();
             ErrorCount = 0;
@@ -565,79 +615,78 @@ namespace emiteat.NexUI.Designer.Editor
         public void SetResolution(Vector2Int resolution)
         {
             Resolution = resolution;
+            // A component's variant rules can be conditioned on the canvas resolution, so the cached
+            // expansion is stale the moment it changes.
+            InvalidateComponentExpansion();
             CanvasChanged?.Invoke();
             PreviewRebuilt?.Invoke();
         }
 
+        /// <summary>
+        /// The environment component variant rules are judged against: what the canvas is currently
+        /// showing, so the preview and the save agree on which rules applied.
+        /// </summary>
+        public Components.Definitions.DesignerComponentVariantContext VariantContext
+            => new Components.Definitions.DesignerComponentVariantContext(Resolution, InputModeValue);
+
+        /// <summary>The toolbar's input device as the typed value the rest of the system uses.</summary>
+        private UIInputMode InputModeValue => InputMode switch
+        {
+            "Gamepad" => UIInputMode.Gamepad,
+            "Touch" => UIInputMode.Touch,
+            "SteamDeck" => UIInputMode.SteamDeck,
+            _ => UIInputMode.KeyboardMouse
+        };
+
+        // The view-state setters below hold the arrangement in DesignerViewState and keep the
+        // event-raising here, where the events are declared. Each forwards the "did anything
+        // change" answer the old inline code encoded as an early return.
+
         public void SetZoom(float zoom)
         {
-            Zoom = Mathf.Clamp(zoom, 0.15f, 2.0f);
-            EditorPrefs.SetFloat(PrefPrefix + "Zoom", Zoom);
-            CanvasChanged?.Invoke();
+            if (View.SetZoom(zoom)) CanvasChanged?.Invoke();
         }
 
         public void ZoomBy(float delta) => SetZoom(Zoom + delta);
 
         public void SetSnap(bool enabled)
         {
-            SnapEnabled = enabled;
-            EditorPrefs.SetBool(PrefPrefix + "Snap", enabled);
-            CanvasChanged?.Invoke();
+            if (View.SetSnap(enabled)) CanvasChanged?.Invoke();
         }
 
         public void SetGridSize(float size)
         {
-            GridSize = Mathf.Clamp(size, 1f, 64f);
-            EditorPrefs.SetFloat(PrefPrefix + "GridSize", GridSize);
-            CanvasChanged?.Invoke();
+            if (View.SetGridSize(size)) CanvasChanged?.Invoke();
         }
 
         public void SetTool(DesignerTool tool)
         {
-            if (CurrentTool == tool) return;
-            CurrentTool = tool;
-            EditorPrefs.SetInt(PrefPrefix + "Tool", (int)tool);
-            UIStateChanged?.Invoke();
+            if (View.SetTool(tool)) UIStateChanged?.Invoke();
         }
 
         public void SetSidebarTab(DesignerSidebarTab tab)
         {
-            if (SidebarTab == tab) return;
-            SidebarTab = tab;
-            EditorPrefs.SetInt(PrefPrefix + "SidebarTab", (int)tab);
-            UIStateChanged?.Invoke();
+            if (View.SetSidebarTab(tab)) UIStateChanged?.Invoke();
         }
 
         public void SetInspectorTab(DesignerInspectorTab tab)
         {
-            if (InspectorTab == tab) return;
-            InspectorTab = tab;
-            EditorPrefs.SetInt(PrefPrefix + "InspectorTab", (int)tab);
-            UIStateChanged?.Invoke();
+            if (View.SetInspectorTab(tab)) UIStateChanged?.Invoke();
         }
 
         public void SetBottomTab(DesignerBottomTab tab, bool open = true)
         {
-            BottomTab = tab;
-            BottomDrawerOpen = open;
-            EditorPrefs.SetInt(PrefPrefix + "BottomTab", (int)tab);
-            EditorPrefs.SetBool(PrefPrefix + "BottomOpen", BottomDrawerOpen);
-            UIStateChanged?.Invoke();
+            if (View.SetBottomTab(tab, open)) UIStateChanged?.Invoke();
         }
 
         public void SetBottomDrawerOpen(bool open)
         {
-            if (BottomDrawerOpen == open) return;
-            BottomDrawerOpen = open;
-            EditorPrefs.SetBool(PrefPrefix + "BottomOpen", open);
-            UIStateChanged?.Invoke();
+            if (View.SetBottomDrawerOpen(open)) UIStateChanged?.Invoke();
         }
 
         public void SetBottomDrawerHeight(float height)
         {
-            BottomDrawerHeight = Mathf.Clamp(height, 180f, 520f);
-            EditorPrefs.SetFloat(PrefPrefix + "BottomHeight", BottomDrawerHeight);
-            UIStateChanged?.Invoke();
+            if (View.SetBottomDrawerHeight(height)) UIStateChanged?.Invoke();
         }
 
         public void SetPreviewState(string state)
@@ -649,6 +698,7 @@ namespace emiteat.NexUI.Designer.Editor
         public void SetInputMode(string mode)
         {
             InputMode = mode;
+            InvalidateComponentExpansion();
             CanvasChanged?.Invoke();
         }
 
@@ -1091,7 +1141,7 @@ namespace emiteat.NexUI.Designer.Editor
             if (element == null || element.locked) return;
             RecordMetadata("Edit NexUI Element Rect");
             element.rect = SnapRect(rect);
-            MarkMetadataDirty();
+            MarkMetadataDirty(element);
             ElementChanged?.Invoke(element);
         }
 
@@ -1382,7 +1432,7 @@ namespace emiteat.NexUI.Designer.Editor
             if (element == null || change == null) return;
             RecordMetadata(undoName);
             change(element);
-            MarkMetadataDirty();
+            MarkMetadataDirty(element);
             ElementChanged?.Invoke(element);
         }
 
@@ -1420,13 +1470,39 @@ namespace emiteat.NexUI.Designer.Editor
             LogAction(name);
         }
 
-        private void MarkMetadataDirty()
+        /// <summary>
+        /// Records that the authored document changed and notifies everything derived from it.
+        /// </summary>
+        /// <param name="changedElement">
+        /// The single element that was edited, or null when the edit changed the shape of the
+        /// document (add / remove / re-parent) and the blast radius is the whole screen.
+        /// </param>
+        private void MarkMetadataDirty(DesignerElementMetadata changedElement = null)
         {
             if (Metadata != null)
                 EditorUtility.SetDirty(Metadata);
+
+            if (changedElement != null) Changes.MarkProperty(changedElement.stableId);
+            else Changes.MarkStructure();
+
             _expansionValid = false;   // authored data changed; the flattened tree must be recomputed
             SetDirtyState(true);
             CanvasChanged?.Invoke();
+
+            // Deliberately synchronous.
+            //
+            // Coalescing this onto EditorApplication.delayCall collapsed a whole drag into one
+            // validation pass, which is a real and worthwhile win. It was reverted because
+            // DesignerUndoConsistencyTests.UndoBackToBaseline stopped passing with it in place -
+            // the test hung for 172 seconds (the next slowest test in the suite takes 4.5) and
+            // then failed with the element missing after an undo.
+            //
+            // The mechanism was never explained. Deferring work in the editor interacts with the
+            // undo system, domain reloads and the test runner's own pumping, and a timing change
+            // nobody can account for does not belong in the path that every document edit takes.
+            // The per-element issue cache below still cuts the cost of each pass; what is missing
+            // is only the reduction in the number of passes. Re-add it once the interaction with
+            // undo is understood and covered by a test.
             Validate();
         }
 

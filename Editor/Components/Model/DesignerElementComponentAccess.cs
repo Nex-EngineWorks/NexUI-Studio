@@ -89,12 +89,49 @@ namespace emiteat.NexUI.Designer.Editor.Components
 
             var type = DesignerUIComponentRegistry.Get(typeId);
             foreach (var required in type.RequiredComponents)
-                if (!Has(element, required) && CanAttach(element, required, backend))
-                    element.components.Add(new DesignerElementComponent(required, fromPreset));
+            {
+                if (Has(element, required) || !CanAttach(element, required, backend)) continue;
+                var dependency = new DesignerElementComponent(required, fromPreset);
+                UseSerializedValues(dependency, DesignerUIComponentRegistry.Get(required));
+                element.components.Add(dependency);
+            }
 
             var component = new DesignerElementComponent(typeId, fromPreset);
+            UseSerializedValues(component, type);
             element.components.Add(component);
             return component;
+        }
+
+        /// <summary>
+        /// Points a registry component at the universal SerializedObject value path when it has a real
+        /// runtime type behind it.
+        /// </summary>
+        /// <remarks>
+        /// The curated schema is built by reflecting the backing type, and it can only describe the
+        /// field shapes <c>DesignerReflectedSchema</c> knows how to name - bool, int, float, string,
+        /// Color, Vector2, enum and object references. Everything else was dropped, which is why
+        /// <c>TMP_Text.m_margin</c> (Vector4) and <c>LayoutGroup.m_Padding</c> (RectOffset) could
+        /// neither be edited nor saved, while the very same field on an unregistered script could.
+        ///
+        /// Storing by property path instead hands both the inspector and the writer to the universal
+        /// path, which covers every shape <c>SerializedProperty</c> has. The registry entry keeps doing
+        /// what only it can do - display name, category, backend filtering, requires/conflicts - so
+        /// nothing about Add Component changes.
+        ///
+        /// <see cref="DesignerElementComponent.adoptExistingComponent"/> is what keeps this safe on the
+        /// prefab: the old writer called <c>GetComponent</c> before <c>AddComponent</c>, so a preset
+        /// that stamps <c>UGUI.Image</c> onto an element the serializer also gives an Image to must
+        /// bind to that one instead of adding a second.
+        ///
+        /// Existing metadata is untouched. It was written with <see cref="DesignerComponentValueFormat.SchemaKeys"/>
+        /// and still round-trips through the registry writer, so this only changes newly attached
+        /// components.
+        /// </remarks>
+        private static void UseSerializedValues(DesignerElementComponent component, DesignerUIComponentType type)
+        {
+            if (component == null || type?.BackingType == null) return;
+            component.valueFormat = DesignerComponentValueFormat.PropertyPath;
+            component.adoptExistingComponent = true;
         }
 
         /// <summary>
@@ -209,14 +246,39 @@ namespace emiteat.NexUI.Designer.Editor.Components
         }
 
         public static bool IsOverridden(DesignerElementComponent component, string key)
-            => component != null && DesignerComponentPropertyBag.Has(component.properties, key);
+            => component != null && (DesignerComponentPropertyBag.Has(component.properties, key) ||
+                                     DesignerComponentPropertyBag.Has(component.properties, AlternateKey(key)));
 
         /// <summary>Stored value if present, else the schema default.</summary>
         public static DesignerPropertyValue Value(DesignerElementComponent component, string key)
         {
             if (component == null) return null;
-            var stored = DesignerComponentPropertyBag.Find(component.properties, key);
+            var stored = DesignerComponentPropertyBag.Find(component.properties, key)
+                         ?? DesignerComponentPropertyBag.Find(component.properties, AlternateKey(key));
             return stored ?? Schema(component.typeId, key)?.Default;
+        }
+
+        /// <summary>
+        /// The same field's key in the other value format: <c>"segments"</c> ↔ <c>"m_Segments"</c>.
+        /// </summary>
+        /// <remarks>
+        /// A curated schema key is Unity's backing field name with the <c>m_</c> stripped and the first
+        /// letter lowered, so the two formats name the same field differently only for private
+        /// serialized fields - a public field's key and property path are already identical.
+        ///
+        /// Readers that ask for a field by its schema key (the preview renderers, for one) predate the
+        /// move to property paths and should not each have to know which format a component happens to
+        /// use. Trying the counterpart key here keeps every one of them working across both.
+        ///
+        /// Only plain identifiers are translated. A nested path such as <c>"m_Colors.m_NormalColor"</c>
+        /// has no schema counterpart at all, so guessing one would only produce a wrong lookup.
+        /// </remarks>
+        private static string AlternateKey(string key)
+        {
+            if (string.IsNullOrEmpty(key) || key.IndexOf('.') >= 0 || key.IndexOf('[') >= 0) return null;
+            if (!key.StartsWith("m_", System.StringComparison.Ordinal))
+                return "m_" + char.ToUpperInvariant(key[0]) + key.Substring(1);
+            return key.Length > 2 ? char.ToLowerInvariant(key[2]) + key.Substring(3) : null;
         }
 
         public static bool Set(DesignerElementComponent component, string key, DesignerPropertyValue value)

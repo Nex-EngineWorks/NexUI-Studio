@@ -78,7 +78,35 @@ namespace emiteat.NexUI.Designer
         TextColor,
         TextShadow,
         TextOutline,
-        RuntimeVisible
+        RuntimeVisible,
+
+        // Appended, never reordered: the numeric value is what every serialized override stores.
+        // ---- Motion ---------------------------------------------------------------------------
+        MotionPreset,
+        MotionId,
+        MotionInitialVariant,
+        MotionAnimateVariant,
+        MotionExitVariant,
+        MotionHoverVariant,
+        MotionPressedVariant,
+        MotionFocusVariant,
+
+        // ---- Theme ----------------------------------------------------------------------------
+        ThemeAsset,
+        ThemeId,
+
+        /// <summary>Space-separated class list, the way USS and HTML write one.</summary>
+        ThemeClasses,
+
+        /// <summary>
+        /// Token overrides as <c>key=value</c> pairs separated by <c>;</c>.
+        /// </summary>
+        /// <remarks>
+        /// A list-valued property in a single-value slot. Encoding it as text keeps the whole override
+        /// pipeline - typed value, JSON round-trip, exposed properties, variant rules - working on it
+        /// unchanged, where a nested list would have needed a parallel path through every one of them.
+        /// </remarks>
+        ThemeTokens
     }
 
     /// <summary>

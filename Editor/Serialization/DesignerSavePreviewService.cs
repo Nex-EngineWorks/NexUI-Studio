@@ -15,7 +15,12 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
     /// <summary>Builds a read-only, categorized plan of the next save.</summary>
     public static class DesignerSavePreviewService
     {
-        public static DesignerSaveReport Preview(UIScreenDefinition definition, DesignerMetadataAsset metadata)
+        /// <param name="variantContext">
+        /// Canvas resolution / input mode, so the plan reflects the same variant rules the canvas is
+        /// showing and the save will write.
+        /// </param>
+        public static DesignerSaveReport Preview(UIScreenDefinition definition, DesignerMetadataAsset metadata,
+            Components.Definitions.DesignerComponentVariantContext variantContext = default)
         {
             var report = new DesignerSaveReport { IsPreview = true };
             if (definition == null)
@@ -35,7 +40,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             // The plan must describe what the backend actually receives, which for a screen with
             // component instances is the flattened tree - otherwise the dry run would under-report
             // every object a component contributes.
-            var expansion = DesignerComponentExpander.Expand(metadata, DesignerComponentLibrary.Resolver);
+            var expansion = DesignerComponentExpander.Expand(metadata, DesignerComponentLibrary.Resolver, variantContext);
             try
             {
                 foreach (var issue in expansion.Issues)
@@ -86,6 +91,9 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
 
                 var elementIds = new HashSet<string>(StringComparer.Ordinal);
                 var stableIds = new HashSet<string>(StringComparer.Ordinal);
+                // Objects that already exist. The dry run reports its overwrite scope against these:
+                // an element it is about to create has nothing on it yet that could be the user's.
+                var matched = new Dictionary<string, GameObject>(StringComparer.Ordinal);
                 foreach (var element in metadata.elements)
                 {
                     if (element == null || string.IsNullOrWhiteSpace(element.elementId)) continue;
@@ -112,6 +120,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                     else
                     {
                         if (matchTag != null) referenced.Add(matchTag);
+                        matched[element.elementId] = matchObject;
                         report.MarkModified("Prefab element", $"Update '{element.elementId}' layout, visual, typography, hierarchy and visibility.", element.elementId, path);
                         if (matchTag == null || matchTag.ownership != NexUIElementOwnership.DesignerOwned)
                             report.MarkUserImpact("User-owned object", $"Designer properties will be applied to user-owned '{matchObject.name}', while unrelated components remain intact. A stable identity tag will be added when needed.", element.elementId);
@@ -122,6 +131,10 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 foreach (var tag in tags)
                     if (tag.ownership == NexUIElementOwnership.DesignerOwned && !referenced.Contains(tag))
                         report.MarkOrphan("Prefab element", $"Orphaned Designer-owned '{tag.name}' is preserved and requires manual removal.", tag.elementId);
+
+                // The same statement the real save makes, so the dry run and the result agree on where
+                // the overwrite boundary is rather than only on what crosses it.
+                UGUIAssetSerializer.ReportOwnership(root, metadata, matched, report);
             }
             catch (Exception ex)
             {

@@ -348,8 +348,15 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
                 Assert.That(button.GetComponent<CanvasGroup>().alpha, Is.EqualTo(.6f));
                 Assert.That(button.GetComponent<Image>().color, Is.EqualTo(Color.red));
                 Assert.That(button.GetComponent<UnityEngine.UI.Outline>().effectDistance, Is.EqualTo(new Vector2(2f, -2f)));
-                Assert.That(button.GetComponents<UnityEngine.UI.Shadow>().Length, Is.GreaterThanOrEqualTo(2),
-                    "border Outline and drop Shadow must be distinct effects");
+                // The border and the drop shadow must remain two separate effects. Which component
+                // carries the shadow depends on the blur: uGUI's Shadow is a one-pixel offset and
+                // cannot express a blurred one, so any blur (the default is 4) routes it to
+                // NXSoftShadow instead. Asserting on the Shadow component count tested that choice
+                // rather than the thing that matters, which is that both effects survive the save.
+                var dropShadow = button.GetComponents<UnityEngine.UI.Shadow>()
+                                     .Any(x => !(x is UnityEngine.UI.Outline))
+                                 || button.GetComponent<emiteat.NexUI.Integrations.UGUI.NXSoftShadow>() != null;
+                Assert.That(dropShadow, Is.True, "border Outline and drop Shadow must be distinct effects");
                 Assert.That(button.GetComponent<RectTransform>().localScale.x, Is.EqualTo(1.2f));
                 var tmpType = System.Type.GetType("TMPro.TMP_Text, Unity.TextMeshPro", true);
                 var tmp = button.GetComponentInChildren(tmpType, true);

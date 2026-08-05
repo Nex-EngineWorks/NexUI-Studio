@@ -184,10 +184,14 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
             Register("constraints", "inspector.section.constraints", "responsive horizontal vertical pin scale", DesignerInspectorSlot.Feature,
                 DesignerInspectorExposure.Advanced, DesignerInspectorTarget.Element, c => new ConstraintsInspector(c),
                 c => HasConstraint(Element(c)));
-            Register("accessibility", "inspector.section.accessibility", "label role screen reader touch target", DesignerInspectorSlot.Feature,
-                DesignerInspectorExposure.Common, DesignerInspectorTarget.Element, c => new AccessibilityInspector(c),
-                c => Element(c) is { } e && (!string.IsNullOrEmpty(e.accessibilityLabel)
-                                             || e.accessibilityRole != emiteat.NexUI.Accessibility.AccessibilityRole.None));
+            // No in-use predicate, for the same reason as the interaction section: the fields here
+            // have no other entry point, so hiding the section until one of them is set means none
+            // of them ever gets set. That mattered less when this held only optional accessibility
+            // hints; it matters now that it also holds the automation id a test suite depends on,
+            // and that accessibility is a shipping requirement rather than a nicety.
+            Register("accessibility", "inspector.section.accessibility", "label role screen reader touch target automation test id",
+                DesignerInspectorSlot.Feature, DesignerInspectorExposure.Common, DesignerInspectorTarget.Element,
+                c => new AccessibilityInspector(c));
 
             Register("binding", "inspector.section.binding", "state data text value visibility class command interactable key", DesignerInspectorSlot.Feature,
                 DesignerInspectorExposure.Essential, DesignerInspectorTarget.Element, c => new BindingInspector(c),
@@ -199,6 +203,12 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
             Register("command", "inspector.section.command", "action handler execute runtime", DesignerInspectorSlot.Feature,
                 DesignerInspectorExposure.Common, DesignerInspectorTarget.Element, c => new NexUIDesignerCommandPanel(c),
                 c => !string.IsNullOrEmpty(Element(c)?.binding?.commandKey));
+            // No in-use predicate on purpose. Every other Feature section is reachable from Add
+            // Component when the element does not use it yet; interaction rules are not, so
+            // hiding the section until a rule exists would leave no way to author the first one.
+            Register("interaction", "inspector.section.interaction", "trigger condition action click show hide rule command state",
+                DesignerInspectorSlot.Feature, DesignerInspectorExposure.Common, DesignerInspectorTarget.SingleElement,
+                c => new InteractionInspector(c));
             Register("focus", "inspector.section.focus", "up down left right auto generate keyboard gamepad", DesignerInspectorSlot.Feature,
                 DesignerInspectorExposure.Advanced, DesignerInspectorTarget.Element, c => new FocusNavigationPanel(c),
                 c => HasFocusLink(Element(c)));

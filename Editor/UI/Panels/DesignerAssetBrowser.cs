@@ -36,8 +36,9 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
 
     /// <summary>
     /// Path/kind/filter logic for the Designer's asset browser, kept free of UI and (where possible)
-    /// of <see cref="AssetDatabase"/> so the rules are unit-testable. Only <see cref="List"/> and
-    /// <see cref="Search"/> touch the project.
+    /// of <see cref="AssetDatabase"/> so the rules are unit-testable. Only <see cref="List"/>,
+    /// <see cref="Search"/> and <see cref="Move"/> touch the project - and <see cref="Move"/> decides
+    /// what it is allowed to do through the pure rules above it.
     /// </summary>
     public static class DesignerAssetBrowser
     {
@@ -241,5 +242,179 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
 
         private static int CompareByName(DesignerAssetEntry a, DesignerAssetEntry b)
             => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
+
+        // ---- Move -----------------------------------------------------------------------------
+
+        /// <summary>Whether <paramref name="path"/> is <paramref name="folder"/> or lives inside it. Pure.</summary>
+        public static bool IsUnder(string path, string folder)
+        {
+            if (string.IsNullOrEmpty(path) || string.IsNullOrEmpty(folder)) return false;
+            path = path.Replace('\\', '/').TrimEnd('/');
+            folder = folder.Replace('\\', '/').TrimEnd('/');
+            if (string.Equals(path, folder, StringComparison.Ordinal)) return true;
+            return path.Length > folder.Length
+                   && path[folder.Length] == '/'
+                   && path.StartsWith(folder, StringComparison.Ordinal);
+        }
+
+        /// <summary>
+        /// Why <paramref name="sourcePath"/> cannot move into <paramref name="targetFolder"/>, or null
+        /// when it can. Pure: every rule here is about the two paths, not about the project.
+        /// </summary>
+        /// <remarks>
+        /// The folder-into-itself case is the one that matters. Unity's own
+        /// <see cref="AssetDatabase.ValidateMoveAsset"/> does catch it, but only after the caller has
+        /// already committed to a destination path built from the source's own name - and a move that
+        /// half-succeeds across a multi-selection is not something a user can undo.
+        /// </remarks>
+        public static string MoveBlockedReason(string sourcePath, string targetFolder)
+        {
+            if (string.IsNullOrEmpty(sourcePath)) return "No asset to move.";
+            if (string.IsNullOrEmpty(targetFolder)) return "No destination folder.";
+
+            sourcePath = sourcePath.Replace('\\', '/').TrimEnd('/');
+            targetFolder = targetFolder.Replace('\\', '/').TrimEnd('/');
+
+            if (string.Equals(sourcePath, targetFolder, StringComparison.Ordinal))
+                return "A folder cannot be moved into itself.";
+            if (IsUnder(targetFolder, sourcePath))
+                return $"'{LeafName(targetFolder)}' is inside '{LeafName(sourcePath)}'.";
+            if (string.Equals(ParentFolder(sourcePath), targetFolder, StringComparison.Ordinal))
+                return "It is already in that folder.";
+            return null;
+        }
+
+        /// <summary>
+        /// Drops sources that are already covered by another source folder in the same selection.
+        /// </summary>
+        /// <remarks>
+        /// Selecting a folder and something inside it is easy to do with a rubber band. Moving the
+        /// folder first invalidates the child's path, and moving the child first quietly pulls it out
+        /// of the folder the user was moving as a whole - so the folder wins and the child rides along.
+        /// Pure.
+        /// </remarks>
+        public static List<string> WithoutNestedSources(IReadOnlyList<string> sourcePaths)
+        {
+            var result = new List<string>();
+            if (sourcePaths == null) return result;
+
+            foreach (var candidate in sourcePaths)
+            {
+                if (string.IsNullOrEmpty(candidate)) continue;
+                var covered = false;
+                foreach (var other in sourcePaths)
+                {
+                    if (string.IsNullOrEmpty(other) || ReferenceEquals(other, candidate)) continue;
+                    if (string.Equals(other, candidate, StringComparison.Ordinal)) continue;
+                    if (IsUnder(candidate, other)) { covered = true; break; }
+                }
+                if (!covered && !result.Contains(candidate)) result.Add(candidate);
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Moves every source into <paramref name="targetFolder"/>, reporting each outcome.
+        /// </summary>
+        /// <remarks>
+        /// Three things this does that a bare loop over <see cref="AssetDatabase.MoveAsset"/> does not.
+        /// A name already taken in the destination gets a unique one instead of failing the move -
+        /// matching what the Project window does when you drag a duplicate name in. Unity is asked to
+        /// validate before each move, so a refusal is reported with its own message rather than as a
+        /// silent no-op. And the whole batch runs inside one asset-editing block, because importing
+        /// once per file is what makes moving a folder full of sprites take a visible minute.
+        ///
+        /// This is not undoable. <see cref="AssetDatabase.MoveAsset"/> has no undo, so the caller must
+        /// confirm rather than promise the user a way back.
+        /// </remarks>
+        public static DesignerAssetMoveResult Move(IReadOnlyList<string> sourcePaths, string targetFolder)
+        {
+            var result = new DesignerAssetMoveResult();
+            if (sourcePaths == null || sourcePaths.Count == 0) return result;
+
+            if (string.IsNullOrEmpty(targetFolder) || !AssetDatabase.IsValidFolder(targetFolder))
+            {
+                foreach (var source in sourcePaths)
+                    result.Failed.Add($"{LeafName(source)}: '{targetFolder}' is not a project folder.");
+                return result;
+            }
+
+            var sources = WithoutNestedSources(sourcePaths);
+            AssetDatabase.StartAssetEditing();
+            try
+            {
+                foreach (var source in sources)
+                {
+                    var blocked = MoveBlockedReason(source, targetFolder);
+                    if (blocked != null)
+                    {
+                        result.Skipped.Add($"{LeafName(source)}: {blocked}");
+                        continue;
+                    }
+
+                    var destination = targetFolder + "/" + LeafName(source);
+                    if (AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(destination) != null ||
+                        AssetDatabase.IsValidFolder(destination))
+                        destination = AssetDatabase.GenerateUniqueAssetPath(destination);
+
+                    var error = AssetDatabase.ValidateMoveAsset(source, destination);
+                    if (!string.IsNullOrEmpty(error))
+                    {
+                        result.Failed.Add($"{LeafName(source)}: {error}");
+                        continue;
+                    }
+
+                    error = AssetDatabase.MoveAsset(source, destination);
+                    if (!string.IsNullOrEmpty(error)) result.Failed.Add($"{LeafName(source)}: {error}");
+                    else result.Moved.Add(destination);
+                }
+            }
+            finally
+            {
+                AssetDatabase.StopAssetEditing();
+                AssetDatabase.Refresh();
+            }
+            return result;
+        }
+
+        /// <summary>Every folder under <see cref="RootFolder"/>, depth-first, for the destination picker.</summary>
+        public static List<string> AllFolders(string root = RootFolder)
+        {
+            var folders = new List<string>();
+            if (string.IsNullOrEmpty(root) || !AssetDatabase.IsValidFolder(root)) root = RootFolder;
+            Collect(root);
+            return folders;
+
+            void Collect(string folder)
+            {
+                folders.Add(folder);
+                var children = AssetDatabase.GetSubFolders(folder);
+                Array.Sort(children, StringComparer.OrdinalIgnoreCase);
+                foreach (var child in children) Collect(child);
+            }
+        }
+    }
+
+    /// <summary>What a move actually did, so the panel reports the truth rather than "done".</summary>
+    public sealed class DesignerAssetMoveResult
+    {
+        public readonly List<string> Moved = new List<string>();
+
+        /// <summary>Sources a rule refused, each with its reason.</summary>
+        public readonly List<string> Skipped = new List<string>();
+
+        /// <summary>Sources Unity itself refused, each with the message it gave.</summary>
+        public readonly List<string> Failed = new List<string>();
+
+        public bool AnythingHappened => Moved.Count > 0;
+
+        public string Summary()
+        {
+            var parts = new List<string>();
+            if (Moved.Count > 0) parts.Add($"{Moved.Count} moved");
+            if (Skipped.Count > 0) parts.Add($"{Skipped.Count} skipped");
+            if (Failed.Count > 0) parts.Add($"{Failed.Count} failed");
+            return parts.Count == 0 ? "Nothing to move." : string.Join(", ", parts) + ".";
+        }
     }
 }

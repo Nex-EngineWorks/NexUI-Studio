@@ -80,8 +80,10 @@ namespace emiteat.NexUI.Designer.Editor.Components.Serialization
                 // are usually elements, which no scratch instance can hold.
                 if (StudioUnityEventModel.IsUnityEvent(fieldType))
                 {
-                    Add(new StudioUnityEventRow(_context, _element, _instanceId,
-                        property.propertyPath, property.displayName, property.tooltip));
+                    if (StudioUnityEventModel.IsAuthorableEvent(property.propertyPath))
+                        Add(new StudioUnityEventRow(_context, _element, _instanceId,
+                            property.propertyPath, property.displayName, property.tooltip));
+
                     continue;
                 }
 

@@ -92,6 +92,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 case DesignerSaveImpactKind.Modified: return "Modify";
                 case DesignerSaveImpactKind.PreviewOnly: return "Preview Only";
                 case DesignerSaveImpactKind.UserImpact: return "User Impact / Fallback";
+                case DesignerSaveImpactKind.Ownership: return "Overwrite Scope";
                 default: return kind.ToString();
             }
         }

@@ -47,6 +47,8 @@ namespace emiteat.NexUI.Designer.Editor.Productivity
                 case "ugui-button-target-graphic-missing": return Fix("Button Target Graphic 연결", false,
                     () => FixPrefabComponent<Button>(context, issue.ElementId, x => x.targetGraphic = x.GetComponent<Graphic>(), "Assign Button Target Graphic"));
                 case "motion-close-missing": return Fix("Open을 뒤집어 Close 생성", false, () => GenerateClose(context));
+                case "motion-target-missing": return Fix("끊어진 Motion 바인딩 제거", false,
+                    () => RemoveDanglingMotionBindings(context));
                 default: return null;
             }
         }
@@ -78,6 +80,39 @@ namespace emiteat.NexUI.Designer.Editor.Productivity
             var i = 1;
             while (context.Metadata.elements.Any(x => x != element && x != null && x.elementId == candidate)) candidate = stem + i++;
             context.RenameElementId(element, candidate);
+        }
+
+        /// <summary>
+        /// Removes motion bindings that point at an element the screen no longer has.
+        /// </summary>
+        /// <remarks>
+        /// Marked unsafe, so it never runs as part of Fix All Safe - deleting authored motion is
+        /// not something to do behind the user's back, even when the binding is provably dead. It
+        /// goes through <c>RemoveMotionBinding</c>, so the whole removal is one undo step.
+        ///
+        /// Only the dangling-target case is offered. A binding with a real target but no clip is
+        /// an unfinished edit, not a broken one, and removing it would throw away work in progress.
+        /// Screen-level triggers are skipped because they are not supposed to have a target at all.
+        /// </remarks>
+        private static void RemoveDanglingMotionBindings(NexUIDesignerContext context)
+        {
+            var metadata = context?.Metadata;
+            var motion = metadata?.screenMotion;
+            if (motion?.bindings == null) return;
+
+            var ids = new HashSet<string>(metadata.elements
+                .Where(x => x != null && !string.IsNullOrEmpty(x.elementId))
+                .Select(x => x.elementId));
+
+            var dangling = motion.bindings
+                .Where(b => b != null
+                            && b.trigger != DesignerMotionTrigger.ScreenEnter
+                            && b.trigger != DesignerMotionTrigger.ScreenExit
+                            && (string.IsNullOrEmpty(b.targetElementId) || !ids.Contains(b.targetElementId)))
+                .ToList();
+
+            foreach (var binding in dangling)
+                context.RemoveMotionBinding(binding);
         }
 
         private static void Update(NexUIDesignerContext context, string id, Action<DesignerElementMetadata> action, string undo)

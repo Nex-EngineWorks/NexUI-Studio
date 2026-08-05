@@ -17,6 +17,22 @@ namespace emiteat.NexUI.Designer
         public string exposedPropertyName;
         /// <summary>Definition-local element id. Ignored when <see cref="exposedPropertyName"/> resolves.</summary>
         public string targetElementId;
+
+        /// <summary>
+        /// Definition-local <see cref="DesignerElementMetadata.stableId"/> of the same target.
+        /// </summary>
+        /// <remarks>
+        /// The identity that survives a rename. <see cref="targetElementId"/> is what a user reads and
+        /// therefore what a definition author eventually changes, and until this field existed such a
+        /// rename silently stranded every instance override pointing at the old name.
+        ///
+        /// Both are stored rather than one: the stable id resolves the target, and the element id stays
+        /// as the human-readable record of what the override was authored against - which is what makes
+        /// a report about an unresolvable override readable at all. Empty on overrides written before
+        /// this field existed; <c>UpdateFromDefinition</c> backfills those.
+        /// </remarks>
+        public string targetStableId;
+
         public DesignerPropertyId propertyId;
         public DesignerPropertyValue value = new DesignerPropertyValue();
 
@@ -24,6 +40,7 @@ namespace emiteat.NexUI.Designer
         {
             exposedPropertyName = exposedPropertyName,
             targetElementId = targetElementId,
+            targetStableId = targetStableId,
             propertyId = propertyId,
             value = value != null ? value.Clone() : new DesignerPropertyValue()
         };

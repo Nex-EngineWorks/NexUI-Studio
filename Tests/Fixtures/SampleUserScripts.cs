@@ -3,6 +3,10 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+// The namespace deliberately still says EditMode: these fixtures belong to the edit-mode tests and
+// are only in a separate assembly because Unity refuses to AddComponent a MonoBehaviour that lives
+// in an Editor-platform assembly ("Can't add script behaviour ... because it is an editor script").
+// Keeping the namespace means the tests that use them need no using directive and no edit.
 namespace emiteat.NexUI.Designer.Tests.EditMode
 {
     /// <summary>
@@ -37,6 +41,7 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
         public float threshold;
     }
 
+    /// <summary>Covers <c>[SerializeReference]</c>, which serializes differently from a plain field.</summary>
     public sealed class SampleAdvancedSerializationController : MonoBehaviour
     {
         [SerializeReference] private SampleManagedRule rule = new SampleThresholdRule

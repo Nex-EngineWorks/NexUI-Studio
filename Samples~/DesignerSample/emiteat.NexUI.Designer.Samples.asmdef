@@ -4,6 +4,7 @@
   "references": [
     "emiteat.NexUI.Core",
     "emiteat.NexUI.State",
+    "emiteat.NexUI.Designer.Runtime",
     "emiteat.NexUI.Localization",
     "emiteat.NexUI.Prompt",
     "emiteat.NexUI.Theme",

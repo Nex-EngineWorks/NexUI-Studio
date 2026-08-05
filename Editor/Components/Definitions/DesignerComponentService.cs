@@ -15,6 +15,12 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
         public DesignerElementMetadata Element;
         public List<string> Warnings = new List<string>();
 
+        /// <summary>
+        /// Things the operation fixed by itself. Separate from <see cref="Warnings"/> because a repair
+        /// the user does not have to act on should not read like a problem they do.
+        /// </summary>
+        public List<string> Notes = new List<string>();
+
         public static DesignerComponentOperationResult Fail(string message)
             => new DesignerComponentOperationResult { Success = false, Message = message };
 
@@ -186,7 +192,10 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
             Undo.RecordObject(screen, "Set NexUI Component Override");
             var existing = instance.componentInstance.FindOverride(item.Key);
             if (existing != null) instance.componentInstance.overrides.Remove(existing);
-            instance.componentInstance.overrides.Add(item.Clone());
+
+            var stored = item.Clone();
+            StampTargetStableId(stored, instance.componentInstance);
+            instance.componentInstance.overrides.Add(stored);
             DesignerMetadataUtility.MarkDirty(screen);
             return true;
         }
@@ -223,12 +232,18 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
         /// detached. Nothing is lost - slot content keeps its own elements and stays parented where
         /// the expansion put it.
         /// </summary>
-        public static DesignerComponentOperationResult Detach(DesignerMetadataAsset screen, DesignerElementMetadata instance)
+        /// <param name="variantContext">
+        /// The canvas environment. Detach bakes what is currently expanded, so a rule conditioned on
+        /// the resolution has to be judged against the same canvas the user is looking at - otherwise
+        /// detaching would silently produce a different arrangement than the one on screen.
+        /// </param>
+        public static DesignerComponentOperationResult Detach(DesignerMetadataAsset screen, DesignerElementMetadata instance,
+            DesignerComponentVariantContext variantContext = default)
         {
             if (screen == null || instance?.componentInstance == null || !instance.componentInstance.IsInstance)
                 return DesignerComponentOperationResult.Fail("The element is not a live component instance.");
 
-            var expansion = DesignerComponentExpander.Expand(screen, DesignerComponentLibrary.Resolver);
+            var expansion = DesignerComponentExpander.Expand(screen, DesignerComponentLibrary.Resolver, variantContext);
             try
             {
                 if (!expansion.ContainsInstances || expansion.Expanded == null)
@@ -327,6 +342,10 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
                 }
                 else if (target.Find(item.targetElementId) != null)
                 {
+                    // The stable id belongs to the definition being left behind. Matching by name is
+                    // the only thing two unrelated definitions share, so re-record the identity against
+                    // the new one instead of carrying a pointer into the old.
+                    item.targetStableId = target.Find(item.targetElementId).stableId;
                     kept.Add(item);
                 }
                 else
@@ -357,11 +376,17 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
         }
 
         /// <summary>
-        /// Reconciles an instance with the current definition version: stamps the new version and
-        /// reports (without deleting) overrides and variant selections that no longer resolve, so the
-        /// user decides what to do about them.
+        /// Reconciles an instance with the current definition version: re-points overrides whose target
+        /// was renamed, records the stable identity of ones that predate it, adds any new variant axis,
+        /// and reports what still does not resolve.
         /// </summary>
-        public static DesignerComponentOperationResult UpdateFromDefinition(DesignerMetadataAsset screen, DesignerElementMetadata instance)
+        /// <param name="resetUnresolved">
+        /// Removes the overrides that could not be re-pointed. Off by default: an override that no
+        /// longer resolves is still the user's authored intent, and a definition element deleted by
+        /// mistake is restorable - the value it carried is not.
+        /// </param>
+        public static DesignerComponentOperationResult UpdateFromDefinition(DesignerMetadataAsset screen,
+            DesignerElementMetadata instance, bool resetUnresolved = false)
         {
             if (screen == null || instance?.componentInstance == null || !instance.componentInstance.HasReference)
                 return DesignerComponentOperationResult.Fail("The element is not a component instance.");
@@ -372,25 +397,57 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
                 return DesignerComponentOperationResult.Fail("The definition could not be resolved; nothing was changed.");
 
             var result = new DesignerComponentOperationResult { Success = true, Definition = definition, Element = instance };
+
+            Undo.RecordObject(screen, "Update NexUI Component Instance");
+            BackfillDefinitionTargets(definition);
+
+            var unresolved = new List<DesignerComponentPropertyOverride>();
             foreach (var item in reference.overrides)
             {
                 if (item == null) continue;
-                var resolves = !string.IsNullOrEmpty(item.exposedPropertyName)
-                    ? definition.FindExposed(item.exposedPropertyName) != null
-                    : definition.Find(item.targetElementId) != null;
-                if (!resolves)
-                    result.Warnings.Add($"Override '{item.Key}' no longer resolves against v{definition.version}. It is kept but has no effect until you reset it.");
+
+                if (!string.IsNullOrEmpty(item.exposedPropertyName))
+                {
+                    // An exposed property is addressed by name, which only the definition author can
+                    // change, and only deliberately - there is nothing to re-point it to.
+                    if (definition.FindExposed(item.exposedPropertyName) == null) unresolved.Add(item);
+                    continue;
+                }
+
+                var target = definition.ResolveTarget(item.targetStableId, item.targetElementId);
+                if (target == null) { unresolved.Add(item); continue; }
+
+                if (string.IsNullOrEmpty(item.targetStableId) && !string.IsNullOrEmpty(target.stableId))
+                {
+                    item.targetStableId = target.stableId;
+                    result.Notes.Add($"Recorded the stable identity of '{item.targetElementId}.{item.propertyId}', so renaming it will no longer break this override.");
+                }
+                else if (!string.Equals(item.targetElementId, target.elementId, StringComparison.Ordinal))
+                {
+                    result.Notes.Add($"Re-pointed override '{item.targetElementId}.{item.propertyId}' to '{target.elementId}' (renamed in the definition).");
+                    item.targetElementId = target.elementId;
+                }
             }
+
+            foreach (var item in unresolved)
+                result.Warnings.Add(resetUnresolved
+                    ? $"Removed override '{item.Key}': its target no longer exists in v{definition.version}."
+                    : $"Override '{item.Key}' no longer resolves against v{definition.version}. It is kept but has no effect until you reset it.");
+            if (resetUnresolved)
+                foreach (var item in unresolved) reference.overrides.Remove(item);
+
             foreach (var selection in reference.variantSelections)
                 if (selection != null && definition.FindVariantProperty(selection.propertyName) == null)
                     result.Warnings.Add($"Variant selection '{selection.propertyName}' is not declared by v{definition.version}.");
 
             // A definition may have added variant axes since this instance was placed.
-            Undo.RecordObject(screen, "Update NexUI Component Instance");
             foreach (var property in definition.variantProperties)
                 if (property != null && !string.IsNullOrEmpty(property.propertyName) &&
                     reference.GetVariantSelection(property.propertyName) == null)
+                {
                     reference.SetVariantSelection(property.propertyName, property.EffectiveDefault);
+                    result.Notes.Add($"Added variant '{property.propertyName}' at its default '{property.EffectiveDefault}'.");
+                }
 
             var previousVersion = reference.definitionVersion;
             reference.definitionVersion = definition.version;
@@ -398,8 +455,63 @@ namespace emiteat.NexUI.Designer.Editor.Components.Definitions
             DesignerMetadataUtility.MarkDirty(screen);
 
             result.Message = $"'{instance.elementId}' reconciled v{previousVersion} → v{definition.version}" +
+                             (result.Notes.Count > 0 ? $"; {result.Notes.Count} override(s) repaired" : string.Empty) +
                              (result.Warnings.Count > 0 ? $" with {result.Warnings.Count} warning(s)." : ".");
             return result;
+        }
+
+        /// <summary>
+        /// Records the stable identity of everything inside <paramref name="definition"/> that points at
+        /// one of its own elements by id: exposed properties and variant-rule overrides.
+        /// </summary>
+        /// <remarks>
+        /// Purely additive - an id already recorded is never re-pointed - so this is safe to run on a
+        /// shared asset from a per-instance reconcile and safe to run twice. Without it, an exposed
+        /// property authored before stable ids existed stays vulnerable to the very rename that
+        /// <c>Update From Definition</c> is being asked to recover from.
+        /// </remarks>
+        public static bool BackfillDefinitionTargets(DesignerComponentDefinitionAsset definition)
+        {
+            if (definition == null) return false;
+            var changed = false;
+
+            foreach (var exposed in definition.exposedProperties)
+            {
+                if (exposed == null || !string.IsNullOrEmpty(exposed.targetStableId)) continue;
+                var target = definition.Find(exposed.targetElementId);
+                if (target == null || string.IsNullOrEmpty(target.stableId)) continue;
+                exposed.targetStableId = target.stableId;
+                changed = true;
+            }
+
+            foreach (var rule in definition.variantRules)
+                foreach (var item in rule?.overrides ?? new List<DesignerComponentPropertyOverride>())
+                {
+                    if (item == null || !string.IsNullOrEmpty(item.targetStableId)) continue;
+                    if (!string.IsNullOrEmpty(item.exposedPropertyName)) continue;
+                    var target = definition.Find(item.targetElementId);
+                    if (target == null || string.IsNullOrEmpty(target.stableId)) continue;
+                    item.targetStableId = target.stableId;
+                    changed = true;
+                }
+
+            if (changed) EditorUtility.SetDirty(definition);
+            return changed;
+        }
+
+        /// <summary>
+        /// Records the target's stable id on a freshly authored override, so it survives a later rename
+        /// of the definition element without needing Update From Definition to repair it.
+        /// </summary>
+        private static void StampTargetStableId(DesignerComponentPropertyOverride item,
+            DesignerComponentInstanceMetadata reference)
+        {
+            if (item == null || !string.IsNullOrEmpty(item.targetStableId)) return;
+            if (!string.IsNullOrEmpty(item.exposedPropertyName) || string.IsNullOrEmpty(item.targetElementId)) return;
+
+            var definition = DesignerComponentLibrary.Resolve(reference.definitionGuid, reference.definitionId);
+            var target = definition?.Find(item.targetElementId);
+            if (target != null) item.targetStableId = target.stableId;
         }
 
         // ---- Helpers ----------------------------------------------------------------------

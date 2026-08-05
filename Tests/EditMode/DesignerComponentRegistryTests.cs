@@ -459,6 +459,10 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
                 Assert.GreaterOrEqual(cards.Count, 130, "the library should visualize the full atomic catalog");
                 foreach (var card in cards)
                 {
+                    // Component-type cards list something you attach, not something you place, so
+                    // they have no thumbnail to show.
+                    if (card.ClassListContains(NexUIComponentsPanel.ComponentTypeCardClass)) continue;
+
                     Assert.IsNotNull(card.Q<VisualElement>(className: "nexui-component-card-preview"), card.userData as string);
                     if (!card.ClassListContains("nexui-component-custom-card") &&
                         !card.ClassListContains("nexui-component-builtin-card"))

@@ -97,6 +97,23 @@ namespace emiteat.NexUI.Designer
             managedComponents?.RemoveAll(existing => existing == component);
         }
 
+        /// <summary>Whether the Studio put <paramref name="component"/> on this object.</summary>
+        /// <remarks>
+        /// All three lists count. A serializer helper such as an <c>Outline</c> is just as much the
+        /// Studio's to rewrite as an explicit Add Component attachment, and a prefab written by an
+        /// older build only has the legacy list.
+        /// </remarks>
+        public bool Owns(Component component)
+        {
+            if (component == null) return false;
+            if (managedComponents != null && managedComponents.Contains(component)) return true;
+            if (managedGeneratedComponents != null && managedGeneratedComponents.Contains(component)) return true;
+            if (managedByInstance != null)
+                foreach (var entry in managedByInstance)
+                    if (entry != null && entry.component == component) return true;
+            return false;
+        }
+
         public DesignerManagedComponentOwnership OwnershipOf(Component component)
         {
             if (component == null || managedByInstance == null)

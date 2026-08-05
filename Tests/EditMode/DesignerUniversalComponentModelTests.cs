@@ -211,7 +211,11 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
 
             Assert.AreEqual(DesignerPropertyValueType.Float, clone.type);
             Assert.AreEqual(1.5f, clone.floatValue);
-            Assert.IsNull(clone.json);
+
+            // Null-or-empty, not null: Clone round-trips through JsonUtility, which turns a null
+            // string into "" and never back. DesignerPropertyValue.IsEmpty already treats the two
+            // as the same thing, so "carries no json payload" is what this is actually asserting.
+            Assert.IsTrue(string.IsNullOrEmpty(clone.json), "a float value carries no json payload");
         }
 
         // ---- References ------------------------------------------------------------------------

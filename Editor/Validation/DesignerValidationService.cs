@@ -23,7 +23,18 @@ namespace emiteat.NexUI.Designer.Editor.Validation
     /// </summary>
     public static class DesignerValidationService
     {
-        public static List<DesignerValidationIssue> Validate(UIScreenDefinition screen, DesignerMetadataAsset metadata)
+        /// <param name="variantContext">
+        /// Canvas resolution / input mode, so component variant rules conditioned on the environment
+        /// validate against what the canvas is actually showing.
+        /// </param>
+        /// <param name="elementCache">
+        /// Optional. When supplied, the element-scoped rules are reused for elements that have not
+        /// changed. Null - the default - recomputes everything, which is what every non-interactive
+        /// caller wants and what the behaviour was before caching existed.
+        /// </param>
+        public static List<DesignerValidationIssue> Validate(UIScreenDefinition screen, DesignerMetadataAsset metadata,
+            Components.Definitions.DesignerComponentVariantContext variantContext = default,
+            IDesignerElementIssueCache elementCache = null)
         {
             var issues = new List<DesignerValidationIssue>();
             var screenId = screen != null ? screen.ScreenId : null;
@@ -52,14 +63,14 @@ namespace emiteat.NexUI.Designer.Editor.Validation
                     $"Metadata screenId '{metadata.screenId}' differs from screen '{screenId}'.",
                     "Set the metadata screenId to match the screen, or open the correct screen.", screenId));
 
-            ValidateElements(screen, metadata, screenId, backendNames, issues);
+            ValidateElements(screen, metadata, screenId, backendNames, issues, elementCache);
             ValidateHierarchy(metadata, screenId, issues);
             ValidateOrphans(metadata, screenId, backendNames, issues);
             ValidateReferences(metadata, screenId, issues);
             ValidateCollections(metadata, screenId, issues);
             ValidateMotion(metadata, screenId, issues);
             ValidatePrefabComponents(screen, metadata, screenId, issues);
-            DesignerComponentValidation.Validate(metadata, screenId, issues);
+            DesignerComponentValidation.Validate(metadata, screenId, issues, variantContext);
             // The screen's backend decides which attached components can run at all, so this check
             // belongs here rather than at attach time: switching the backend afterwards is exactly the
             // case attach-time rules cannot catch.
@@ -111,11 +122,18 @@ namespace emiteat.NexUI.Designer.Editor.Validation
         }
 
         private static void ValidateElements(UIScreenDefinition screen, DesignerMetadataAsset metadata, string screenId,
-            HashSet<string> backendNames, List<DesignerValidationIssue> issues)
+            HashSet<string> backendNames, List<DesignerValidationIssue> issues,
+            IDesignerElementIssueCache elementCache = null)
         {
             var backend = screen.backendAsset.backend;
+            elementCache?.BeginPass(backend, screenId, backendNames);
+
             var ids = new HashSet<string>();
             var stableIds = new HashSet<string>();
+
+            // Cross-element, so it stays in this loop rather than moving into ValidateElement:
+            // uniqueness is a property of the whole screen and cannot be answered per element.
+            var automationIds = new Dictionary<string, string>();
             foreach (var element in metadata.elements)
             {
                 if (element == null) continue;
@@ -140,24 +158,81 @@ namespace emiteat.NexUI.Designer.Editor.Validation
                         $"Element '{id}' shares stableId '{element.stableId}' with another element.",
                         "Assign a new stable identity before saving.", screenId, id));
 
-                if (!DesignerMetadataUtility.IsValidElementId(id))
-                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "invalid-element-id",
-                        $"Element id '{id}' is not a safe identifier.",
-                        "Use letters, digits, '_' or '-' and start with a letter/underscore.", screenId, id));
+                if (!string.IsNullOrEmpty(element.automationId))
+                {
+                    if (automationIds.TryGetValue(element.automationId, out var owner))
+                        issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error, "duplicate-automation-id",
+                            $"Automation id '{element.automationId}' is used by both '{owner}' and '{id}'.",
+                            "Rename one of them; a test looking it up would get whichever compiled first.",
+                            screenId, id));
+                    else
+                        automationIds[element.automationId] = id;
+                }
 
-                if (backendNames != null && !backendNames.Contains(id) &&
-                    (string.IsNullOrEmpty(element.stableId) || !backendNames.Contains("$stable:" + element.stableId)))
-                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "missing-backend-element",
-                        $"No element named '{id}' exists in the backend asset.",
-                        backend == UIRenderBackend.UIToolkit
-                            ? "Add name=\"" + id + "\" in UI Builder, or save to create it (uGUI)."
-                            : "Save the screen to create the GameObject, or rename to match.", screenId, id));
+                // Spliced in at exactly the position the inline call used to occupy, so a cached
+                // pass and a full pass produce the same list in the same order.
+                if (elementCache == null)
+                {
+                    ValidateElement(element, backend, screenId, backendNames, issues);
+                    continue;
+                }
 
-                ValidateElementDetails(element, screenId, issues);
-                ValidateComponentProperties(element, backend, screenId, issues);
-                ValidateComponentParts(element, backend, screenId, issues);
-                ValidatePropertyParity(element, backend, screenId, issues);
+                var reused = elementCache.TryReuse(element);
+                if (reused != null)
+                {
+                    issues.AddRange(reused);
+                    continue;
+                }
+
+                var produced = new List<DesignerValidationIssue>();
+                ValidateElement(element, backend, screenId, backendNames, produced);
+                issues.AddRange(produced);
+                elementCache.Store(element, produced);
             }
+        }
+
+        /// <summary>
+        /// Every rule that is a function of one element on its own.
+        /// </summary>
+        /// <remarks>
+        /// Split out from the element loop so validation can eventually be narrowed to the
+        /// elements that actually changed. These rules read nothing but the element, the target
+        /// backend and the backend asset's element names, which is what makes narrowing sound:
+        /// re-running them for one element can never change another element's issues.
+        ///
+        /// The rules that are <em>not</em> here are the cross-element ones - duplicate element ids
+        /// and duplicate stable ids - because their answer depends on the whole document. Those
+        /// stay in the loop above and must be re-run whenever anything is added, removed or
+        /// renamed.
+        ///
+        /// Call order is deliberately identical to what the single loop did before, so the issue
+        /// list this produces is byte-for-byte what it used to be.
+        /// </remarks>
+        public static void ValidateElement(DesignerElementMetadata element, UIRenderBackend backend,
+            string screenId, HashSet<string> backendNames, List<DesignerValidationIssue> issues)
+        {
+            if (element == null || issues == null) return;
+
+            var id = element.elementId;
+            if (string.IsNullOrEmpty(id)) return;
+
+            if (!DesignerMetadataUtility.IsValidElementId(id))
+                issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "invalid-element-id",
+                    $"Element id '{id}' is not a safe identifier.",
+                    "Use letters, digits, '_' or '-' and start with a letter/underscore.", screenId, id));
+
+            if (backendNames != null && !backendNames.Contains(id) &&
+                (string.IsNullOrEmpty(element.stableId) || !backendNames.Contains("$stable:" + element.stableId)))
+                issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "missing-backend-element",
+                    $"No element named '{id}' exists in the backend asset.",
+                    backend == UIRenderBackend.UIToolkit
+                        ? "Add name=\"" + id + "\" in UI Builder, or save to create it (uGUI)."
+                        : "Save the screen to create the GameObject, or rename to match.", screenId, id));
+
+            ValidateElementDetails(element, screenId, issues);
+            ValidateComponentProperties(element, backend, screenId, issues);
+            ValidateComponentParts(element, backend, screenId, issues);
+            ValidatePropertyParity(element, backend, screenId, issues);
         }
 
         private static void ValidateComponentParts(DesignerElementMetadata element, UIRenderBackend backend,

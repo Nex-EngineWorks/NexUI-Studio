@@ -179,6 +179,64 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
             finally { Cleanup(sprite); }
         }
 
+        // ---- Move rules -------------------------------------------------------------------
+
+        [TestCase("Assets/UI/icon.png", "Assets/UI", true)]
+        [TestCase("Assets/UI/Icons/icon.png", "Assets/UI", true)]
+        [TestCase("Assets/UI", "Assets/UI", true)]
+        [TestCase("Assets/UIKit/icon.png", "Assets/UI", false)]
+        [TestCase("Assets/Art/icon.png", "Assets/UI", false)]
+        [TestCase("Assets/UI/icon.png", "", false)]
+        public void IsUnder_TreatsOnlyWholeSegmentsAsContainment(string path, string folder, bool expected)
+            => Assert.AreEqual(expected, DesignerAssetBrowser.IsUnder(path, folder));
+
+        [Test]
+        public void MoveBlockedReason_RefusesAFolderIntoItselfOrItsOwnChild()
+        {
+            Assert.IsNotNull(DesignerAssetBrowser.MoveBlockedReason("Assets/UI", "Assets/UI"));
+            Assert.IsNotNull(DesignerAssetBrowser.MoveBlockedReason("Assets/UI", "Assets/UI/Icons"),
+                "moving a folder into its own descendant is what would corrupt the tree");
+        }
+
+        [Test]
+        public void MoveBlockedReason_RefusesAMoveThatWouldChangeNothing()
+            => Assert.IsNotNull(DesignerAssetBrowser.MoveBlockedReason("Assets/UI/icon.png", "Assets/UI"));
+
+        [Test]
+        public void MoveBlockedReason_AllowsARealMove()
+        {
+            Assert.IsNull(DesignerAssetBrowser.MoveBlockedReason("Assets/UI/icon.png", "Assets/Art"));
+            Assert.IsNull(DesignerAssetBrowser.MoveBlockedReason("Assets/UI", "Assets/Art"));
+            Assert.IsNull(DesignerAssetBrowser.MoveBlockedReason("Assets/UI", "Assets/UIKit"),
+                "a sibling with a shared name prefix is not a descendant");
+        }
+
+        /// <summary>
+        /// Rubber-band selecting a folder and something inside it is easy. Moving both would move the
+        /// child out of the folder that was being moved as a whole.
+        /// </summary>
+        [Test]
+        public void WithoutNestedSources_KeepsOnlyTheOutermostSelection()
+        {
+            var kept = DesignerAssetBrowser.WithoutNestedSources(new[]
+            {
+                "Assets/UI", "Assets/UI/Icons", "Assets/UI/Icons/a.png", "Assets/Art/b.png"
+            });
+
+            CollectionAssert.AreEquivalent(new[] { "Assets/UI", "Assets/Art/b.png" }, kept);
+        }
+
+        [Test]
+        public void WithoutNestedSources_KeepsSiblingsAndDeduplicates()
+        {
+            var kept = DesignerAssetBrowser.WithoutNestedSources(new[]
+            {
+                "Assets/UI/a.png", "Assets/UI/a.png", "Assets/UI/b.png"
+            });
+
+            CollectionAssert.AreEqual(new[] { "Assets/UI/a.png", "Assets/UI/b.png" }, kept);
+        }
+
         private static Sprite MakeSprite()
         {
             var texture = new Texture2D(4, 4);
