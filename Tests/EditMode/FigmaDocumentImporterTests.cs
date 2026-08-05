@@ -54,6 +54,153 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
             }
         }
 
+        // ---- JSON shape detection -----------------------------------------------------
+        // The reader is a hand-written scanner rather than a JSON parser, so the cases that matter
+        // are the ones where naive substring matching would be wrong: a key that only appears
+        // nested, and a brace or quote inside a string value.
+
+        [Test]
+        public void Read_DevModeSingleNode_IsRecognisedWithoutAWrapper()
+        {
+            const string json = "{\"id\":\"1:2\",\"name\":\"Card\",\"type\":\"FRAME\"," +
+                                "\"absoluteBoundingBox\":{\"x\":0,\"y\":0,\"width\":10,\"height\":10}}";
+
+            var source = FigmaJsonReader.Read(json);
+
+            Assert.IsTrue(source.IsValid);
+            Assert.AreEqual(FigmaJsonShape.SingleNode, source.Shape);
+            Assert.AreEqual(1, source.AvailableRoots);
+        }
+
+        [Test]
+        public void Read_NodeArray_UsesFirstAndReportsHowManyWereOffered()
+        {
+            const string json = "[{\"name\":\"A\",\"type\":\"FRAME\"},{\"name\":\"B\",\"type\":\"FRAME\"}]";
+
+            var source = FigmaJsonReader.Read(json);
+
+            Assert.AreEqual(FigmaJsonShape.NodeArray, source.Shape);
+            Assert.AreEqual(2, source.AvailableRoots);
+            StringAssert.Contains("\"A\"", source.RootNodeJson);
+            StringAssert.DoesNotContain("\"B\"", source.RootNodeJson);
+        }
+
+        [Test]
+        public void Read_NodesResponse_UnwrapsTheDocumentOfTheFirstEntry()
+        {
+            const string json = "{\"nodes\":{\"1:2\":{\"document\":{\"name\":\"Picked\",\"type\":\"FRAME\"}}," +
+                                "\"3:4\":{\"document\":{\"name\":\"Other\",\"type\":\"FRAME\"}}}}";
+
+            var source = FigmaJsonReader.Read(json);
+
+            Assert.AreEqual(FigmaJsonShape.NodesResponse, source.Shape);
+            Assert.AreEqual(2, source.AvailableRoots);
+            StringAssert.Contains("Picked", source.RootNodeJson);
+            StringAssert.DoesNotContain("Other", source.RootNodeJson);
+        }
+
+        [Test]
+        public void Read_DocumentKeyNestedInsideAChild_IsNotMistakenForAFileResponse()
+        {
+            // A substring search for "document" would match the child and import the wrong node.
+            const string json = "{\"name\":\"Root\",\"type\":\"FRAME\"," +
+                                "\"children\":[{\"name\":\"document\",\"type\":\"TEXT\"}]}";
+
+            var source = FigmaJsonReader.Read(json);
+
+            Assert.AreEqual(FigmaJsonShape.SingleNode, source.Shape);
+            StringAssert.Contains("Root", source.RootNodeJson);
+        }
+
+        [Test]
+        public void Read_BracesAndQuotesInsideStringValues_DoNotBreakScanning()
+        {
+            const string json = "{\"name\":\"a\\\"}{b\",\"type\":\"FRAME\"," +
+                                "\"absoluteBoundingBox\":{\"x\":0,\"y\":0,\"width\":4,\"height\":4}}";
+
+            var source = FigmaJsonReader.Read(json);
+
+            Assert.IsTrue(source.IsValid, "An escaped quote inside a value must not end the object early.");
+            Assert.AreEqual(FigmaJsonShape.SingleNode, source.Shape);
+        }
+
+        [Test]
+        public void Read_JsonThatIsNotFigma_IsRejectedRatherThanImportedEmpty()
+        {
+            Assert.AreEqual(FigmaJsonShape.Unknown, FigmaJsonReader.Read("{\"hello\":\"world\"}").Shape);
+            Assert.AreEqual(FigmaJsonShape.Unknown, FigmaJsonReader.Read("not json at all").Shape);
+            Assert.AreEqual(FigmaJsonShape.Unknown, FigmaJsonReader.Read("").Shape);
+            Assert.AreEqual(FigmaJsonShape.Unknown, FigmaJsonReader.Read("[]").Shape);
+        }
+
+        // ---- import through the shared mapper ------------------------------------------
+
+        [Test]
+        public void Import_DevModeNodeWithNodeLevelGeometry_MapsWithoutAbsoluteBoundingBox()
+        {
+            // Dev Mode and plugin exports often carry x/y/width/height on the node itself.
+            const string json = "{\"name\":\"Panel\",\"type\":\"FRAME\",\"x\":50,\"y\":60,\"width\":200,\"height\":100," +
+                                "\"children\":[{\"name\":\"Body\",\"type\":\"TEXT\",\"characters\":\"Hi\"," +
+                                "\"x\":60,\"y\":80,\"width\":40,\"height\":20}]}";
+            var metadata = ScriptableObject.CreateInstance<DesignerMetadataAsset>();
+            try
+            {
+                var result = FigmaDocumentImporter.Import(json, metadata);
+
+                Assert.AreEqual(2, result.ElementCount);
+                Assert.AreEqual("Panel", result.FrameName);
+                Assert.AreEqual(FigmaJsonShape.SingleNode, result.Shape);
+
+                var body = metadata.Find("Body");
+                Assert.NotNull(body);
+                Assert.AreEqual(new Rect(10, 20, 40, 20), body.rect,
+                    "Children are placed relative to the frame origin.");
+                Assert.AreEqual("Hi", body.text);
+            }
+            finally
+            {
+                Object.DestroyImmediate(metadata);
+            }
+        }
+
+        [Test]
+        public void Import_PastedFrameItself_IsUsedRatherThanADescendant()
+        {
+            // Searching for a FRAME before checking the root would import the inner frame and
+            // silently drop everything the user actually selected.
+            const string json = "{\"name\":\"Outer\",\"type\":\"FRAME\",\"x\":0,\"y\":0,\"width\":100,\"height\":100," +
+                                "\"children\":[{\"name\":\"Inner\",\"type\":\"FRAME\",\"x\":10,\"y\":10,\"width\":20,\"height\":20}]}";
+            var metadata = ScriptableObject.CreateInstance<DesignerMetadataAsset>();
+            try
+            {
+                var result = FigmaDocumentImporter.Import(json, metadata);
+                Assert.AreEqual("Outer", result.FrameName);
+                Assert.AreEqual(2, result.ElementCount);
+            }
+            finally
+            {
+                Object.DestroyImmediate(metadata);
+            }
+        }
+
+        [Test]
+        public void Import_NonFigmaJson_ThrowsInsteadOfClearingTheScreen()
+        {
+            var metadata = ScriptableObject.CreateInstance<DesignerMetadataAsset>();
+            try
+            {
+                metadata.elements.Add(new DesignerElementMetadata { elementId = "Existing" });
+
+                Assert.Throws<System.InvalidOperationException>(
+                    () => FigmaDocumentImporter.Import("{\"hello\":\"world\"}", metadata));
+                Assert.NotNull(metadata.Find("Existing"), "A rejected import must not have emptied the screen.");
+            }
+            finally
+            {
+                Object.DestroyImmediate(metadata);
+            }
+        }
+
         [Test]
         public void ImportFirstFrame_MakesDuplicateNamesUnique()
         {

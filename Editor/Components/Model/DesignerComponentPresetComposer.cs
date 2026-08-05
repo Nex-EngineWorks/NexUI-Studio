@@ -47,7 +47,14 @@ namespace emiteat.NexUI.Designer.Editor.Components
             { "FlowContainer", new[] { "NX.FlowLayout" } },
             { "SafeArea", new[] { "NX.SafeArea" } },
             { "RadialMenu", new[] { "NX.RadialLayout" } },
-            { "Modal", new[] { "UGUI.Image", "UGUI.CanvasGroup" } },
+            { "Modal", new[] { "UGUI.Image", "UGUI.CanvasGroup", "NX.Modal" } },
+            { "Popover", new[] { "NX.RoundedRect", "NX.Popover" } },
+            { "Toast", new[] { "NX.RoundedRect", "NX.Toast" } },
+            { "Spinner", new[] { "NX.RadialFill", "NX.Spinner" } },
+            { "RadialFill", new[] { "NX.RadialFill" } },
+            { "Skeleton", new[] { "NX.RoundedRect", "NX.Skeleton" } },
+            { "Slot", new[] { "NX.Slot" } },
+            { "ChoiceList", new[] { "UGUI.VerticalLayoutGroup", "NX.ChoiceList" } },
             { "Drawer", new[] { "UGUI.Image", "UGUI.CanvasGroup" } },
             { "LoadingOverlay", new[] { "UGUI.Image", "UGUI.CanvasGroup" } },
             { "ProgressBar", new[] { "UGUI.Image" } },
@@ -62,7 +69,7 @@ namespace emiteat.NexUI.Designer.Editor.Components
             { "NumberTicker", new[] { "UGUI.TextMeshProUGUI", "NX.NumberTicker" } },
             { "CurrencyText", new[] { "UGUI.TextMeshProUGUI", "NX.NumberTicker" } },
             { "SwipeArea", new[] { "NX.SwipeArea" } },
-            { "Tooltip", new[] { "NX.RoundedRect", "UGUI.TextMeshProUGUI" } },
+            { "Tooltip", new[] { "NX.RoundedRect", "UGUI.TextMeshProUGUI", "NX.TooltipPanel" } },
         };
 
         /// <summary>Composition for a palette entry on the given backend. Never empty.</summary>

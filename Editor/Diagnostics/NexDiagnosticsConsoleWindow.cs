@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using emiteat.NexUI.Diagnostics;
@@ -23,6 +24,7 @@ namespace emiteat.NexUI.Designer.Editor.Diagnostics
     public sealed class NexDiagnosticsConsoleWindow : EditorWindow
     {
         private const string AllSubsystems = "All";
+        private const string AllFeatures = "All features";
 
         private NexDiagnosticQuery _query = new NexDiagnosticQuery
         {
@@ -80,7 +82,22 @@ namespace emiteat.NexUI.Designer.Editor.Diagnostics
             });
             toolbar.Add(subsystem);
 
-            var search = new TextField("Search") { tooltip = "Matches the code, the message or the location." };
+            // Feature is the first thing people filter by - "the save is broken" is a statement
+            // about a feature, not about a subsystem - so it sits next to the severity.
+            var features = new List<string> { AllFeatures };
+            features.AddRange(NexDiagnosticSession.Log.Features());
+            var feature = new DropdownField("Feature", features, 0);
+            feature.RegisterValueChangedCallback(evt =>
+            {
+                _query.Feature = evt.newValue == AllFeatures ? null : evt.newValue;
+                Refresh();
+            });
+            toolbar.Add(feature);
+
+            var search = new TextField("Search")
+            {
+                tooltip = "Matches the code, the message, the location, or the origin -> handler route."
+            };
             search.RegisterValueChangedCallback(evt =>
             {
                 _query.Text = evt.newValue;
@@ -127,7 +144,24 @@ namespace emiteat.NexUI.Designer.Editor.Diagnostics
                 return;
             }
 
-            foreach (var entry in entries) _list.Add(BuildRow(entry));
+            // Grouped by feature rather than listed flat. Twelve rows from three features read as
+            // twelve unrelated problems; under three headings they read as "the save worked, the
+            // import did not", which is the first thing anyone wants to know.
+            foreach (var group in entries.GroupBy(e => e.Feature))
+            {
+                var name = string.IsNullOrEmpty(group.Key) ? "Uncategorized" : group.Key;
+                var worst = group.Max(e => e.Diagnostic.Severity);
+
+                var header = new Foldout
+                {
+                    text = name + "  ·  " + group.Count() + " item(s)  ·  worst: " + worst,
+                    value = worst >= NexSeverity.Error
+                };
+                header.AddToClassList("nexui-diagnostic-feature-folder");
+
+                foreach (var entry in group) header.Add(BuildRow(entry));
+                _list.Add(header);
+            }
         }
 
         /// <summary>
@@ -139,6 +173,11 @@ namespace emiteat.NexUI.Designer.Editor.Diagnostics
             var d = entry.Diagnostic;
 
             var title = d.Severity + "  " + d.Code;
+
+            // The route goes in the collapsed header, not only in the detail. "Which thing raised
+            // this?" is part of deciding whether to open the row at all.
+            var route = entry.Route;
+            if (!string.IsNullOrEmpty(route)) title += "  ·  " + route;
             if (!d.Location.IsNone) title += "  ·  " + d.Location;
             if (entry.Occurrences > 1) title += "  (×" + entry.Occurrences + ")";
             if (entry.Resolved) title += "  ✓";

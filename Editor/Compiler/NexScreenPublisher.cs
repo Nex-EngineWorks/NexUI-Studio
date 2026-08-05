@@ -215,7 +215,20 @@ namespace emiteat.NexUI.Designer.Editor.Compiler
                 AssetDatabase.DeleteAsset(backupPath);
         }
 
+        /// <summary>
+        /// Wraps a failure, attributing it to Publish.
+        /// </summary>
+        /// <remarks>
+        /// Stamped here rather than through a diagnostic bag scope because publishing returns a
+        /// single diagnostic instead of collecting a bag. One place produces every publish failure,
+        /// so one place can label them all.
+        /// </remarks>
         private static NexPublishResult Fail(NexDiagnostic diagnostic)
-            => new NexPublishResult { Published = false, Diagnostic = diagnostic };
+            => new NexPublishResult
+            {
+                Published = false,
+                Diagnostic = diagnostic?.WithContext(
+                    new NexDiagnosticContext(NexDiagnosticFeatures.Publish, nameof(NexScreenPublisher)))
+            };
     }
 }

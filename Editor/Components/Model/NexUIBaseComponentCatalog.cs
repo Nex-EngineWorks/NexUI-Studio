@@ -112,6 +112,44 @@ namespace emiteat.NexUI.Designer.Editor.Components
                 "Show/hide a tooltip with proper delays. Unity ships no runtime tooltip system.",
                 ugui: typeof(NXTooltipTrigger),
                 uitkNote: "UI Toolkit has a basic tooltip attribute; richer tooltips still need this pattern.");
+
+            // ---- Feedback --------------------------------------------------------------------
+            yield return Make("NX.RadialFill", "Radial Fill", DesignerUIComponentCategory.Game,
+                "Ring that fills by value - cast bars, charge meters. A filled Image needs a ring sprite per size.",
+                ugui: typeof(NXRadialFill), renderer: true,
+                conflicts: new[] { "UGUI.Image", "UGUI.RawImage", "NX.RoundedRect" });
+
+            yield return Make("NX.Spinner", "Spinner", DesignerUIComponentCategory.Game,
+                "Indeterminate loading indicator. Runs on unscaled time so it keeps moving while paused.",
+                ugui: typeof(NXSpinner));
+
+            yield return Make("NX.Skeleton", "Skeleton", DesignerUIComponentCategory.Data,
+                "Loading placeholder that swaps itself for the real content, with an optional shimmer.",
+                ugui: typeof(NXSkeleton));
+
+            yield return Make("NX.Toast", "Toast", DesignerUIComponentCategory.Interaction,
+                "Transient message with severity and auto-dismiss. The countdown pauses while hovered.",
+                ugui: typeof(NXToast));
+
+            yield return Make("NX.Modal", "Modal", DesignerUIComponentCategory.Interaction,
+                "Reports that the player asked to leave rather than closing itself, so a confirmation can intervene.",
+                ugui: typeof(NXModal));
+
+            yield return Make("NX.Popover", "Popover", DesignerUIComponentCategory.Interaction,
+                "Panel anchored to another element, flipping sides when it would leave the canvas.",
+                ugui: typeof(NXPopover));
+
+            yield return Make("NX.TooltipPanel", "Tooltip Panel", DesignerUIComponentCategory.Interaction,
+                "The panel a Tooltip Trigger shows. One panel serves many triggers.",
+                ugui: typeof(NXTooltipPanel));
+
+            yield return Make("NX.Slot", "Slot", DesignerUIComponentCategory.Layout,
+                "Named mount point a reusable component leaves for its caller's content.",
+                ugui: typeof(NXSlot));
+
+            yield return Make("NX.ChoiceList", "Choice List", DesignerUIComponentCategory.Data,
+                "Single or multiple selection from a list of options. uGUI's ToggleGroup enforces exactly one.",
+                ugui: typeof(NXChoiceList));
         }
 
         private static DesignerUIComponentType Make(string typeId, string displayName,

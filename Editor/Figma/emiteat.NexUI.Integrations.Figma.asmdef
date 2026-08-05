@@ -4,6 +4,7 @@
     "references": [
         "emiteat.NexUI.Abstractions",
         "emiteat.NexUI.Core",
+        "emiteat.NexUI.Diagnostics",
         "emiteat.NexUI.Designer.Runtime",
         "emiteat.NexUI.Designer.Editor",
         "UniTask"

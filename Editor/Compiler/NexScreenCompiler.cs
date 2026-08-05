@@ -49,16 +49,33 @@ namespace emiteat.NexUI.Designer.Editor.Compiler
             }
 
             var screenId = metadata.screenId ?? string.Empty;
-            if (string.IsNullOrEmpty(screenId))
-                diagnostics.Add(NexDiagnosticCodes.ScreenIdMissing, new NexSourceLocation(string.Empty),
-                    detail: "Asset: " + metadata.name);
 
-            var ordered = Normalize(metadata, screenId, diagnostics);
-            var program = Lower(screenId, ordered, options, diagnostics);
+            // One scope around the whole compile: every diagnostic below is attributed to the
+            // Compile feature and to this run, without each pass having to say so.
+            using (diagnostics.Scope(NexDiagnosticFeatures.Compile, nameof(NexScreenCompiler),
+                       operationId: NewOperationId()))
+            {
+                if (string.IsNullOrEmpty(screenId))
+                    diagnostics.Add(NexDiagnosticCodes.ScreenIdMissing, new NexSourceLocation(string.Empty),
+                        detail: "Asset: " + metadata.name);
 
-            stopwatch.Stop();
-            return new NexCompileResult(program, diagnostics, stopwatch.Elapsed.TotalMilliseconds);
+                var ordered = Normalize(metadata, screenId, diagnostics);
+                var program = Lower(screenId, ordered, options, diagnostics);
+
+                stopwatch.Stop();
+                return new NexCompileResult(program, diagnostics, stopwatch.Elapsed.TotalMilliseconds);
+            }
         }
+
+        /// <summary>
+        /// A short id grouping everything one compile produced.
+        /// </summary>
+        /// <remarks>
+        /// Short on purpose: it is read off a console row and typed into a search box, not parsed.
+        /// Uniqueness only has to hold within a session's log, which a handful of hex digits covers.
+        /// </remarks>
+        private static string NewOperationId()
+            => "op-" + Guid.NewGuid().ToString("N").Substring(0, 8);
 
         // ---- pass 1: normalize ----------------------------------------------
 
@@ -269,8 +286,16 @@ namespace emiteat.NexUI.Designer.Editor.Compiler
                     TextBindingKey = LowerTextBinding(element, kind, location, diagnostics),
                     CommandId = LowerCommandBinding(element, kind, location, diagnostics),
                     AutomationId = element.automationId ?? string.Empty,
-                    Role = element.accessibilityRole
+                    Role = element.accessibilityRole,
+                    AccessibilityLabel = element.accessibilityLabel ?? string.Empty,
+                    FocusOrder = -1
                 };
+
+                // Nested scope: inherits the Compile operation id, reports under Accessibility so
+                // a missing label is filed with the other accessibility findings rather than
+                // buried among structural compile errors.
+                using (diagnostics.Scope(NexDiagnosticFeatures.Accessibility, handler: element.elementId))
+                    CheckAccessibleName(nodes[i], location, diagnostics);
 
                 if (!string.IsNullOrEmpty(element.automationId))
                 {
@@ -287,7 +312,11 @@ namespace emiteat.NexUI.Designer.Editor.Compiler
                 RequireFeatures(features, nodes[i], path);
             }
 
-            var interactions = LowerInteractions(ordered, nodes, indexById, pathById, screenId, features, diagnostics);
+            AssignFocusOrder(nodes);
+
+            NexInteractionProgram interactions;
+            using (diagnostics.Scope(NexDiagnosticFeatures.Interaction))
+                interactions = LowerInteractions(ordered, nodes, indexById, pathById, screenId, features, diagnostics);
 
             var program = ScriptableObject.CreateInstance<NexScreenProgram>();
             program.name = string.IsNullOrEmpty(screenId) ? "NexScreenProgram" : screenId;
@@ -410,7 +439,7 @@ namespace emiteat.NexUI.Designer.Editor.Compiler
 
                     program.Actions.AddRange(lowered);
 
-                    features.Require(NexFeatures.Interaction, element.stableId,
+                    features.Require(Compiled.NexFeatures.Interaction, element.stableId,
                         path + " runs a rule on " + rule.trigger + ".");
                 }
             }
@@ -551,6 +580,70 @@ namespace emiteat.NexUI.Designer.Editor.Compiler
         /// build report says exactly what was lost. Failing the whole screen instead would make
         /// one unsupported decoration block a release.
         /// </remarks>
+        // ---- accessibility ---------------------------------------------------
+
+        /// <summary>
+        /// Reports nodes that assistive technology would reach but could not describe.
+        /// </summary>
+        /// <remarks>
+        /// A warning rather than an error. An unnamed button is a real defect - it is the icon-only
+        /// close button a screen reader announces as "button", with nothing to say which one - but
+        /// failing the compile would block a screen that is still being laid out, and the fastest
+        /// way to teach someone to disable a check is to have it stop their work.
+        /// </remarks>
+        private static void CheckAccessibleName(NexNodeProgram node, NexSourceLocation location,
+            NexDiagnosticBag diagnostics)
+        {
+            if (!string.IsNullOrEmpty(node.AccessibleName)) return;
+
+            if (node.IsClickable || IsInteractiveRole(node.Role))
+            {
+                diagnostics.Add(NexDiagnosticCodes.InteractiveNodeHasNoAccessibleName,
+                    location.WithMember("accessibilityLabel"),
+                    "'" + node.Name + "' can be operated but announces nothing.");
+                return;
+            }
+
+            // Role.Image is the author saying the picture carries meaning. Decorative art is
+            // Role.None, and stays silent without a complaint.
+            if (node.Role == emiteat.NexUI.Accessibility.AccessibilityRole.Image)
+                diagnostics.Add(NexDiagnosticCodes.ImageRoleWithoutLabel,
+                    location.WithMember("accessibilityLabel"),
+                    "'" + node.Name + "' is marked as a meaningful image but has no label.");
+        }
+
+        private static bool IsInteractiveRole(emiteat.NexUI.Accessibility.AccessibilityRole role)
+            => role == emiteat.NexUI.Accessibility.AccessibilityRole.Button
+               || role == emiteat.NexUI.Accessibility.AccessibilityRole.Toggle
+               || role == emiteat.NexUI.Accessibility.AccessibilityRole.Slider
+               || role == emiteat.NexUI.Accessibility.AccessibilityRole.TextField;
+
+        /// <summary>
+        /// Numbers the focusable nodes in document order.
+        /// </summary>
+        /// <remarks>
+        /// Document order is the reading order the author already sees in the hierarchy panel, so
+        /// the announcement sequence matches what they arranged rather than the order nodes happen
+        /// to sit in a serialized list. Nodes are numbered after lowering because focusability
+        /// depends on the resolved kind, not on the authoring type.
+        ///
+        /// Non-focusable nodes keep -1: a panel that exists only to group children should not be
+        /// stopped on by Tab, and should not be announced as a thing of its own.
+        /// </remarks>
+        private static void AssignFocusOrder(NexNodeProgram[] nodes)
+        {
+            var order = 0;
+            for (var i = 0; i < nodes.Length; i++)
+                nodes[i].FocusOrder = TakesFocus(nodes[i]) ? order++ : -1;
+        }
+
+        private static bool TakesFocus(NexNodeProgram node)
+            => node.IsClickable
+               || IsInteractiveRole(node.Role)
+               || (node.Role != emiteat.NexUI.Accessibility.AccessibilityRole.None
+                   && node.Role != emiteat.NexUI.Accessibility.AccessibilityRole.Container
+                   && !string.IsNullOrEmpty(node.AccessibleName));
+
         private static NexNodeKind ResolveKind(DesignerElementMetadata element,
             NexSourceLocation location, NexDiagnosticBag diagnostics)
         {
@@ -622,23 +715,23 @@ namespace emiteat.NexUI.Designer.Editor.Compiler
             switch (node.Kind)
             {
                 case NexNodeKind.Image:
-                    features.Require(NexFeatures.Image, node.NodeId, path + " is an image.");
+                    features.Require(Compiled.NexFeatures.Image, node.NodeId, path + " is an image.");
                     break;
                 case NexNodeKind.Label:
-                    features.Require(NexFeatures.Text, node.NodeId, path + " draws text.");
+                    features.Require(Compiled.NexFeatures.Text, node.NodeId, path + " draws text.");
                     break;
                 case NexNodeKind.Button:
-                    features.Require(NexFeatures.Button, node.NodeId, path + " is a button.");
-                    features.Require(NexFeatures.Text, node.NodeId, path + " has a button label.");
+                    features.Require(Compiled.NexFeatures.Button, node.NodeId, path + " is a button.");
+                    features.Require(Compiled.NexFeatures.Text, node.NodeId, path + " has a button label.");
                     break;
             }
 
             if (!string.IsNullOrEmpty(node.TextBindingKey))
-                features.Require(NexFeatures.TextBinding, node.NodeId,
+                features.Require(Compiled.NexFeatures.TextBinding, node.NodeId,
                     path + " binds text to '" + node.TextBindingKey + "'.");
 
             if (!string.IsNullOrEmpty(node.CommandId))
-                features.Require(NexFeatures.CommandBinding, node.NodeId,
+                features.Require(Compiled.NexFeatures.CommandBinding, node.NodeId,
                     path + " dispatches '" + node.CommandId + "'.");
         }
 

@@ -7,8 +7,12 @@ using emiteat.NexUI.Integrations.UGUI;
 using emiteat.NexUI.Integrations.UIToolkit;
 using emiteat.NexUI.Motion;
 using emiteat.NexUI.Theme;
+using System.Linq;
+using emiteat.NexUI.Abstractions;
+using emiteat.NexUI.Settings;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace emiteat.NexUI.Designer.Editor.Productivity
 {
@@ -18,6 +22,8 @@ namespace emiteat.NexUI.Designer.Editor.Productivity
     /// </summary>
     public sealed class NexUISetupDoctorWindow : EditorWindow
     {
+        private const string RuntimePackageName = "com.nexengineworks.nexui";
+
         private enum CheckSeverity { Ready, Warning, Error }
 
         private sealed class Check
@@ -41,12 +47,30 @@ namespace emiteat.NexUI.Designer.Editor.Productivity
         private readonly List<Check> _checks = new List<Check>();
         private Vector2 _scroll;
 
+        /// <summary>
+        /// True when this was opened by itself right after install, rather than from the menu.
+        /// </summary>
+        /// <remarks>
+        /// Same checks either way - only the framing differs. Someone who has just imported the
+        /// package needs to know what to do next; someone who opened it from the menu already knows
+        /// and came to look at a specific problem, so the greeting is only in the way.
+        /// </remarks>
+        private bool _firstRun;
+
         [MenuItem("Tools/Nex/NexUI Studio/Setup Doctor", priority = NexUIDesignerMenu.PriorityWindows + 3)]
-        public static void Open()
+        public static void Open() => ShowWindow(firstRun: false);
+
+        /// <summary>Opens in welcome mode. Called by <see cref="NexUIFirstRun"/>, not from a menu.</summary>
+        internal static void OpenFirstRun() => ShowWindow(firstRun: true);
+
+        // Not named Show: EditorWindow already has Show(bool), and hiding it would make
+        // window.Show(true) mean something different depending on the static type at the call site.
+        private static void ShowWindow(bool firstRun)
         {
             var window = GetWindow<NexUISetupDoctorWindow>();
-            window.titleContent = new GUIContent("NexUI Studio Setup Doctor");
+            window.titleContent = new GUIContent(firstRun ? "Welcome to NexUI Studio" : "NexUI Studio Setup Doctor");
             window.minSize = new Vector2(540, 420);
+            window._firstRun = firstRun;
             window.Scan();
             window.Show();
         }
@@ -55,10 +79,7 @@ namespace emiteat.NexUI.Designer.Editor.Productivity
 
         private void OnGUI()
         {
-            EditorGUILayout.LabelField("NexUI Setup Doctor", EditorStyles.boldLabel);
-            EditorGUILayout.HelpBox(
-                "Checks packages, project assets and the open scene. Nothing changes unless you press an action button.",
-                MessageType.Info);
+            DrawHeader();
 
             using (new EditorGUILayout.HorizontalScope())
             {
@@ -75,6 +96,43 @@ namespace emiteat.NexUI.Designer.Editor.Productivity
             _scroll = EditorGUILayout.BeginScrollView(_scroll);
             foreach (var check in _checks) Draw(check);
             EditorGUILayout.EndScrollView();
+
+            DrawFooter();
+        }
+
+        private void DrawHeader()
+        {
+            if (_firstRun)
+            {
+                EditorGUILayout.LabelField("Welcome to NexUI Studio", EditorStyles.boldLabel);
+                EditorGUILayout.HelpBox(
+                    "This window opens once after install. Everything below is a check, not a change - "
+                    + "NexUI does not touch your project until you press an action button.\n\n"
+                    + "Work top to bottom: fix anything marked as an error, then press Create New Screen.",
+                    MessageType.Info);
+                return;
+            }
+
+            EditorGUILayout.LabelField("NexUI Setup Doctor", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox(
+                "Checks packages, project assets and the open scene. Nothing changes unless you press an action button.",
+                MessageType.Info);
+        }
+
+        private void DrawFooter()
+        {
+            EditorGUILayout.Space();
+            DrawDefaultBackend();
+
+            EditorGUILayout.Space();
+            NexUILinks.DrawRow();
+
+            if (!_firstRun) return;
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(
+                $"NexUI Studio {NexUIFirstRun.PackageVersion()} - reopen from Tools > Nex > NexUI Studio > Setup Doctor.",
+                EditorStyles.miniLabel);
         }
 
         private static void Draw(Check check)
@@ -101,6 +159,7 @@ namespace emiteat.NexUI.Designer.Editor.Productivity
             CheckProjectAssets();
             CheckScene();
             CheckWritableAssets();
+            CheckSamples();
             Repaint();
         }
 
@@ -114,12 +173,53 @@ namespace emiteat.NexUI.Designer.Editor.Productivity
             Add(uniTask, "UniTask dependency",
                 uniTask ? "UniTask is available." : "Install UniTask 2.5.10 or newer before using NexUI.", true);
 
-            var expected = Application.unityVersion.StartsWith("6000.4.", StringComparison.Ordinal);
-            _checks.Add(new Check(expected ? CheckSeverity.Ready : CheckSeverity.Warning,
-                "Unity compatibility",
-                expected
-                    ? $"Verified development line: {Application.unityVersion}."
-                    : $"Running {Application.unityVersion}; this checkout is currently verified only on 6000.4.2f1."));
+            CheckUnityVersion();
+            CheckRenderPipeline();
+        }
+
+        /// <summary>
+        /// Compares against the floor in package.json rather than the line NexUI is developed on.
+        /// </summary>
+        /// <remarks>
+        /// This used to test for the exact development version, which warned every supported
+        /// 2022.3 user that their editor was unverified. A setup check that cries wolf on a
+        /// configuration the package explicitly claims to support teaches people to ignore it.
+        /// </remarks>
+        private void CheckUnityVersion()
+        {
+            var version = Application.unityVersion;
+            var supported = NexUISupportedVersions.IsSupported(version);
+
+            _checks.Add(new Check(supported ? CheckSeverity.Ready : CheckSeverity.Error,
+                "Unity version",
+                supported
+                    ? $"{version} is within the supported range ({NexUISupportedVersions.MinimumDisplay} and newer)."
+                    : $"{version} is below the supported floor. NexUI requires Unity {NexUISupportedVersions.MinimumDisplay} or newer."));
+        }
+
+        /// <summary>
+        /// URP is the only pipeline NexUI targets, so this reports rather than blocks.
+        /// </summary>
+        /// <remarks>
+        /// Layout, binding and motion do not care about the pipeline at all; only shader-backed
+        /// visuals do. Failing the whole setup because a project is on Built-in would be wrong for
+        /// the majority of NexUI that works there anyway, so this is a warning that names what
+        /// will actually differ.
+        /// </remarks>
+        private void CheckRenderPipeline()
+        {
+            var pipeline = GraphicsSettings.currentRenderPipeline ?? GraphicsSettings.defaultRenderPipeline;
+            var name = pipeline == null ? "Built-in Render Pipeline" : pipeline.GetType().FullName;
+            // IndexOf rather than Contains(string, StringComparison): the overload taking a
+            // comparison is not on every API compatibility level a 2022.3 project can be set to.
+            var universal = name != null && name.IndexOf("Universal", StringComparison.Ordinal) >= 0;
+
+            _checks.Add(new Check(universal ? CheckSeverity.Ready : CheckSeverity.Warning,
+                "Render pipeline",
+                universal
+                    ? "Universal Render Pipeline detected."
+                    : $"{name} detected. NexUI targets URP; layout, binding and motion still work, "
+                      + "but shader-backed visuals are only verified on URP."));
         }
 
         private void CheckProjectAssets()
@@ -139,14 +239,99 @@ namespace emiteat.NexUI.Designer.Editor.Productivity
 
         private void CheckScene()
         {
-            var toolkit = UnityEngine.Object.FindObjectsByType<UIToolkitIntegrationBootstrap>(FindObjectsInactive.Include).Length;
-            var ugui = UnityEngine.Object.FindObjectsByType<UGUIIntegrationBootstrap>(FindObjectsInactive.Include).Length;
+            // The two-argument overload is the one that exists on both 2022.3 and Unity 6 - the
+            // shorter FindObjectsByType<T>(FindObjectsInactive) was added later. Sorting is skipped
+            // because only the count is used.
+            var toolkit = UnityEngine.Object
+                .FindObjectsByType<UIToolkitIntegrationBootstrap>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
+            var ugui = UnityEngine.Object
+                .FindObjectsByType<UGUIIntegrationBootstrap>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
             var total = toolkit + ugui;
             _checks.Add(new Check(total > 0 ? CheckSeverity.Ready : CheckSeverity.Warning,
                 "Current scene backend",
                 total > 0
                     ? $"Found UI Toolkit: {toolkit}, uGUI: {ugui}."
                     : "No NexUI backend bootstrap exists in the currently open scene."));
+        }
+
+        /// <summary>
+        /// Offers the runtime package's samples, which are the fastest way to see a working screen.
+        /// </summary>
+        /// <remarks>
+        /// Importing is a user action, never automatic: samples land in <c>Assets/</c> and a package
+        /// that writes files into a project during install is exactly what the Asset Store rules
+        /// are about. When the package resolves as embedded rather than installed, Unity reports no
+        /// samples at all - that is a fine state, not a problem, so it reports as ready.
+        /// </remarks>
+        private void CheckSamples()
+        {
+            UnityEditor.PackageManager.UI.Sample[] samples;
+            try
+            {
+                samples = UnityEditor.PackageManager.UI.Sample
+                    .FindByPackage(RuntimePackageName, string.Empty).ToArray();
+            }
+            catch (Exception)
+            {
+                samples = Array.Empty<UnityEditor.PackageManager.UI.Sample>();
+            }
+
+            if (samples.Length == 0)
+            {
+                _checks.Add(new Check(CheckSeverity.Ready, "Samples",
+                    "No importable samples were reported. This is normal for an embedded package."));
+                return;
+            }
+
+            var imported = samples.Count(sample => sample.isImported);
+            _checks.Add(new Check(imported > 0 ? CheckSeverity.Ready : CheckSeverity.Warning,
+                "Samples",
+                imported > 0
+                    ? $"{imported} of {samples.Length} sample(s) imported."
+                    : $"{samples.Length} sample(s) available. Importing one is the quickest way to see a working screen.",
+                imported > 0 ? null : "Import First",
+                imported > 0 ? (Action)null : () => ImportSample(samples[0])));
+        }
+
+        private static void ImportSample(UnityEditor.PackageManager.UI.Sample sample)
+        {
+            if (!EditorUtility.DisplayDialog("Import NexUI sample",
+                    $"'{sample.displayName}' will be copied into your Assets folder.", "Import", "Cancel"))
+                return;
+
+            if (!sample.Import(UnityEditor.PackageManager.UI.Sample.ImportOptions.OverridePreviousImports))
+                Debug.LogWarning($"[NexUI] Could not import the sample '{sample.displayName}'.");
+        }
+
+        /// <summary>
+        /// Lets the default backend be picked here rather than sending the user hunting for the
+        /// settings asset - it is the one decision a new project has to make before anything else.
+        /// </summary>
+        private void DrawDefaultBackend()
+        {
+            var guid = AssetDatabase.FindAssets("t:NexUISettings").FirstOrDefault();
+            if (guid == null)
+            {
+                EditorGUILayout.LabelField("Default backend", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField(
+                    "Create the runtime settings asset first - use the Project Setup action above.",
+                    EditorStyles.wordWrappedMiniLabel);
+                return;
+            }
+
+            var settings = AssetDatabase.LoadAssetAtPath<NexUISettings>(AssetDatabase.GUIDToAssetPath(guid));
+            if (settings == null) return;
+
+            EditorGUILayout.LabelField("Default backend", EditorStyles.boldLabel);
+            EditorGUI.BeginChangeCheck();
+            var backend = (UIRenderBackend)EditorGUILayout.EnumPopup(
+                new GUIContent("Backend", "Which renderer new screens target by default."),
+                settings.defaultBackend);
+            if (!EditorGUI.EndChangeCheck()) return;
+
+            Undo.RecordObject(settings, "Set NexUI Default Backend");
+            settings.defaultBackend = backend;
+            EditorUtility.SetDirty(settings);
         }
 
         private void CheckWritableAssets()
