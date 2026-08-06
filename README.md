@@ -1,45 +1,298 @@
+<div align="center">
+
 # NexUI Studio
 
-NexUI Studio는 NexUI 화면을 Unity Editor에서 구성하고 검증하는 제작 도구입니다. uGUI와 UI Toolkit을 동일한 Studio Metadata로 편집하며, Binding·Motion·Validation·Publish 흐름을 연결합니다.
+### UI 디자인부터 반복 작업 정리까지, 하나의 작업 흐름으로.
 
-## 빠른 제작 흐름
+NexUI Studio는 디자이너가 UI를 더 빠르고 일관되게 제작할 수 있도록
+**편집 기능**, **UI 컴포넌트와 디자인 도구**, **자동화·생산성 기능**을 하나로 모은 UI 제작 도구입니다.
+
+복잡한 도구를 여러 개 오가며 작업하기보다,
+UI를 만들고 다듬는 과정 자체에 집중할 수 있는 작업 환경을 목표로 합니다.
+
+<br />
+
+![Product](https://img.shields.io/badge/Product-NexUI%20Studio-111827?style=for-the-badge)
+![Audience](https://img.shields.io/badge/For-Designers-111827?style=for-the-badge)
+![Focus](https://img.shields.io/badge/Focus-UI%20Workflow-111827?style=for-the-badge)
+
+<!-- 저장소 주소가 확정되면 아래 링크를 실제 주소로 교체하세요. -->
+
+<!-- [시작하기](DOCUMENTATION_URL) · [문서](DOCUMENTATION_URL) · [문제 제보](ISSUES_URL) -->
+
+</div>
+
+---
+
+## NexUI Studio란?
+
+UI 제작은 단순히 화면을 예쁘게 배치하는 작업으로 끝나지 않습니다.
+
+컴포넌트를 찾고, 반복되는 설정을 적용하고, 요소를 수정하고,
+프로젝트 전체의 표현을 일관되게 유지하는 과정이 함께 필요합니다.
+
+NexUI Studio는 이 과정을 하나의 작업 흐름으로 정리합니다.
+
+* UI를 구성하고 수정하기 위한 **편집 기능**
+* 화면 제작에 활용할 수 있는 **UI 컴포넌트와 디자인 도구**
+* 반복 작업을 줄이기 위한 **자동화·생산성 기능**
+
+이 README는 처음 UI 제작 도구를 사용하는 사람도 전체 흐름을 이해할 수 있도록,
+기능을 단순히 나열하기보다 **무엇을 만들고 어떤 순서로 작업하는지**를 중심으로 설명합니다.
+
+---
+
+## 핵심 기능
+
+<table>
+  <tr>
+    <td width="33%" valign="top">
+      <h3>편집 기능</h3>
+      <p>
+        UI를 만들고 수정하는 데 필요한 작업을 한곳에서 처리합니다.
+        여러 단계로 흩어진 편집 과정을 줄이고, 디자인 작업에 집중할 수 있도록 돕습니다.
+      </p>
+    </td>
+    <td width="33%" valign="top">
+      <h3>컴포넌트와 디자인 도구</h3>
+      <p>
+        UI를 구성하는 요소와 디자인 도구를 활용해 화면을 제작합니다.
+        처음부터 모든 요소를 새로 만들기보다 필요한 구성 요소를 조합하며 작업할 수 있습니다.
+      </p>
+    </td>
+    <td width="33%" valign="top">
+      <h3>자동화와 생산성</h3>
+      <p>
+        반복적으로 수행하는 작업을 줄이고, 더 일관된 제작 흐름을 유지할 수 있도록 지원합니다.
+        작업 시간보다 판단과 디자인에 더 많은 시간을 사용할 수 있게 하는 것이 목적입니다.
+      </p>
+    </td>
+  </tr>
+</table>
+
+---
+
+## 누구를 위한 도구인가요?
+
+NexUI Studio는 **디자이너를 중심으로 설계된 제품**입니다.
+
+특히 다음과 같은 상황에서 유용합니다.
+
+* UI 제작 도구를 처음 접해 어디서부터 시작해야 할지 모르는 경우
+* 반복적인 설정과 수정 작업에 많은 시간을 사용하고 있는 경우
+* 여러 화면에서 일관된 UI 구성과 작업 방식을 유지하고 싶은 경우
+* 개발 도구의 복잡한 구조보다 실제 화면 제작 과정에 집중하고 싶은 경우
+* 컴포넌트와 디자인 도구를 활용해 더 빠르게 결과를 만들고 싶은 경우
+
+> NexUI Studio의 목표는 기능을 많이 보여주는 것이 아니라,
+> 디자이너가 UI를 완성하기까지 필요한 과정을 더 이해하기 쉽고 다루기 쉽게 만드는 것입니다.
+
+---
+
+## 처음 사용하는 분들을 위한 작업 흐름
+
+NexUI Studio를 처음 사용할 때는 아래 순서로 접근하면 됩니다.
+
+### 1. NexUI Studio 설치하기
+
+프로젝트에서 사용할 수 있도록 NexUI Studio를 설치합니다.
 
 ```text
-새 화면 만들기 → 요소 배치 → Binding 설정 → 전환 프리셋 적용
-→ Scenario로 상태 확인 → Validation/Fix → Save/Publish → Play Mode 확인
+설치 방법: [패키지 주소 또는 배포 방식 입력]
 ```
 
-Global Toolbar의 `+ 새 화면`에서 Screen Definition, Studio Metadata와 Backend 에셋을 한 번에 만들 수 있습니다. Canvas Toolbar의 `Layout`과 `Transition`은 선택 요소를 정리하고 기존 Motion Clip 에셋으로 전환을 생성합니다. Scenario 필드는 Mock Data를 현재 화면에 즉시 적용합니다.
+설치 전 아래 정보를 확인하세요.
 
-## 요구 환경
+| 항목     | 지원 정보           |
+| ------ | --------------- |
+| 대상 플랫폼 | `[작성 필요]`       |
+| 지원 버전  | `[작성 필요]`       |
+| 배포 방식  | `[작성 필요]`       |
+| 필수 의존성 | `[없음 또는 목록 작성]` |
 
-- Unity 2022.3 LTS 이상 (2022.3과 Unity 6에서 컴파일 검증. 버전별로 무엇이 검증되었는지는
-  [호환성 문서](Documentation~/reference/compatibility.md) 참조)
-- NexUI Core 0.1.0
-- UniTask 2.5.10
+### 2. 작업 공간 열기
+
+설치가 끝나면 제품 문서에 안내된 메뉴 또는 실행 경로를 통해 NexUI Studio를 엽니다.
+
+```text
+실행 경로: [메뉴 경로 입력]
+```
+
+처음에는 모든 기능을 한 번에 익힐 필요가 없습니다.
+
+먼저 새 UI를 만들고, 컴포넌트를 추가하고, 수정 결과를 확인하는 기본 흐름부터 익히는 것이 좋습니다.
+
+### 3. UI 구성하기
+
+필요한 UI 컴포넌트를 선택하고 화면의 목적에 맞게 구성합니다.
+
+처음 작업할 때는 다음 세 가지를 먼저 정하세요.
+
+1. 이 화면이 사용자에게 무엇을 보여주는가?
+2. 사용자가 이 화면에서 무엇을 해야 하는가?
+3. 가장 먼저 눈에 들어와야 하는 요소는 무엇인가?
+
+기능보다 화면의 목적을 먼저 정하면 불필요한 요소를 줄이고 더 명확한 UI를 만들 수 있습니다.
+
+### 4. 디자인 조정하기
+
+배치, 크기, 간격, 표현 방식 등 화면의 디자인을 조정합니다.
+
+한 번에 완벽하게 만들기보다 다음 순서로 점검하는 것이 안전합니다.
+
+1. 큰 구조와 화면 구성을 먼저 정합니다.
+2. 주요 컴포넌트의 위치와 크기를 조정합니다.
+3. 간격과 정렬을 정리합니다.
+4. 마지막으로 세부 표현을 다듬습니다.
+
+### 5. 반복 작업 줄이기
+
+같은 설정이나 구성을 여러 번 반복하고 있다면 NexUI Studio의 자동화·생산성 기능을 활용합니다.
+
+자동화는 처음부터 모든 작업에 적용하기보다,
+**반복되는 것이 확인된 작업부터 하나씩 적용하는 방식**이 좋습니다.
+
+---
+
+## 기본 용어
+
+처음 사용하는 분들이 문서를 이해하기 쉽도록 기본 용어를 정리했습니다.
+
+| 용어     | 의미                                      |
+| ------ | --------------------------------------- |
+| UI     | 사용자가 보고 조작하는 화면 요소 전체를 의미합니다.           |
+| 컴포넌트   | 버튼, 입력 영역, 패널처럼 UI를 구성하는 재사용 가능한 요소입니다. |
+| 편집     | UI 요소를 추가하고 수정하며 화면을 구성하는 작업입니다.        |
+| 디자인 도구 | UI의 구조와 표현을 만들고 조정하기 위한 기능입니다.          |
+| 자동화    | 반복되는 작업을 도구가 대신 처리하거나 단순화하는 기능입니다.      |
+| 작업 흐름  | UI를 만들기 시작해서 완성하기까지 거치는 전체 과정입니다.       |
+
+---
+
+## NexUI Studio가 해결하려는 문제
+
+### 흩어진 작업 과정
+
+UI를 만들기 위해 여러 도구와 설정 화면을 반복해서 오가면,
+작업 흐름이 끊기고 수정 비용이 커집니다.
+
+NexUI Studio는 UI 제작에 필요한 기능을 하나의 흐름 안에서 다룰 수 있도록 정리합니다.
+
+### 반복되는 제작 작업
+
+UI를 만들 때는 비슷한 구성과 설정을 계속 반복하게 됩니다.
+
+이런 작업은 시간이 오래 걸릴 뿐 아니라 화면마다 결과가 달라지는 원인이 됩니다.
+
+자동화·생산성 기능은 반복 작업을 줄이고 더 일관된 결과를 만드는 데 초점을 둡니다.
+
+### 초심자에게 어려운 시작 과정
+
+기능이 많더라도 무엇부터 사용해야 하는지 알 수 없다면 좋은 도구가 되기 어렵습니다.
+
+NexUI Studio는 기능 목록보다 실제 제작 순서를 중심으로 안내하는 것을 중요하게 생각합니다.
+
+---
+
+## 제품 구성
+
+NexUI Studio는 다음 세 영역을 중심으로 구성됩니다.
+
+```text
+NexUI Studio
+├─ Editing
+│  └─ UI를 만들고 수정하기 위한 편집 기능
+├─ Components & Design Tools
+│  └─ 화면 구성에 사용하는 컴포넌트와 디자인 도구
+└─ Automation & Productivity
+   └─ 반복 작업을 줄이고 제작 흐름을 개선하는 기능
+```
+
+> 실제 기능 이름과 세부 구성은 제품 버전 및 공식 문서를 기준으로 확인하세요.
+
+---
+
+## 스크린샷 및 데모
+
+<!--
+  실제 이미지가 준비되면 아래 예시를 교체하세요.
+
+  <div align="center">
+    <img src="./Documentation~/images/editor-overview.png" alt="NexUI Studio 편집 화면" width="90%" />
+    <p><sub>NexUI Studio의 전체 편집 화면</sub></p>
+  </div>
+-->
+
+현재 README에 추가할 권장 이미지:
+
+1. 전체 작업 공간
+2. UI 컴포넌트를 배치하는 장면
+3. 디자인을 수정하는 장면
+4. 자동화·생산성 기능을 사용하는 장면
+5. 완성된 UI 결과물
+
+이미지는 기능을 과시하기보다, 초심자가 **어디를 보고 무엇을 해야 하는지** 이해할 수 있는 순서로 배치하는 것이 좋습니다.
+
+---
 
 ## 문서
 
-- [문서 홈](Documentation~/index.md)
-- [설치](Documentation~/getting-started/installation.md)
-- [인터페이스 둘러보기](Documentation~/getting-started/interface-tour.md)
-- [빠른 시작](Documentation~/getting-started/quick-start.md)
-- [Sample 둘러보기](Documentation~/getting-started/sample-tour.md)
-- [화면 생성 마법사](Documentation~/user-guide/screen-creation-wizard.md)
-- [전환 프리셋](Documentation~/user-guide/transition-presets.md)
-- [Auto Layout과 Anchor](Documentation~/user-guide/layout-conversion-and-anchor.md)
-- [Validation Auto Fix](Documentation~/user-guide/validation-auto-fix.md)
-- [Backend 지원 범위](Documentation~/reference/backend-support-matrix.md)
-- [현재 기능 상태](Documentation~/reference/feature-status.md)
-- [구현 상태 표](Documentation~/FeatureParityMatrix.md)
-- [기능 지원 매트릭스](Documentation~/FeatureParityMatrix.md)
-- [목표 기능 목록](FunctionList.md)
-- [알려진 제한사항](Documentation~/reference/known-limitations.md)
+| 문서     | 설명                            |
+| ------ | ----------------------------- |
+| 시작 가이드 | 설치부터 첫 UI 제작까지 안내합니다.         |
+| 기능 가이드 | 편집, 컴포넌트, 디자인, 자동화 기능을 설명합니다. |
+| 예제     | 실제 화면을 만드는 과정을 단계별로 보여줍니다.    |
+| 문제 해결  | 설치 오류와 일반적인 사용 문제를 정리합니다.     |
+| 변경 기록  | 버전별 변경 사항을 확인합니다.             |
 
-> 이 패키지는 개발 중입니다. 지원 범위와 제한사항은 기능 상태 문서를 먼저 확인하세요.
+```text
+공식 문서: [DOCUMENTATION_URL]
+예제 프로젝트: [EXAMPLE_URL]
+변경 기록: [CHANGELOG_URL 또는 CHANGELOG.md]
+```
 
-## 저장소와 라이선스
+---
 
-- [NexUI Studio 저장소](https://github.com/Nex-EngineWorks/NexUI-Studio)
-- [NexUI Core 저장소](https://github.com/Nex-EngineWorks/NexUI)
-- [MIT License](LICENSE.md)
+## 문제 제보 및 의견
+
+NexUI Studio를 사용하면서 문제가 발생했거나 개선 의견이 있다면 아래 채널을 이용해 주세요.
+
+```text
+문제 제보: [ISSUES_URL]
+기능 제안: [FEATURE_REQUEST_URL]
+문의: [CONTACT_URL]
+```
+
+문제를 제보할 때 아래 정보를 함께 작성하면 원인을 확인하는 데 도움이 됩니다.
+
+* 사용 중인 NexUI Studio 버전
+* 사용 환경과 대상 플랫폼
+* 문제가 발생한 작업 순서
+* 기대한 결과와 실제 결과
+* 오류 메시지 또는 로그
+* 문제를 확인할 수 있는 이미지나 영상
+
+---
+
+## 라이선스
+
+```text
+라이선스: [LICENSE_NAME]
+```
+
+제품을 사용하거나 배포하기 전에 저장소의 `LICENSE` 파일과 공식 이용 조건을 확인하세요.
+
+---
+
+<div align="center">
+
+## Design the interface. Keep the workflow simple.
+
+NexUI Studio는 디자이너가 도구를 관리하는 데 시간을 쓰기보다,
+더 나은 UI를 만드는 데 집중할 수 있는 작업 환경을 지향합니다.
+
+<!-- 실제 주소로 교체하세요. -->
+
+<!-- [시작하기](DOCUMENTATION_URL) -->
+
+</div>
