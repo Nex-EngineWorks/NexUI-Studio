@@ -236,9 +236,17 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             {
                 if (element == null || string.IsNullOrEmpty(element.elementId)) continue;
                 if (!objects.TryGetValue(element.elementId, out var go) || go == null) continue;
+
+                // A screen root has no parent, so there is no sibling list to order it within.
+                // Reading parent.childCount on it threw, which failed the whole save - and because
+                // the throw happened in pass 3, every change passes 1 and 2 had already made was
+                // reported as written while the prefab was left unsaved.
+                var parent = go.transform.parent;
+                if (parent == null) continue;
+
                 var ordered = DesignerHierarchyUtility.GetOrderedChildren(metadata, element.parentId);
                 var index = ordered.IndexOf(element);
-                if (index >= 0 && index < go.transform.parent.childCount)
+                if (index >= 0 && index < parent.childCount)
                     go.transform.SetSiblingIndex(index);
             }
 
@@ -523,6 +531,34 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 report.MarkSkipped($"'{element.elementId}' per-element margin is preserved but uGUI LayoutGroup has no native child margin.");
         }
 
+        /// <summary>
+        /// Writes the element's drawn path to the prefab, or clears one it no longer has.
+        /// </summary>
+        /// <remarks>
+        /// The path is stored fitted to the element's rect, and
+        /// <see cref="Integrations.UGUI.NXVectorGraphic"/> re-fits it to whatever rect the layout
+        /// ends up giving the object - so the shape is handed over as authored, with no conversion
+        /// here to drift out of step with the renderer.
+        /// </remarks>
+        /// <returns>Whether the element draws a path, and so has no rect fill of its own.</returns>
+        private static bool ApplyVectorShape(GameObject go, DesignerElementMetadata element, DesignerSaveReport report)
+        {
+            var draws = element.hasShape && element.vectorShape != null && !element.vectorShape.IsEmpty;
+
+            if (!draws)
+            {
+                if (Integrations.UGUI.NexUGuiShapeApplier.Remove(go))
+                    report.MarkChanged($"Removed vector shape from '{element.elementId}'");
+                return false;
+            }
+
+            // Cloned: the prefab keeps its own copy, so a later pen edit does not reach into an
+            // already-saved asset and change it without a save.
+            Integrations.UGUI.NexUGuiShapeApplier.Apply(go, element.vectorShape.Clone());
+            report.MarkChanged($"Applied vector shape to '{element.elementId}'");
+            return true;
+        }
+
         private static void ApplyVisualAndText(GameObject go, DesignerElementMetadata element, DesignerSaveReport report)
         {
             var type = element.elementType ?? "Panel";
@@ -548,12 +584,26 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             else if (support == DesignerBackendSupport.Unsupported)
                 report.MarkUnsupported(type, $"'{element.elementId}' ({type}) is not supported on uGUI; only a placeholder GameObject was written.", element.elementId);
 
+            // A drawn path replaces the element's rect fill, so it is settled before any background
+            // Graphic is created below - otherwise this would add an Image and then immediately
+            // destroy it, reporting both. Applied through the same applier the compiled builder
+            // uses so a saved prefab and a compiled screen draw the same thing.
+            //
+            // Only the *background* is replaced: a button with a custom silhouette still needs its
+            // label, so everything below that is not the rect fill still runs.
+            var hasVector = ApplyVectorShape(go, element, report);
+
             var visualStyle = DesignerPropertyAdapter.Visual(element);
 
-            // Tint on any Graphic. Sprite-less rounded surfaces use NexUI's mesh graphic instead of
-            // requiring a sliced texture; real images keep the stock Image component.
-            var graphic = go.GetComponent<Graphic>();
-            if (graphic == null && (isImage || isButton || visualStyle.hasOverrides))
+            // Tint on the element's background Graphic. Sprite-less rounded surfaces use NexUI's
+            // mesh graphic instead of requiring a sliced texture; real images keep the stock Image.
+            //
+            // A text component is a Graphic too, and it is the element's *text*, not its
+            // background. Writing the tint into it overwrote the font colour - and only on the
+            // second save, because the first one had not created the text component yet when this
+            // ran. That is what made saving twice produce a different prefab.
+            var graphic = BackgroundGraphicOf(go);
+            if (graphic == null && !hasVector && (isImage || isButton || visualStyle.hasOverrides))
             {
                 if (element.previewImage == null && visualStyle.cornerRadius > 0f)
                 {
@@ -900,6 +950,26 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             {
                 return null;
             }
+        }
+
+        /// <summary>
+        /// The Graphic that draws the element's background, ignoring one that draws its text.
+        /// </summary>
+        /// <remarks>
+        /// <c>GetComponent&lt;Graphic&gt;()</c> cannot tell them apart: TMP_Text and Text are both
+        /// Graphics, so on a label it returns the text itself. Every caller here means "the surface
+        /// behind the content", and text colour is owned by <see cref="ApplyTextStyle"/>.
+        /// </remarks>
+        private static Graphic BackgroundGraphicOf(GameObject go)
+        {
+            var graphics = go.GetComponents<Graphic>();
+            for (int i = 0; i < graphics.Length; i++)
+            {
+                var graphic = graphics[i];
+                if (graphic is TMP_Text || graphic is Text) continue;
+                return graphic;
+            }
+            return null;
         }
 
         private static void ApplyTextStyle(TMP_Text tmp, DesignerElementMetadata element)

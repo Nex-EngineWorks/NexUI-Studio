@@ -189,6 +189,7 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             AddSelectSubmenu(menu, context, primary, children);
             AddHierarchySubmenu(menu, context, primary, children);
             AddArrangeSubmenus(menu, context);
+            AddBooleanSubmenu(menu, context);
             AddVisibilitySubmenu(menu, context, primary);
             menu.AddSeparator("");
 
@@ -304,6 +305,27 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
                 () => DesignerAnchorRecommendationService.Apply(context, context.Resolution));
         }
 
+        /// <summary>
+        /// Boolean shape operations, on the selection in the order it was made.
+        /// </summary>
+        /// <remarks>
+        /// Order matters for Subtract, and the menu says so through the label rather than leaving
+        /// it to be discovered: the first element selected is the one kept.
+        /// </remarks>
+        private static void AddBooleanSubmenu(GenericMenu menu, NexUIDesignerContext context)
+        {
+            var enabled = context.CanCombineSelection;
+
+            Item(menu, Path("ctx.boolean", "ctx.boolean.union"), enabled,
+                () => context.CombineSelection(Vector.NexBooleanOperation.Union));
+            Item(menu, Path("ctx.boolean", "ctx.boolean.subtract"), enabled,
+                () => context.CombineSelection(Vector.NexBooleanOperation.Subtract));
+            Item(menu, Path("ctx.boolean", "ctx.boolean.intersect"), enabled,
+                () => context.CombineSelection(Vector.NexBooleanOperation.Intersect));
+            Item(menu, Path("ctx.boolean", "ctx.boolean.exclude"), enabled,
+                () => context.CombineSelection(Vector.NexBooleanOperation.Exclude));
+        }
+
         private static void AddMockDataSubmenu(GenericMenu menu, NexUIDesignerContext context)
         {
             foreach (DesignerTextPreset preset in Enum.GetValues(typeof(DesignerTextPreset)))
@@ -350,6 +372,47 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
                     Item(menu, path, enabled, () => CreateAt(context, capturedTypeId, canvasPoint));
                 }
             }
+
+            AddShapeItems(menu, context, canvasPoint, enabled);
+        }
+
+        /// <summary>
+        /// Vector shape presets, and SVG import, under the same Create submenu as everything else.
+        /// </summary>
+        /// <remarks>
+        /// Grouped with Create rather than given a menu of their own because what they produce is
+        /// an ordinary element - one that happens to draw a path. Somebody looking for "how do I
+        /// add a star" looks where they add everything else.
+        /// </remarks>
+        private static void AddShapeItems(GenericMenu menu, NexUIDesignerContext context,
+            Vector2? canvasPoint, bool enabled)
+        {
+            foreach (NexShapePreset preset in Enum.GetValues(typeof(NexShapePreset)))
+            {
+                var captured = preset;
+                var path = Path("ctx.create", "ctx.create.shape") + "/" + T("ctx.shape." + ShapeKey(preset));
+                Item(menu, path, enabled, () => context.CreateShapeElement(captured, canvasPoint));
+            }
+
+            Item(menu, Path("ctx.create", "ctx.create.shape") + "/" + T("ctx.create.importSvg"),
+                enabled, () => ImportSvg(context, canvasPoint));
+        }
+
+        /// <summary>Lower-camel localization key for a preset, so the enum stays the single list.</summary>
+        private static string ShapeKey(NexShapePreset preset)
+        {
+            var name = preset.ToString();
+            return char.ToLowerInvariant(name[0]) + name.Substring(1);
+        }
+
+        private static void ImportSvg(NexUIDesignerContext context, Vector2? canvasPoint)
+        {
+            var path = EditorUtility.OpenFilePanel(T("ctx.create.importSvg"), "", "svg");
+            if (string.IsNullOrEmpty(path)) return;
+
+            var created = context.ImportSvg(path, canvasPoint, out var error);
+            if (created.Count == 0 && !string.IsNullOrEmpty(error))
+                EditorUtility.DisplayDialog(T("ctx.create.importSvg"), error, "OK");
         }
 
         private static void AddVisibilityResetItems(GenericMenu menu, NexUIDesignerContext context)

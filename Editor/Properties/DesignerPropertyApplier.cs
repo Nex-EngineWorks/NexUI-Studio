@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace emiteat.NexUI.Designer.Editor.Properties
@@ -120,6 +121,8 @@ namespace emiteat.NexUI.Designer.Editor.Properties
                     element.previewValue = value.floatValue; return true;
                 case DesignerPropertyId.Crop:
                     Visual(element).crop = value.boolValue; return true;
+                case DesignerPropertyId.Gradient:
+                    Visual(element).gradient = ReadGradient(value); return true;
 
                 // ---- Text -----------------------------------------------------------------
                 case DesignerPropertyId.Text:
@@ -235,6 +238,7 @@ namespace emiteat.NexUI.Designer.Editor.Properties
                     return new DesignerPropertyValue { type = DesignerPropertyValueType.AssetReference, assetValue = element.previewImage };
                 case DesignerPropertyId.ChildOrder: return I(element.siblingIndex);
                 case DesignerPropertyId.ImageFill: return F(element.previewValue);
+                case DesignerPropertyId.Gradient: return WriteGradient(DesignerPropertyAdapter.Visual(element).gradient);
 
                 case DesignerPropertyId.MotionPreset: return A(Motion(element).motionPreset);
                 case DesignerPropertyId.MotionId: return S(Motion(element).motionId);
@@ -318,5 +322,53 @@ namespace emiteat.NexUI.Designer.Editor.Properties
         private static DesignerPropertyValue S(string v) => new DesignerPropertyValue { type = DesignerPropertyValueType.String, stringValue = v };
         private static DesignerPropertyValue C(Color v) => new DesignerPropertyValue { type = DesignerPropertyValueType.Color, colorValue = v };
         private static DesignerPropertyValue V2(Vector2 v) => new DesignerPropertyValue { type = DesignerPropertyValueType.Vector2, vector2Value = v };
+
+        /// <summary>
+        /// Carries a <see cref="Gradient"/> through <see cref="DesignerPropertyValue"/>'s json field.
+        /// </summary>
+        /// <remarks>
+        /// A gradient is a list of colour and alpha keys, so none of the seven typed fields can hold
+        /// one - which is exactly the case the json field exists for. Without this the property was
+        /// declared, authorable in the Style inspector, and written to prefabs, but could not be
+        /// carried by a component override: the expander reported "no authored metadata
+        /// representation" and dropped it.
+        ///
+        /// Wrapped in a class because <see cref="JsonUtility"/> refuses a bare non-[Serializable]
+        /// type at the top level, while a field of that type inside a wrapper serializes fine.
+        /// </remarks>
+        [Serializable]
+        private sealed class GradientBox
+        {
+            public Gradient value;
+        }
+
+        private static DesignerPropertyValue WriteGradient(Gradient gradient)
+        {
+            // A null gradient is "no gradient", which has to survive the round trip as null rather
+            // than come back as a default black-to-white ramp.
+            if (gradient == null) return new DesignerPropertyValue { type = DesignerPropertyValueType.None };
+
+            return new DesignerPropertyValue
+            {
+                type = DesignerPropertyValueType.Serialized,
+                json = JsonUtility.ToJson(new GradientBox { value = gradient })
+            };
+        }
+
+        private static Gradient ReadGradient(DesignerPropertyValue value)
+        {
+            if (value == null || string.IsNullOrEmpty(value.json)) return null;
+
+            try
+            {
+                return JsonUtility.FromJson<GradientBox>(value.json)?.value;
+            }
+            catch (ArgumentException)
+            {
+                // Malformed json is a value authored by a different build, not a bug to throw on.
+                // Returning null degrades to "no gradient" and leaves the stored text untouched.
+                return null;
+            }
+        }
     }
 }

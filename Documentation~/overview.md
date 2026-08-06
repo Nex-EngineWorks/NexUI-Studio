@@ -56,7 +56,7 @@ Unity의 UI 제작은 그렇지 않았습니다.
 |---|---|
 | 패키지 | 런타임 프레임워크 `com.nexengineworks.nexui`, 에디터 저작 도구 `com.nexengineworks.nexui.studio` |
 | 규모 | Runtime/Editor 어셈블리와 EditMode/PlayMode 자동 테스트 포함(정확한 개수는 현재 Test Runner XML 기준) |
-| 대상 | Unity 6000.4 (6.x), uGUI 2.0 / UI Toolkit 동시 지원 |
+| 대상 | Unity 2022.3 LTS 이상 (2022.3 / 6.x), uGUI / UI Toolkit 동시 지원 |
 | 컴포넌트 | Descriptor 529종(NexUI 448 · Unity uGUI 22 · UI Toolkit 59) + 복합 레시피 300종 + 프로젝트 커스텀 정의. Runtime Widget 구현 개수와는 다름 |
 | 언어 | 에디터 UI 한국어/영어 (`ko-KR`, `en-US` 번역 테이블 · 컴포넌트 529종 이름 포함) |
 | 출력 | uGUI 프리팹 저장, `.g.uxml` / `.g.uss` 생성, 3-way Sync & Publish |

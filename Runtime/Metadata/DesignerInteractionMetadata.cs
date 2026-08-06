@@ -5,17 +5,77 @@ namespace emiteat.NexUI.Designer
 {
     /// <summary>What starts an interaction rule.</summary>
     /// <remarks>
-    /// Deliberately three to begin with. The full trigger list in the feature specification is
-    /// sixteen, but a trigger is only real once the compiler can validate it and a backend can
-    /// actually raise it - and every one added here is one more thing every backend must fire.
-    /// These three are the set the uGUI runtime can raise today without new infrastructure:
-    /// a click from the Button, and show/hide from the screen's own lifecycle.
+    /// A trigger is only real once the compiler can validate it and a backend can actually raise
+    /// it, so this list grows only alongside the runtime that fires it. Values are appended and
+    /// never renumbered - the number is what an authored screen serializes.
+    ///
+    /// <see cref="OnClick"/> comes from the Button; <see cref="OnShow"/> / <see cref="OnHide"/>
+    /// from the screen's own lifecycle. The rest are raised by the uGUI event system through the
+    /// interaction relay, which is attached only to nodes whose triggers were actually authored.
+    ///
+    /// <see cref="OnSubmit"/> and <see cref="OnCancel"/> are not duplicates of a click: they are
+    /// what reaches an element focused by keyboard or gamepad, and so are what make a screen
+    /// operable without a pointer at all.
     /// </remarks>
     public enum DesignerInteractionTrigger
     {
         OnClick = 0,
         OnShow = 1,
-        OnHide = 2
+        OnHide = 2,
+
+        OnPointerEnter = 3,
+        OnPointerExit = 4,
+        OnPointerDown = 5,
+        OnPointerUp = 6,
+
+        OnSubmit = 7,
+        OnCancel = 8,
+
+        OnLongPress = 9,
+        OnDoubleClick = 10,
+
+        OnDragBegin = 11,
+        OnDrag = 12,
+        OnDragEnd = 13,
+
+        /// <summary>
+        /// Raised on the element something was dropped <em>onto</em>, not the one dragged.
+        /// </summary>
+        /// <remarks>
+        /// While a drop rule runs, the element that was dragged is readable from state under
+        /// <c>nexui.drag.source</c>, so a rule can accept or refuse based on what it caught.
+        /// </remarks>
+        OnDrop = 14,
+
+        /// <summary>
+        /// Raised on an overlay when something asked it to close - a backdrop click, a dismiss
+        /// button, a toast running out of time.
+        /// </summary>
+        /// <remarks>
+        /// A rule here can confirm before closing, save a draft, or refuse. Authoring nothing is
+        /// also an answer: the overlay then just closes, because one that ignored every close
+        /// request would lock the screen.
+        /// </remarks>
+        OnCloseRequested = 15
+    }
+
+    /// <summary>How a dragged element shows that it is being dragged.</summary>
+    /// <remarks>
+    /// Declared here rather than reused from the uGUI integration so the authoring model stays
+    /// backend-neutral - the Designer must not depend on a backend to describe intent. The two
+    /// enums are matched by <em>name</em> when the screen is built, so they can be reordered
+    /// independently without repointing authored screens.
+    /// </remarks>
+    public enum DesignerDragVisual
+    {
+        /// <summary>Nothing moves. Whatever feedback there is comes from the rules.</summary>
+        None = 0,
+
+        /// <summary>The element follows the pointer, and returns if the drop is refused.</summary>
+        MoveSelf = 1,
+
+        /// <summary>A translucent copy follows the pointer while the element stays put.</summary>
+        Ghost = 2
     }
 
     /// <summary>

@@ -267,6 +267,7 @@ namespace emiteat.NexUI.Designer.Editor.Compiler
                 pathById[element.elementId] = path;
 
                 var kind = ResolveKind(element, location, diagnostics);
+                var binding = element.binding;
 
                 nodes[i] = new NexNodeProgram
                 {
@@ -285,11 +286,30 @@ namespace emiteat.NexUI.Designer.Editor.Compiler
                     Visible = element.runtimeVisible,
                     TextBindingKey = LowerTextBinding(element, kind, location, diagnostics),
                     CommandId = LowerCommandBinding(element, kind, location, diagnostics),
+                    ValueBindingKey = binding?.valueKey ?? string.Empty,
+                    VisibilityBindingKey = binding?.visibilityKey ?? string.Empty,
+                    InteractableBindingKey = binding?.interactableKey ?? string.Empty,
+                    ClassBindingKey = binding?.classKey ?? string.Empty,
+                    TextBindingMode = binding?.textMode ?? State.UIBindingMode.OneWay,
+                    ValueBindingMode = binding?.valueMode ?? State.UIBindingMode.OneWay,
+                    TextConverterKey = binding?.textConverterKey ?? string.Empty,
+                    ValueConverterKey = binding?.valueConverterKey ?? string.Empty,
+                    Capabilities = ResolveCapabilities(element, kind),
+                    ControlId = ControlIdOf(element) ?? string.Empty,
+                    ValueMin = ValueMinOf(element),
+                    ValueMax = ValueMaxOf(element),
+                    ControlProperties = CollectProperties(element),
+                    // Cloned, and only when authored: the program is a separate asset, and handing
+                    // it the element's own instance would make a later pen edit silently rewrite
+                    // already-published geometry without changing the content hash.
+                    Shape = element.hasShape ? element.vectorShape?.Clone() : null,
                     AutomationId = element.automationId ?? string.Empty,
                     Role = element.accessibilityRole,
                     AccessibilityLabel = element.accessibilityLabel ?? string.Empty,
                     FocusOrder = -1
                 };
+
+                CheckBindings(nodes[i], location, diagnostics);
 
                 // Nested scope: inherits the Compile operation id, reports under Accessibility so
                 // a missing label is filed with the other accessibility findings rather than
@@ -382,19 +402,18 @@ namespace emiteat.NexUI.Designer.Editor.Compiler
                         // Capture and Bubble deliver an event raised *below* this element, so the
                         // element itself need not be clickable - but something must be under it,
                         // and the trigger must be one that travels.
-                        if (rule.trigger != DesignerInteractionTrigger.OnClick ||
-                            !hasDescendants.Contains(element.elementId))
+                        if (!Propagates(rule.trigger) || !hasDescendants.Contains(element.elementId))
                         {
                             diagnostics.Add(NexDiagnosticCodes.InteractionPhaseUnreachable, location,
                                 "'" + element.elementId + "' listens on " + rule.phase + " for " + rule.trigger +
                                 ", which can never reach it; the rule was dropped.",
-                                rule.trigger != DesignerInteractionTrigger.OnClick
+                                !Propagates(rule.trigger)
                                     ? rule.trigger + " does not propagate."
                                     : "The element has no children.");
                             continue;
                         }
                     }
-                    else if (!CanRaise(nodes[i].Kind, rule.trigger))
+                    else if (!CanRaise(nodes[i], rule.trigger))
                     {
                         diagnostics.Add(NexDiagnosticCodes.TriggerNotRaisableByNode, location,
                             "'" + element.elementId + "' cannot raise " + rule.trigger + "; the rule was dropped.",
@@ -539,14 +558,49 @@ namespace emiteat.NexUI.Designer.Editor.Compiler
             return false;
         }
 
-        /// <summary>Which node kinds can actually raise which trigger.</summary>
+        /// <summary>
+        /// Whether a trigger travels up and down the element tree.
+        /// </summary>
+        /// <remarks>
+        /// Everything a node raises propagates; only the screen lifecycle does not. Show and hide
+        /// are delivered to every node already, so a Bubble rule for them would fire on the same
+        /// event the Target rule did - not propagation, just a duplicate.
+        /// </remarks>
+        private static bool Propagates(DesignerInteractionTrigger trigger)
+            => trigger != DesignerInteractionTrigger.OnShow && trigger != DesignerInteractionTrigger.OnHide;
+
+        /// <summary>Which nodes can actually raise which trigger.</summary>
         /// <remarks>
         /// Show and hide belong to the screen's lifecycle so any node can be told about them.
         /// A click has to come from something clickable, and authoring one on a Label produces a
         /// rule that would never fire - caught here rather than left as a mystery at runtime.
+        ///
+        /// Submit and cancel need more than clickability: they are delivered to whatever currently
+        /// holds focus, so a node that cannot be focused can never receive them. Pointer and drag
+        /// triggers ask for less - anything the raycaster can hit will do - so they are not
+        /// restricted here, because whether a node has a raycast target depends on styling the
+        /// compiler does not own.
+        ///
+        /// A close request needs something that closes, which is the overlay capability.
         /// </remarks>
-        private static bool CanRaise(NexNodeKind kind, DesignerInteractionTrigger trigger)
-            => trigger != DesignerInteractionTrigger.OnClick || kind == NexNodeKind.Button;
+        private static bool CanRaise(in NexNodeProgram node, DesignerInteractionTrigger trigger)
+        {
+            switch (trigger)
+            {
+                case DesignerInteractionTrigger.OnClick:
+                case DesignerInteractionTrigger.OnSubmit:
+                case DesignerInteractionTrigger.OnCancel:
+                    return node.Kind == NexNodeKind.Button;
+
+                case DesignerInteractionTrigger.OnCloseRequested:
+                    // Only something that closes can be asked to. On anything else the rule would
+                    // sit there looking authored and never run.
+                    return node.IsOverlay;
+
+                default:
+                    return true;
+            }
+        }
 
         private static string RuleName(DesignerInteractionRule rule)
             => !string.IsNullOrEmpty(rule.displayName) ? rule.displayName : rule.trigger.ToString();
@@ -580,6 +634,54 @@ namespace emiteat.NexUI.Designer.Editor.Compiler
         /// build report says exactly what was lost. Failing the whole screen instead would make
         /// one unsupported decoration block a release.
         /// </remarks>
+        // ---- bindings --------------------------------------------------------
+
+        /// <summary>
+        /// Reports bindings that were authored but cannot do what they say.
+        /// </summary>
+        /// <remarks>
+        /// All of these are warnings, and all of them keep the binding in the compiled program.
+        /// Dropping a binding the author wrote is how a screen ends up silently doing nothing while
+        /// the Inspector still shows the key - the failure mode this whole pass exists to replace.
+        /// The program carries the intent; the diagnostics say what part of it the backend cannot
+        /// honour yet.
+        /// </remarks>
+        private static void CheckBindings(NexNodeProgram node, NexSourceLocation location,
+            NexDiagnosticBag diagnostics)
+        {
+            using (diagnostics.Scope(NexDiagnosticFeatures.Binding, handler: node.Name))
+            {
+                // Only a node with no value capability at all. A slider or a toggle carries one,
+                // so binding a value to it is exactly right and says nothing.
+                if (!string.IsNullOrEmpty(node.ValueBindingKey) && !node.HasValue)
+                    diagnostics.Add(NexDiagnosticCodes.ValueBindingHasNoBackendTarget,
+                        location.WithMember("binding.valueKey"),
+                        "'" + node.Name + "' binds a value to '" + node.ValueBindingKey +
+                        "' but holds no value; it compiles to a " + node.Kind + " with no control.");
+
+                // Write-back needs something the user can operate.
+                if (node.TextWritesBack && !node.IsUserEditable)
+                    diagnostics.Add(NexDiagnosticCodes.TwoWayBindingOnReadOnlyNode,
+                        location.WithMember("binding.textMode"),
+                        "'" + node.Name + "' binds text two-way, but nothing on it lets the user edit text.");
+
+                if (node.ValueWritesBack && !node.IsUserEditable)
+                    diagnostics.Add(NexDiagnosticCodes.TwoWayBindingOnReadOnlyNode,
+                        location.WithMember("binding.valueMode"),
+                        "'" + node.Name + "' binds a value two-way, but nothing on it lets the user change it.");
+
+                if (!string.IsNullOrEmpty(node.TextConverterKey) && string.IsNullOrEmpty(node.TextBindingKey))
+                    diagnostics.Add(NexDiagnosticCodes.ConverterKeyWithoutBinding,
+                        location.WithMember("binding.textConverterKey"),
+                        "Text converter '" + node.TextConverterKey + "' is set, but no text is bound.");
+
+                if (!string.IsNullOrEmpty(node.ValueConverterKey) && string.IsNullOrEmpty(node.ValueBindingKey))
+                    diagnostics.Add(NexDiagnosticCodes.ConverterKeyWithoutBinding,
+                        location.WithMember("binding.valueConverterKey"),
+                        "Value converter '" + node.ValueConverterKey + "' is set, but no value is bound.");
+            }
+        }
+
         // ---- accessibility ---------------------------------------------------
 
         /// <summary>
@@ -677,11 +779,252 @@ namespace emiteat.NexUI.Designer.Editor.Compiler
                     return NexNodeKind.Panel;
 
                 default:
+                    // Controls that are not one of the four visual kinds still compile: the kind
+                    // describes what is drawn, and ResolveCapabilities says what it can do. Only
+                    // a control nothing knows how to build reaches the diagnostic below.
+                    if (ControlIdOf(element) != null) return NexNodeKind.Panel;
+
                     diagnostics.Add(NexDiagnosticCodes.BackendUnsupportedNode, location,
                         "'" + element.elementType + "' has no compiled representation yet; it becomes a panel.",
                         "uGUI control: " + control);
                     return NexNodeKind.Panel;
             }
+        }
+
+        /// <summary>
+        /// Collects the control settings the author actually changed.
+        /// </summary>
+        /// <remarks>
+        /// Only overridden properties are emitted. A schema default belongs to the control, and
+        /// writing it into the program would make the compiled asset churn whenever a default
+        /// changes, defeat the content hash, and let this compiler's idea of a default override
+        /// the backend's.
+        ///
+        /// Asset, element-reference and serialized properties are skipped: the compiled program is
+        /// a value type with no object graph, which is what lets it load without patching up
+        /// references. Those stay on the prefab path until the program grows an asset table.
+        /// </remarks>
+        /// <summary>
+        /// Resolves how a value component fills, so the runtime does not have to.
+        /// </summary>
+        /// <remarks>
+        /// The direction lives in two places - the property bag and the older <c>fill</c> record -
+        /// and the prefab writer picks between them with the bag winning. Resolving it here rather
+        /// than at runtime means that precedence is decided once, in the one place that can see
+        /// both, instead of being reimplemented by every backend.
+        ///
+        /// Emitted as ordinary properties because the bag already reaches the runtime and already
+        /// counts toward the content hash. These are appended after the authored bag, and lookup
+        /// returns the first match, so an authored entry of the same key still wins.
+        /// </remarks>
+        private static List<NexNodeProperty> FillProperties(DesignerElementMetadata element)
+        {
+            var properties = new List<NexNodeProperty>();
+            if (element?.fill == null) return properties;
+            if (!DesignerComponentRegistry.IsRegistered(element.elementType)) return properties;
+            if (!DesignerComponentRegistry.Get(element.elementType).IsValueComponent) return properties;
+
+            properties.Add(NexNodeProperty.OfText("value.direction", element.fill.direction.ToString()));
+            properties.Add(NexNodeProperty.OfFlag("value.clockwise", element.fill.clockwise));
+            return properties;
+        }
+
+        private static NexNodeProperty[] CollectProperties(DesignerElementMetadata element)
+        {
+            var stored = element?.componentProperties;
+            var fill = FillProperties(element);
+
+            if ((stored == null || stored.Count == 0) && fill.Count == 0) return Array.Empty<NexNodeProperty>();
+
+            var collected = new List<NexNodeProperty>((stored?.Count ?? 0) + fill.Count);
+            if (stored == null) return fill.ToArray();
+
+            // The stored bag, not the schema. Walking the schema misses anything the author set
+            // that the current schema does not declare - a property from a newer Studio, or one a
+            // component contributes outside the palette descriptor - and the authoring model
+            // exists precisely so those survive a round trip rather than being silently dropped.
+            // The stored value carries its own type, so no schema lookup is needed to read it.
+            for (var i = 0; i < stored.Count; i++)
+            {
+                var entry = stored[i];
+                if (entry == null || string.IsNullOrEmpty(entry.key) || entry.value == null) continue;
+
+                var key = entry.key;
+                var value = entry.value;
+
+                switch (value.type)
+                {
+                    case DesignerPropertyValueType.Float:
+                        collected.Add(NexNodeProperty.OfNumber(key, value.floatValue));
+                        break;
+
+                    case DesignerPropertyValueType.Integer:
+                        collected.Add(NexNodeProperty.OfNumber(key, value.intValue));
+                        break;
+
+                    case DesignerPropertyValueType.Boolean:
+                        collected.Add(NexNodeProperty.OfFlag(key, value.boolValue));
+                        break;
+
+                    case DesignerPropertyValueType.String:
+                        collected.Add(NexNodeProperty.OfText(key, value.stringValue));
+                        break;
+
+                    case DesignerPropertyValueType.Enum:
+                        // By name, not by index: an index means something else the moment a member
+                        // is inserted, and the runtime maps names for the same reason.
+                        collected.Add(NexNodeProperty.OfText(key, value.stringValue));
+                        break;
+
+                    case DesignerPropertyValueType.Color:
+                        collected.Add(NexNodeProperty.OfColor(key, value.colorValue));
+                        break;
+
+                    case DesignerPropertyValueType.Vector2:
+                        collected.Add(NexNodeProperty.OfVector(key, value.vector2Value));
+                        break;
+
+                    // Asset, element reference and serialized values are skipped: the compiled
+                    // program is a value type with no object graph, which is what lets it load
+                    // without patching references. Those stay on the prefab path.
+                }
+            }
+
+            // Appended last, and lookup returns the first match - so an authored entry of the same
+            // key sits earlier and wins. That is the precedence the prefab writer already uses.
+            collected.AddRange(fill);
+
+            return collected.Count == 0 ? Array.Empty<NexNodeProperty>() : collected.ToArray();
+        }
+
+        /// <summary>
+        /// The control key a node carries, or null when it is only a visual.
+        /// </summary>
+        /// <remarks>
+        /// Read from the palette descriptor rather than from a fixed list here, so a control added
+        /// to the registry becomes compilable without editing the compiler. The key travels into
+        /// the program as <see cref="NexNodeProgram.ControlId"/>; a backend maps it to its own type.
+        /// </remarks>
+        /// <summary>
+        /// The value range a control operates over.
+        /// </summary>
+        /// <remarks>
+        /// Read from the authored data rather than hardcoded. These were fixed at 0 and 1, which
+        /// meant a slider authored to run 0-100 arrived at the runtime as 0-1 and a progress bar
+        /// had no range at all - the prefab writer honoured both and the compiled screen did not.
+        ///
+        /// The property bag wins over the fill record, matching <c>ApplyValueFill</c>: an authored
+        /// <c>value.min</c> is an explicit decision and the fill record is the older default.
+        /// </remarks>
+        private static float ValueMinOf(DesignerElementMetadata element)
+            => DesignerComponentPropertyAccess.GetFloat(element, "value.min", element.fill?.minValue ?? 0f);
+
+        private static float ValueMaxOf(DesignerElementMetadata element)
+        {
+            var minimum = ValueMinOf(element);
+            var maximum = DesignerComponentPropertyAccess.GetFloat(
+                element, "value.max", element.fill?.maxValue ?? 1f);
+
+            // A range that does not increase would make every value normalise to the same point,
+            // so the runtime would show a control that never moves.
+            return maximum > minimum ? maximum : minimum + 1f;
+        }
+
+        private static string ControlIdOf(DesignerElementMetadata element)
+        {
+            if (!DesignerComponentRegistry.IsRegistered(element.elementType)) return null;
+
+            var descriptor = DesignerComponentRegistry.Get(element.elementType);
+            var control = descriptor.UGUIControl;
+
+            if (string.IsNullOrEmpty(control))
+            {
+                // A value or overlay component with no Unity control behind it - a progress bar is
+                // a filled Image, not a Slider, and a modal is a panel that opens. The type id is
+                // the control id in those cases, which lets the backend build the right thing while
+                // the program stays backend-neutral.
+                return descriptor.IsValueComponent || descriptor.IsOverlayComponent
+                    ? element.elementType
+                    : null;
+            }
+
+            switch (control)
+            {
+                case "Slider":
+                case "Scrollbar":
+                case "Toggle":
+                case "Dropdown":
+                case "DropdownTMP":
+                case "InputField":
+                case "InputFieldTMP":
+                    return control;
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>
+        /// What the node can do, from the control it carries plus the visual kind.
+        /// </summary>
+        /// <remarks>
+        /// Capabilities rather than more node kinds. A slider and a scrollbar differ in
+        /// appearance and not at all in what a binding does with them, so they report the same
+        /// capabilities and the binding code has one path instead of two.
+        /// </remarks>
+        private static NexNodeCapabilities ResolveCapabilities(DesignerElementMetadata element, NexNodeKind kind)
+        {
+            var capabilities = NexNodeCapabilities.None;
+
+            if (kind == NexNodeKind.Label || kind == NexNodeKind.Button) capabilities |= NexNodeCapabilities.Text;
+            if (kind == NexNodeKind.Button) capabilities |= NexNodeCapabilities.Click;
+
+            // A drawn path replaces the node's rect fill rather than adding to it. The capability
+            // is what the backend switches on; the kind still says what else the node does, so a
+            // button can carry a custom shape and stay a button.
+            if (element.hasShape && element.vectorShape != null && !element.vectorShape.IsEmpty)
+                capabilities |= NexNodeCapabilities.Vector;
+
+            // An overlay keeps whatever else it is - a modal is still a panel that can carry a
+            // binding - so this is added to the capabilities rather than replacing them.
+            if (DesignerComponentRegistry.IsRegistered(element.elementType) &&
+                DesignerComponentRegistry.Get(element.elementType).IsOverlayComponent)
+            {
+                capabilities |= NexNodeCapabilities.Overlay;
+            }
+
+            switch (ControlIdOf(element))
+            {
+                case "Slider":
+                case "Scrollbar":
+                    capabilities |= NexNodeCapabilities.Value | NexNodeCapabilities.UserEditable;
+                    break;
+
+                case "Toggle":
+                    capabilities |= NexNodeCapabilities.Value | NexNodeCapabilities.BooleanValue
+                                    | NexNodeCapabilities.UserEditable | NexNodeCapabilities.Click;
+                    break;
+
+                case "Dropdown":
+                case "DropdownTMP":
+                    capabilities |= NexNodeCapabilities.Value | NexNodeCapabilities.UserEditable;
+                    break;
+
+                case "InputField":
+                case "InputFieldTMP":
+                    capabilities |= NexNodeCapabilities.Text | NexNodeCapabilities.UserEditable;
+                    break;
+
+                case "ProgressBar":
+                case "StatBar":
+                case "RadialFill":
+                    // Value but not UserEditable: these display a number and never report one back.
+                    // Marking them editable would let a two-way binding write from a control the
+                    // user cannot touch, which is a loop with no author behind it.
+                    capabilities |= NexNodeCapabilities.Value;
+                    break;
+            }
+
+            return capabilities;
         }
 
         private static string LowerTextBinding(DesignerElementMetadata element, NexNodeKind kind,

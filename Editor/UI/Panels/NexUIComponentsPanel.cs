@@ -27,6 +27,19 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
         /// </remarks>
         public const string ComponentTypeCardClass = "nexui-component-type-card";
 
+        /// <summary>
+        /// A top-level folder of things you <em>place</em>: NexUI, uGUI, UI Toolkit, Custom.
+        /// </summary>
+        /// <remarks>
+        /// The panel has two kinds of family folder and they used to be indistinguishable, sharing
+        /// only the styling class. That made "how many families does the palette have?" an
+        /// unanswerable question - the Add Component section's own families were counted too.
+        /// </remarks>
+        public const string PaletteFamilyClass = "nexui-component-palette-family";
+
+        /// <summary>A top-level folder of things you <em>attach</em> to an element that exists.</summary>
+        public const string AttachFamilyClass = "nexui-component-attach-family";
+
         private readonly NexUIDesignerContext _context;
         private readonly VisualElement _content;
         private readonly VisualElement _details;
@@ -232,6 +245,11 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
                 value = EditorPrefs.GetBool(prefKey, defaultOpen)
             };
             foldout.AddToClassList("nexui-component-family-folder");
+
+            // Marks this as a *palette* family - something you place on the canvas. The Add
+            // Component section below groups by family too and shares the styling class, so
+            // without this the two are indistinguishable to anything that queries them.
+            foldout.AddToClassList(PaletteFamilyClass);
             foldout.AddToClassList(FamilyClass(family));
             foldout.RegisterValueChangedCallback(evt =>
             {
@@ -404,6 +422,10 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
                     value = EditorPrefs.GetBool(prefKey, _familyFilter == FamilyFilter.Components)
                 };
                 familyFolder.AddToClassList("nexui-component-family-folder");
+
+                // An *attach* family - components you add to an element that already exists. Same
+                // styling as the palette families, different thing entirely.
+                familyFolder.AddToClassList(AttachFamilyClass);
                 familyFolder.RegisterValueChangedCallback(evt =>
                 {
                     if (evt.target == familyFolder) EditorPrefs.SetBool(prefKey, evt.newValue);
@@ -509,6 +531,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
                     _familyFilter == FamilyFilter.Custom || definitions.Count > 0)
             };
             familyFolder.AddToClassList("nexui-component-family-folder");
+            familyFolder.AddToClassList(PaletteFamilyClass);
             familyFolder.AddToClassList("family-custom");
             familyFolder.RegisterValueChangedCallback(evt =>
             {

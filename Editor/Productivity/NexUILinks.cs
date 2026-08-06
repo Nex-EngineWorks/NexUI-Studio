@@ -19,17 +19,23 @@ namespace emiteat.NexUI.Designer.Editor.Productivity
     /// </remarks>
     internal static class NexUILinks
     {
-        /// <summary>Project repository. Empty until the public address is settled.</summary>
-        public const string Repository = "";
+        /// <summary>Project repository.</summary>
+        public const string Repository = "https://github.com/Nex-EngineWorks/NexUI-Studio";
 
         /// <summary>User documentation entry point.</summary>
-        public const string Documentation = "";
-
-        /// <summary>Community chat. Never opened automatically, and never used to gate a feature.</summary>
-        public const string Community = "";
+        public const string Documentation = "https://github.com/Nex-EngineWorks/NexUI-Studio/tree/master/Documentation~";
 
         /// <summary>Where users report problems.</summary>
-        public const string IssueTracker = "";
+        public const string IssueTracker = "https://github.com/Nex-EngineWorks/NexUI-Studio/issues";
+
+        /// <summary>
+        /// Community chat. Never opened automatically, and never used to gate a feature.
+        /// </summary>
+        /// <remarks>
+        /// Still empty, so no button is drawn. Asset Store rule 3.1.f forbids distributing perks
+        /// such as discount codes through a community channel, so this stays a link and nothing more.
+        /// </remarks>
+        public const string Community = "";
 
         public static bool Any =>
             Has(Repository) || Has(Documentation) || Has(Community) || Has(IssueTracker);

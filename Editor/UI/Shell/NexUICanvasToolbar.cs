@@ -31,6 +31,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             AddTool(context, DesignerTool.Move, "shell.tool.move");
             AddTool(context, DesignerTool.Frame, "shell.tool.rect");
             AddTool(context, DesignerTool.Hand, "shell.tool.view");
+            AddTool(context, DesignerTool.Pen, "shell.tool.pen");
 
             Add(Divider());
 

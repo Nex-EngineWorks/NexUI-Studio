@@ -474,7 +474,10 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
                 Assert.IsNotNull(panel.Q<VisualElement>(className: "nexui-component-details"));
                 Assert.IsNotNull(panel.Q<VisualElement>(className: "nexui-component-detail-preview"));
 
-                var familyFolders = panel.Query<Foldout>(className: "nexui-component-family-folder").ToList();
+                // Palette families only. The Add Component section groups by family too and shares
+                // the styling class, so the broad query counted both kinds and made this assert an
+                // unanswerable question rather than a wrong answer.
+                var familyFolders = panel.Query<Foldout>(className: NexUIComponentsPanel.PaletteFamilyClass).ToList();
                 var categoryFolders = panel.Query<Foldout>(className: "nexui-component-category-folder").ToList();
                 Assert.AreEqual(4, familyFolders.Count,
                     "NexUI (including Built-In recipes), uGUI, UI Toolkit and Custom need top-level folders");

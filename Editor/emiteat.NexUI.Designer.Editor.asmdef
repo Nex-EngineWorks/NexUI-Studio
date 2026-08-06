@@ -20,6 +20,7 @@
         "emiteat.NexUI.Prompt",
         "emiteat.NexUI.Templates",
         "emiteat.NexUI.Settings",
+        "emiteat.NexUI.Vector",
         "emiteat.NexUI.Integrations.UIToolkit",
         "emiteat.NexUI.Integrations.UGUI",
         "emiteat.NexUI.Designer.Runtime",

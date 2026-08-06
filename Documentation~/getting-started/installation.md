@@ -20,7 +20,7 @@ Setup Doctor는 검사만 자동으로 수행하며, 사용자가 버튼을 누�
 ## 로컬 패키지
 
 1. Package Manager에서 `Add package from disk...`를 선택합니다.
-2. 별도로 Clone한 [NexUI Core 저장소](https://github.com/swallow-smoke/NexUI) 루트의 `package.json`을 추가합니다.
+2. 별도로 Clone한 [NexUI Core 저장소](https://github.com/Nex-EngineWorks/NexUI) 루트의 `package.json`을 추가합니다.
 3. 다시 `Add package from disk...`를 선택하고 NexUI Studio 저장소 루트의 `package.json`을 추가합니다.
 4. Package Manager의 NexUI Studio 항목에서 `Studio Sample`을 Import합니다.
 5. `Tools > NexUI > Studio`를 엽니다.
@@ -33,15 +33,15 @@ Core와 Studio는 각각 별도 Git 저장소이며 두 저장소 모두 루트�
 {
   "dependencies": {
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask#2.5.10",
-    "com.nexengineworks.nexui": "https://github.com/swallow-smoke/NexUI.git",
-    "com.nexengineworks.nexui.studio": "https://github.com/swallow-smoke/NexUI-Designer.git"
+    "com.nexengineworks.nexui": "https://github.com/Nex-EngineWorks/NexUI.git",
+    "com.nexengineworks.nexui.studio": "https://github.com/Nex-EngineWorks/NexUI-Studio.git"
   }
 }
 ```
 
 Unity의 Git 패키지는 Studio의 이름 기반 dependency만 보고 Core Git URL을 자동 설치하지 않습니다. Core를 먼저 명시해야 합니다.
 
-[NexUI Core 저장소](https://github.com/swallow-smoke/NexUI)와 [NexUI Studio 저장소](https://github.com/swallow-smoke/NexUI-Designer)의 `package.json`을 각각 확인할 수 있습니다. 현재 공개 Release/Tag가 없으므로 commit을 고정하려면 각 저장소에서 서로 호환되는 commit을 별도로 선택해야 합니다.
+[NexUI Core 저장소](https://github.com/Nex-EngineWorks/NexUI)와 [NexUI Studio 저장소](https://github.com/Nex-EngineWorks/NexUI-Studio)의 `package.json`을 각각 확인할 수 있습니다. 현재 공개 Release/Tag가 없으므로 commit을 고정하려면 각 저장소에서 서로 호환되는 commit을 별도로 선택해야 합니다.
 
 ## 첫 화면
 

@@ -80,6 +80,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             }
 
             AppendPropertyAttributes(sb, element, descriptor);
+            AppendShapeAttributes(sb, element, options);
 
             if (children.Count == 0)
             {
@@ -416,8 +417,54 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         /// allowed to emit them. Only when nothing attached defines a tag does the palette preset's
         /// tag apply, which is what keeps elements authored before the component model unchanged.
         /// </summary>
+        private static bool HasShape(DesignerElementMetadata element)
+            => element != null && element.hasShape &&
+               element.vectorShape != null && !element.vectorShape.IsEmpty;
+
+        /// <summary>
+        /// Writes the element's path onto the generated tag.
+        /// </summary>
+        /// <remarks>
+        /// SVG path data, because a UXML attribute is text and a path is a list of points with
+        /// control handles. Using SVG's own grammar rather than a private encoding means the
+        /// generated file can be opened, edited and pasted between drawing tools - and it is what
+        /// <see cref="emiteat.NexUI.Vector.NexVectorPathText"/> parses back on load.
+        /// </remarks>
+        private static void AppendShapeAttributes(StringBuilder sb, DesignerElementMetadata element,
+            UIToolkitGenerationOptions options)
+        {
+            if (!options.EmitCustomElements || !HasShape(element)) return;
+
+            var shape = element.vectorShape;
+
+            sb.Append(" path-data=\"")
+              .Append(EscapeAttr(emiteat.NexUI.Vector.NexVectorPathText.Encode(shape))).Append('"');
+            sb.Append(" filled=\"").Append(shape.Filled ? "true" : "false").Append('"');
+            sb.Append(" fill-color=\"").Append(EscapeAttr(ToHex(shape.FillColor))).Append('"');
+
+            if (!shape.HasStroke) return;
+
+            sb.Append(" stroke-width=\"")
+              .Append(shape.StrokeWidth.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture))
+              .Append('"');
+            sb.Append(" stroke-color=\"").Append(EscapeAttr(ToHex(shape.StrokeColor))).Append('"');
+        }
+
+        /// <summary>UXML colour literal. Always eight digits so alpha is never implied.</summary>
+        private static string ToHex(Color color) => "#" + ColorUtility.ToHtmlStringRGBA(color);
+
         private static string TagForElement(DesignerElementMetadata element, UIToolkitGenerationOptions options)
         {
+            // A drawn path is what the element *is*, so it decides the tag before any component
+            // does - a shape rendered as a plain VisualElement is just a rectangle, which is the
+            // one thing the author was not drawing.
+            //
+            // Only in custom-element mode: NXVectorElement lives in a NexUI assembly, and
+            // standard-tag mode exists precisely so the generated file depends on none of them.
+            // There is no standard UXML tag that draws a path, so in that mode the shape cannot be
+            // emitted at all and the reporting below says so rather than quietly dropping it.
+            if (options.EmitCustomElements && HasShape(element)) return "NXVectorElement";
+
             if (element.components != null)
             {
                 foreach (var component in element.components)

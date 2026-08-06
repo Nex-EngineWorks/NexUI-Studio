@@ -8,12 +8,12 @@
 | 이동·크기·정렬·Group | 지원 | 지원 | 지원 | Undo, Key Object 정렬 지원 |
 | Auto Layout/Constraints | 부분 지원 | 지원 | 지원 | Row/Column/Grid 저장 지원, Constraints 일부 Preview 중심 |
 | Component Registry | 지원 | 부분 지원 | 부분 지원 | Component별 Backend support 확인 |
-| Component Properties (typed schema) | Beta | 속성별 Full/Partial | 속성별 Full/Partial | Basic/Advanced, 검색, Reset, JSON round-trip, 속성별 Save Report |
+| Component Properties (typed schema) | Beta | Full | 속성별 Full/Partial | uGUI는 `SerializedObject` 경로로 통일되어 Unity가 직렬화하는 모든 형태를 지원. Basic/Advanced, 검색, Reset, JSON round-trip, 속성별 Save Report |
 | 재사용 Component (Definition/Instance) | Beta | 지원 | 지원 | 참조 기반 전개. Definition 수정이 모든 Instance에 즉시 반영 |
 | Component Slot / Exposed Property Override | Beta | 지원 | 지원 | Typed Override. 적용 불가 Property는 Validation 보고 |
-| Component Variant | Beta | 지원 | 지원 | Bool/Enum/String, Rule 기반 Override와 표시 전환 |
+| Component Variant | Beta | 지원 | 지원 | Bool/Enum/String 축, 해상도·입력모드 조건, Rule 기반 Override(Layout/Visual/Text/Motion/Theme)와 표시 전환 |
 | Component Detach / Swap | Beta | 지원 | 지원 | 파괴적 작업은 확인 후 실행 |
-| Assets 패널 (탐색/검색/편집) | 지원 | 공통 | 공통 | List/Grid, 다중 Drag, Folder 생성, Rename, Duplicate, 확인 후 Trash 삭제 |
+| Assets 패널 (탐색/검색/편집) | 지원 | 공통 | 공통 | List/Grid, 다중 Drag, Folder 생성, Rename, Duplicate, 다중 선택 Move(폴더 선택 대화상자), 확인 후 Trash 삭제 |
 | Asset → Canvas Drag & Drop | Beta | 공통 | 공통 | Sprite/Font/Material/Component Definition. 그 외는 거부 |
 | Text/Value/Visibility/Class/Command Binding | 지원 | 지원 | 지원 | Text/Value 양방향과 Converter Registry 지원. 프로젝트가 Runtime Key를 등록 |
 | Studio Preview/Interactive Log | 지원 | 지원 | 지원 | 안전을 위해 Command 실행 대신 Simulation Log |
@@ -22,7 +22,7 @@
 | Setup Doctor | 지원 | 공통 | 공통 | 의존성·Registry·Scene Backend·출력 경로 검사 |
 | 통합 Inspector | 지원 | 공통 | 공통 | 검색, Workflow 필터, Beginner/Pro, Section 상태 보존 |
 | AI 어시스턴트 | Beta | 공통 | 공통 | Responses API, 계획 검증, 명시적 Apply, 단일 Undo; 실제 API 계정별 검증 필요 |
-| uGUI Prefab 저장 | 부분 지원 | 부분 지원 | 해당 없음 | 기본 Rect/Image/Text/Button/Fill |
+| uGUI Prefab 저장 | 지원 | 지원 | 해당 없음 | Rect/Visual/Text에 더해 Custom MonoBehaviour·Unity 내장 Component(Animator 포함)·TMP를 값과 참조까지 소유. Save Report의 Overwrite scope가 덮어쓰기 경계를 명시 |
 | UI Toolkit 일반 Save | 지원 | 해당 없음 | 지원 | Generated UXML/USS 안전 재생성, 사용자 파일 보존 |
 | `.g.uxml/.g.uss` 생성 | 지원 | 해당 없음 | 지원 | 별도 Generation 도구 |
 | Motion Clip 편집/직접 재생 | 지원 | 지원 | 지원 | 일부 Property 차이 |
@@ -31,7 +31,8 @@
 | Motion Graph | 실험적 | 공통 | 공통 | Utilities의 실험 기능 그룹에 v2만 노출 |
 | Motion State Machine | 실험적 | 공통 | 공통 | Transition Clip Preview |
 | AnimationClip Import/Export | 지원 | 지원 | 변환 에셋 공통 | Rect/Transform/CanvasGroup 지원 |
-| Figma 인증/조회/Frame Import | Beta | 공통 | 공통 | 계층·좌표·Text·Solid Fill·Auto Layout, Sync 제외 |
+| Figma JSON Import (Copy as JSON) | Beta | 공통 | 공통 | 기본 경로. 토큰·네트워크 불필요. 노드/배열/REST 응답 형태 모두 인식 |
+| Figma REST API Import | Beta | 공통 | 공통 | 선택 경로. Token 필요, 요청 한도가 파일 소유자 요금제에 부과됨 |
 | Migration Scan/Apply | 지원 | 공통 | 공통 | Utilities 메뉴, 변경 전 `.bak` 생성 |
 | Runtime Snapshot/Overlay | 지원 | 공통 | 공통 | Metadata/Live Preview Capture와 Diff 메뉴 |
 | Screen Flow/Design Token | 실험적 | 공통 | 공통 | 고급 도구, 수동 검증 필요 |

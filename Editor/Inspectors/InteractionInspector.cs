@@ -54,9 +54,112 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
                 element.interactions ??= new List<DesignerInteractionRule>();
                 for (int i = 0; i < element.interactions.Count; i++)
                     _rulesRoot.Add(BuildRule(element.interactions[i], i));
+
+                if (element.interactions.Any(IsDragRule)) _rulesRoot.Add(BuildDragFeedback(element));
             }
 
             _refreshing = false;
+        }
+
+        private static bool IsDragRule(DesignerInteractionRule rule)
+            => rule != null &&
+               (rule.trigger == DesignerInteractionTrigger.OnDragBegin ||
+                rule.trigger == DesignerInteractionTrigger.OnDrag ||
+                rule.trigger == DesignerInteractionTrigger.OnDragEnd);
+
+        /// <summary>
+        /// How the element looks while it is being dragged.
+        /// </summary>
+        /// <remarks>
+        /// Shown only once a drag rule exists, because it is meaningless otherwise and an always-on
+        /// section would imply every element is draggable.
+        ///
+        /// Stored as ordinary component properties rather than as new metadata fields: the property
+        /// bag already reaches the runtime through the compile path and already counts toward the
+        /// content hash, so this needed no change to the program format.
+        /// </remarks>
+        private VisualElement BuildDragFeedback(DesignerElementMetadata element)
+        {
+            var foldout = new Foldout { text = "Drag feedback", value = true };
+
+            var visual = new EnumField("While dragging", ReadVisual(element))
+            {
+                tooltip = "None: nothing moves; the rules do the feedback.\n" +
+                          "Move Self: the element follows the pointer and snaps back if refused.\n" +
+                          "Ghost: a translucent copy follows while the element stays put."
+            };
+            visual.RegisterValueChangedCallback(evt =>
+                Edit(() => SetProperty(element, DragVisualKey, Text(evt.newValue.ToString()))));
+            foldout.Add(visual);
+
+            var opacity = new Slider("Ghost opacity", 0f, 1f) { value = ReadNumber(element, DragOpacityKey, 0.7f) };
+            opacity.RegisterValueChangedCallback(evt =>
+                Edit(() => SetProperty(element, DragOpacityKey, Number(evt.newValue))));
+            foldout.Add(opacity);
+
+            var restore = new Toggle("Return if refused")
+            {
+                value = ReadFlag(element, DragReturnKey, true),
+                tooltip = "Snaps a Move Self element back when the drop does not land on anything " +
+                          "that can receive it. A target that refuses the item in its own condition " +
+                          "still counts as landing, so it can decide for itself."
+            };
+            restore.RegisterValueChangedCallback(evt =>
+                Edit(() => SetProperty(element, DragReturnKey, Flag(evt.newValue))));
+            foldout.Add(restore);
+
+            return foldout;
+        }
+
+        private const string DragVisualKey = "drag.visual";
+        private const string DragOpacityKey = "drag.ghostOpacity";
+        private const string DragReturnKey = "drag.returnOnFail";
+
+        private static DesignerPropertyValue Text(string v)
+            => new DesignerPropertyValue { type = DesignerPropertyValueType.String, stringValue = v };
+
+        private static DesignerPropertyValue Number(float v)
+            => new DesignerPropertyValue { type = DesignerPropertyValueType.Float, floatValue = v };
+
+        private static DesignerPropertyValue Flag(bool v)
+            => new DesignerPropertyValue { type = DesignerPropertyValueType.Boolean, boolValue = v };
+
+        private static DesignerComponentPropertyEntry Find(DesignerElementMetadata element, string key)
+        {
+            if (element.componentProperties == null) return null;
+            foreach (var entry in element.componentProperties)
+                if (entry != null && entry.key == key) return entry;
+            return null;
+        }
+
+        private static void SetProperty(DesignerElementMetadata element, string key, DesignerPropertyValue value)
+        {
+            element.componentProperties ??= new List<DesignerComponentPropertyEntry>();
+
+            var existing = Find(element, key);
+            if (existing != null) existing.value = value;
+            else element.componentProperties.Add(new DesignerComponentPropertyEntry(key, value));
+        }
+
+        private static DesignerDragVisual ReadVisual(DesignerElementMetadata element)
+        {
+            var entry = Find(element, DragVisualKey);
+            return entry != null &&
+                   Enum.TryParse<DesignerDragVisual>(entry.value.stringValue, true, out var parsed)
+                ? parsed
+                : DesignerDragVisual.None;
+        }
+
+        private static float ReadNumber(DesignerElementMetadata element, string key, float fallback)
+        {
+            var entry = Find(element, key);
+            return entry != null ? entry.value.floatValue : fallback;
+        }
+
+        private static bool ReadFlag(DesignerElementMetadata element, string key, bool fallback)
+        {
+            var entry = Find(element, key);
+            return entry != null ? entry.value.boolValue : fallback;
         }
 
         private VisualElement BuildRule(DesignerInteractionRule rule, int index)
@@ -85,9 +188,10 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
 
             var phase = new EnumField("Listen on", rule.phase)
             {
-                tooltip = "Target: only when this element itself is clicked.\n" +
-                          "Bubble: when anything inside it is clicked, after the target reacts.\n" +
-                          "Capture: when anything inside it is clicked, before the target reacts."
+                tooltip = "Target: only when this element itself raises the event.\n" +
+                          "Bubble: when anything inside it does, after the target reacts.\n" +
+                          "Capture: when anything inside it does, before the target reacts.\n\n" +
+                          "Show and Hide reach every element already, so they cannot propagate."
             };
             phase.RegisterValueChangedCallback(evt =>
                 Edit(() => rule.phase = (DesignerInteractionPhase)evt.newValue));

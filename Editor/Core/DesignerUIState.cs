@@ -5,7 +5,14 @@ namespace emiteat.NexUI.Designer.Editor
         Select,
         Move,
         Frame,
-        Hand
+        Hand,
+
+        /// <summary>
+        /// Draws and edits vector paths. Appended rather than inserted: the current tool is
+        /// persisted to EditorPrefs as an int, so renumbering the existing entries would silently
+        /// change which tool a returning user comes back to.
+        /// </summary>
+        Pen
     }
 
     public enum DesignerSidebarTab

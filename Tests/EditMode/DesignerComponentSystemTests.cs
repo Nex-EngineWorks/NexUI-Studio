@@ -520,8 +520,10 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
         [Test]
         public void PropertyApplier_ReturnsFalseForPropertiesWithNoAuthoredRepresentation()
         {
+            // Texture, not Gradient: gradients gained an authored representation and now apply,
+            // so using one here would assert that a working property does not work.
             var element = new DesignerElementMetadata { elementId = "e" };
-            Assert.IsFalse(DesignerPropertyApplier.Apply(element, DesignerPropertyId.Gradient,
+            Assert.IsFalse(DesignerPropertyApplier.Apply(element, DesignerPropertyId.Texture,
                 new DesignerPropertyValue { type = DesignerPropertyValueType.AssetReference }));
             Assert.IsFalse(DesignerPropertyApplier.Apply(element, DesignerPropertyId.None, new DesignerPropertyValue()));
         }

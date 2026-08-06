@@ -3,8 +3,11 @@
     "rootNamespace": "emiteat.NexUI.Designer.Tests.EditMode",
     "references": [
         "emiteat.NexUI.Abstractions",
+        "emiteat.NexUI.Vector",
         "emiteat.NexUI.Components",
         "emiteat.NexUI.Core",
+        "emiteat.NexUI.Overrides",
+        "emiteat.NexUI.State",
         "emiteat.NexUI.Diagnostics",
         "emiteat.NexUI.Compiled",
         "emiteat.NexUI.Flow",

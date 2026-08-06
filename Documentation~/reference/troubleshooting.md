@@ -6,7 +6,7 @@
 
 **가능한 원인:** Unity 버전 미달, Core/UniTask 누락, compile error입니다.
 
-**해결 순서:** Unity 6000.4 이상인지 확인하고 UniTask 2.5.10, Core 0.1.0, Studio 0.1.0 순서로 설치합니다. Package Manager와 `Packages/manifest.json`을 확인한 뒤 Domain Reload를 기다립니다.
+**해결 순서:** Unity 2022.3 LTS 이상인지 확인하고 UniTask 2.5.10, Core 0.1.0, Studio 0.1.0 순서로 설치합니다. Package Manager와 `Packages/manifest.json`을 확인한 뒤 Domain Reload를 기다립니다.
 
 **정상 확인:** `Tools > NexUI > Studio`가 보입니다. 계속되면 Unity 버전, package 목록, manifest와 Console 첫 오류를 수집합니다.
 

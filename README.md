@@ -13,7 +13,8 @@ Global Toolbar의 `+ 새 화면`에서 Screen Definition, Studio Metadata와 Bac
 
 ## 요구 환경
 
-- Unity 6000.4 이상
+- Unity 2022.3 LTS 이상 (2022.3과 Unity 6에서 컴파일 검증. 버전별로 무엇이 검증되었는지는
+  [호환성 문서](Documentation~/reference/compatibility.md) 참조)
 - NexUI Core 0.1.0
 - UniTask 2.5.10
 
@@ -39,6 +40,6 @@ Global Toolbar의 `+ 새 화면`에서 Screen Definition, Studio Metadata와 Bac
 
 ## 저장소와 라이선스
 
-- [NexUI Studio 저장소](https://github.com/swallow-smoke/NexUI-Designer)
-- [NexUI Core 저장소](https://github.com/swallow-smoke/NexUI)
+- [NexUI Studio 저장소](https://github.com/Nex-EngineWorks/NexUI-Studio)
+- [NexUI Core 저장소](https://github.com/Nex-EngineWorks/NexUI)
 - [MIT License](LICENSE.md)

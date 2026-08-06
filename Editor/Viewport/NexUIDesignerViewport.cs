@@ -41,6 +41,7 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         private readonly MotionPathOverlay _motionPathOverlay;
         private readonly OnionSkinOverlay _onionSkinOverlay;
         private readonly FocusNavigationOverlay _focusNavOverlay;
+        private readonly PenToolOverlay _penToolOverlay;
 
         private static readonly List<string> PreviewStateChoices = new List<string>
         {
@@ -174,6 +175,7 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _motionPathOverlay = new MotionPathOverlay(_context);
             _onionSkinOverlay = new OnionSkinOverlay(_context);
             _focusNavOverlay = new FocusNavigationOverlay(_context);
+            _penToolOverlay = new PenToolOverlay(_context);
             _selectionRectOverlay = new VisualElement();
             _selectionRectOverlay.AddToClassList("nexui-selection-rect");
             _selectionRectOverlay.style.position = Position.Absolute;
@@ -200,6 +202,10 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _previewCanvas.Add(_onionSkinOverlay);
             _previewCanvas.Add(_motionPathOverlay);
             _previewCanvas.Add(_focusNavOverlay);
+            // Above the element layer so that, while the pen is the active tool, a click on a path
+            // point reaches the pen instead of starting an element drag. It ignores picking for
+            // every other tool, so element dragging is untouched.
+            _previewCanvas.Add(_penToolOverlay);
             _previewCanvas.Add(_guideLayer);
             _previewCanvas.Add(_selectionRectOverlay);
             _previewCanvas.Add(_floatingToolbar);

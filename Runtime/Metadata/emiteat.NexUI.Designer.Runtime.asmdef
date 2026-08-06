@@ -13,7 +13,8 @@
         "emiteat.NexUI.Accessibility",
         "emiteat.NexUI.Localization",
         "emiteat.NexUI.Prompt",
-        "emiteat.NexUI.Templates"
+        "emiteat.NexUI.Templates",
+        "emiteat.NexUI.Vector"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

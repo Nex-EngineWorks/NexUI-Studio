@@ -49,8 +49,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             var temp = path + ".nexui.tmp";
             try
             {
-                var dto = ToDto(asset);
-                var json = JsonUtility.ToJson(dto, true) + "\n";
+                var json = ToJson(asset) + "\n";
                 if (File.Exists(path) && File.ReadAllText(path).Replace("\r\n", "\n") == json.Replace("\r\n", "\n"))
                     return path;
                 File.WriteAllText(temp, json, new System.Text.UTF8Encoding(false));
@@ -76,18 +75,53 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             var path = CompanionPathFor(asset);
             if (string.IsNullOrEmpty(path) || !File.Exists(path)) return false;
 
-            MetadataFileDto dto;
-            try { dto = JsonUtility.FromJson<MetadataFileDto>(File.ReadAllText(path)); }
+            string json;
+            try { json = File.ReadAllText(path); }
             catch (Exception ex)
             {
-                Debug.LogError($"[NexUI Studio] Failed to parse '{path}': {ex.Message}");
+                Debug.LogError($"[NexUI Studio] Failed to read '{path}': {ex.Message}");
                 return false;
             }
-            if (dto == null) return false;
 
+            // Recorded before the apply, not after: the undo entry has to capture the asset as it
+            // was, and a failed parse must leave both the asset and the undo stack untouched.
             Undo.RecordObject(asset, "Sync NexUI Metadata From JSON");
-            ApplyDto(dto, asset);
+            if (!FromJson(json, asset)) return false;
+
             EditorUtility.SetDirty(asset);
+            return true;
+        }
+
+        /// <summary>
+        /// The companion JSON for <paramref name="asset"/>, without writing a file.
+        /// </summary>
+        /// <remarks>
+        /// The file-level <see cref="Export"/> is a wrapper over this. Separating them means the
+        /// serialization can be exercised without a saved asset on disk - which is what makes a
+        /// dropped field (the failure mode this format has actually had) something a test can
+        /// catch rather than something a user notices after a merge.
+        /// </remarks>
+        public static string ToJson(DesignerMetadataAsset asset)
+            => asset == null ? null : JsonUtility.ToJson(ToDto(asset), true);
+
+        /// <summary>
+        /// Applies companion JSON text onto <paramref name="asset"/>. Returns false if it will not
+        /// parse. Not Undo-tracked - <see cref="Import"/> is the entry point that is.
+        /// </summary>
+        public static bool FromJson(string json, DesignerMetadataAsset asset)
+        {
+            if (asset == null || string.IsNullOrWhiteSpace(json)) return false;
+
+            MetadataFileDto dto;
+            try { dto = JsonUtility.FromJson<MetadataFileDto>(json); }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[NexUI Studio] Failed to parse companion JSON: {ex.Message}");
+                return false;
+            }
+
+            if (dto == null) return false;
+            ApplyDto(dto, asset);
             return true;
         }
 
@@ -181,6 +215,11 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             public long fontAssetLocalId;
             public string fontFallbackGuid = "";
             public long fontFallbackLocalId;
+
+            // `shape` above is the silhouette enum, which predates this and is a different thing:
+            // that is how a plain rect is rounded, this is the drawn path that replaces the rect.
+            public bool hasVectorShape;
+            public Vector.NexVectorShape vectorShape = new();
         }
 
         [Serializable]
@@ -359,7 +398,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             var screenMotion = asset.screenMotion ?? new DesignerScreenMotionMetadata();
             var dto = new MetadataFileDto
             {
-                formatVersion = 6,
+                formatVersion = 7,
                 schemaVersion = asset.schemaVersion,
                 screenId = asset.screenId,
                 variants = ToVariantDtos(asset.variants),
@@ -462,6 +501,12 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                     fontAssetLocalId = AssetLocalId(e.typography?.fontAsset),
                     fontFallbackGuid = AssetGuid(e.typography?.fontFallback),
                     fontFallbackLocalId = AssetLocalId(e.typography?.fontFallback),
+                    hasVectorShape = e.hasShape,
+                    // Cloned so the exported DTO cannot alias the live document; an export must
+                    // never be a route by which the file being written changes underneath it.
+                    vectorShape = e.hasShape && e.vectorShape != null
+                        ? e.vectorShape.Clone()
+                        : new Vector.NexVectorShape(),
                 });
             }
             return dto;
@@ -479,6 +524,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             // and importing its empty list would strip the ones the asset already holds.
             var hasElementComponentSchema = dto.formatVersion >= 6;
             var hasComponentPartSchema = dto.formatVersion >= 6;
+            var hasVectorShapeSchema = dto.formatVersion >= 7;
             if (hasFullSchema)
                 asset.schemaVersion = dto.schemaVersion;
             asset.screenId = dto.screenId;
@@ -565,6 +611,17 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                     e.clipChildren = d.clipChildren;
                     e.contentPadding = FromRectOffsetDto(d.contentPadding);
                 }
+                if (hasVectorShapeSchema)
+                {
+                    // Cloned rather than adopted: the DTO is discarded after import, but a shared
+                    // reference would outlive it and make the imported document mutate a parsed
+                    // file's object graph.
+                    e.hasShape = d.hasVectorShape;
+                    e.vectorShape = d.hasVectorShape && d.vectorShape != null
+                        ? d.vectorShape.Clone()
+                        : new Vector.NexVectorShape();
+                }
+
                 if (hasTypedSchema)
                 {
                     e.layoutStyle = d.layoutStyle ?? new DesignerLayoutStyleMetadata();

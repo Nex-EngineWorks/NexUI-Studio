@@ -166,6 +166,35 @@ namespace emiteat.NexUI.Designer
         public AccessibilityRole accessibilityRole = AccessibilityRole.None;
 
         /// <summary>
+        /// Whether <see cref="vectorShape"/> is authored. Inert - a plain rect - while false.
+        /// </summary>
+        /// <remarks>
+        /// An explicit flag rather than a null check, matching <c>layoutStyle</c> /
+        /// <c>visualStyle</c> / <c>typography</c> above. Unity's serializer materialises a plain
+        /// class field on every element whether or not anything was drawn, so "is there a shape"
+        /// cannot be answered by the reference itself.
+        /// </remarks>
+        public bool hasShape;
+
+        /// <summary>
+        /// The vector path this element draws. Only meaningful while <see cref="hasShape"/> is set.
+        /// </summary>
+        /// <remarks>
+        /// Held on the element rather than as a component in the stack because a path is what the
+        /// element <em>is</em> when it has one - resizing, selecting and the pen tool all act on it
+        /// directly.
+        ///
+        /// Deliberately <em>not</em> <see cref="SerializeReference"/>, despite that being the
+        /// natural fit for an optional object. <see cref="JsonUtility"/> does not serialize
+        /// SerializeReference fields, and this type is round-tripped through it by
+        /// <c>DesignerMetadataUtility.Clone</c> and the companion JSON - so a path stored that way
+        /// survived in the <c>.asset</c> but vanished on duplicate, paste and any JSON sync, with
+        /// no error anywhere. The field-level contract at the top of this class is the rule; this
+        /// field now follows it.
+        /// </remarks>
+        public emiteat.NexUI.Vector.NexVectorShape vectorShape = new emiteat.NexUI.Vector.NexVectorShape();
+
+        /// <summary>
         /// Stable, human-written handle an automated test finds this element by, e.g.
         /// <c>store.item.purchase</c>. Empty for elements no test needs to reach.
         /// </summary>

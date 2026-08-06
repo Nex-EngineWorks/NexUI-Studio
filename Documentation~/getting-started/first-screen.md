@@ -13,7 +13,7 @@
 
 ## 필요한 사전 준비
 
-- Unity 6000.4 이상
+- Unity 2022.3 LTS 이상
 - NexUI Core와 NexUI Studio 0.1.0
 - `Assets/UI/Screens`처럼 Package 밖의 쓰기 가능한 폴더
 - [인터페이스 둘러보기](interface-tour.md)를 한 번 읽은 상태

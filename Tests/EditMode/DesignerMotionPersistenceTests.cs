@@ -796,7 +796,15 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
             AssetDatabase.CreateAsset(metadata, TempFolder + "/Legacy.Metadata.asset");
             AssetDatabase.SaveAssets();
             var path = DesignerMetadataJsonSerializer.Export(metadata);
-            var json = System.IO.File.ReadAllText(path).Replace("\"formatVersion\": 6", "\"formatVersion\": 0");
+            // Matched by pattern, not by the current number. Hardcoding it meant the test silently
+            // stopped downgrading the file the moment the format version moved on - and then
+            // asserted legacy behaviour against a file that was never made legacy.
+            var json = System.Text.RegularExpressions.Regex.Replace(
+                System.IO.File.ReadAllText(path),
+                "\"formatVersion\"\\s*:\\s*\\d+",
+                "\"formatVersion\": 0");
+            Assert.That(json, Does.Contain("\"formatVersion\": 0"),
+                "the file must actually be downgraded, or this tests nothing");
             System.IO.File.WriteAllText(path, json);
 
             metadata.elements[0].text = "Local";
