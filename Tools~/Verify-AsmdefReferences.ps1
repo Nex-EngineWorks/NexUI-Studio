@@ -101,7 +101,6 @@ $externalOwners = @{
     'TMPro'                        = 'Unity.TextMeshPro'
     'UnityEngine.UI'               = 'UnityEngine.UI'
     'UnityEngine.EventSystems'     = 'UnityEngine.UI'
-    'Cysharp.Threading.Tasks'      = 'UniTask'
     'NUnit.Framework'              = 'nunit.framework.dll'
     'UnityEngine.TestTools'        = 'UnityEngine.TestRunner'
     'UnityEditor.TestTools'        = 'UnityEditor.TestRunner'

@@ -1,6 +1,6 @@
 using System;
 using System.Text;
-using Cysharp.Threading.Tasks;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -12,7 +12,7 @@ namespace emiteat.NexUI.Designer.Editor.AI
         private const string DefaultEndpoint = "https://api.openai.com/v1/responses";
         public string DisplayName => "OpenAI";
 
-        public async UniTask<string> CompleteAsync(NexUIAIProviderRequest requestData)
+        public async Task<string> CompleteAsync(NexUIAIProviderRequest requestData)
         {
             NexUIAIProviderUtility.RequireRequest(requestData, "OPENAI_API_KEY");
             var payload = JsonUtility.ToJson(new ResponsesRequest
@@ -25,7 +25,7 @@ namespace emiteat.NexUI.Designer.Editor.AI
             });
             using var webRequest = NexUIAIProviderUtility.CreatePost(DefaultEndpoint, payload, 120);
             webRequest.SetRequestHeader("Authorization", "Bearer " + requestData.ApiKey.Trim());
-            await webRequest.SendWebRequest().ToUniTask();
+            await webRequest.SendWebRequest();
             var body = NexUIAIProviderUtility.EnsureSuccess(webRequest, DisplayName);
             var response = JsonUtility.FromJson<ResponsesResponse>(body);
             if (response?.output != null)

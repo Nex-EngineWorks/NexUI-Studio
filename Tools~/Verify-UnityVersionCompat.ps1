@@ -109,7 +109,7 @@ $extras = @('Newtonsoft.Json.dll') | ForEach-Object { Join-Path $managed $_ }
 # Unity compile: they are version-agnostic enough to reference, and the point of the run
 # is NexUI's own sources, not theirs.
 $scriptAssemblies = Join-Path $projectRoot 'Library/ScriptAssemblies'
-$thirdParty = @('UniTask', 'UnityEngine.UI', 'Unity.TextMeshPro', 'Unity.TextMeshPro.Editor', 'UnityEditor.UI') |
+$thirdParty = @(UnityEngine.UI', 'Unity.TextMeshPro', 'Unity.TextMeshPro.Editor', 'UnityEditor.UI') |
     ForEach-Object { Join-Path $scriptAssemblies "$_.dll" }
 
 $defines = @()

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Cysharp.Threading.Tasks;
 using emiteat.NexUI.Abstractions;
 using emiteat.NexUI.MotionClip;
 using UnityEditor;
@@ -115,7 +114,7 @@ namespace emiteat.NexUI.Designer.Editor.Productivity
         {
             if (context?.PreviewSurface == null || clip == null) return;
             context.SetActiveMotionClip(clip, 0f);
-            PreviewPlayer.PlayAsync(context.PreviewSurface, clip).Forget();
+            PreviewPlayer.PlayAsync(context.PreviewSurface, clip);
         }
 
         public static UIMotionClip RegenerateClose(NexUIDesignerContext context)

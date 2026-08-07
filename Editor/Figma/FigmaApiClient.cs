@@ -1,5 +1,5 @@
 using System;
-using Cysharp.Threading.Tasks;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -24,11 +24,11 @@ namespace emiteat.NexUI.Integrations.Figma
         private const string BaseUrl = "https://api.figma.com/v1";
 
         /// <summary>Calls GET /v1/me. Throws if the token is missing/invalid or the request fails.</summary>
-        public static async UniTask<FigmaUser> GetAuthenticatedUserAsync(string token)
+        public static async Task<FigmaUser> GetAuthenticatedUserAsync(string token)
         {
             using var request = UnityWebRequest.Get($"{BaseUrl}/me");
             request.SetRequestHeader("X-Figma-Token", token);
-            await request.SendWebRequest().ToUniTask();
+            await request.SendWebRequest();
 
             if (request.result != UnityWebRequest.Result.Success)
                 throw new InvalidOperationException($"Figma API error ({request.responseCode}): {request.error}");
@@ -37,14 +37,14 @@ namespace emiteat.NexUI.Integrations.Figma
         }
 
         /// <summary>Calls GET /v1/files/{fileKey} and returns the raw JSON document (the file's full node tree).</summary>
-        public static async UniTask<string> GetFileJsonAsync(string token, string fileKey)
+        public static async Task<string> GetFileJsonAsync(string token, string fileKey)
         {
             if (string.IsNullOrEmpty(fileKey))
                 throw new ArgumentException("Figma file key is required.", nameof(fileKey));
 
             using var request = UnityWebRequest.Get($"{BaseUrl}/files/{fileKey}");
             request.SetRequestHeader("X-Figma-Token", token);
-            await request.SendWebRequest().ToUniTask();
+            await request.SendWebRequest();
 
             if (request.result != UnityWebRequest.Result.Success)
                 throw new InvalidOperationException($"Figma API error ({request.responseCode}): {request.error}");

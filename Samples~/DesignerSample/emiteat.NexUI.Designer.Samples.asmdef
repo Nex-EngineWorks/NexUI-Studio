@@ -7,8 +7,7 @@
     "emiteat.NexUI.Designer.Runtime",
     "emiteat.NexUI.Localization",
     "emiteat.NexUI.Prompt",
-    "emiteat.NexUI.Theme",
-    "UniTask"
+    "emiteat.NexUI.Theme"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

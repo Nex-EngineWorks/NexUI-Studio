@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Cysharp.Threading.Tasks;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -70,7 +70,7 @@ namespace emiteat.NexUI.Designer.Editor.AI
     public sealed class AnthropicMessagesProvider : INexUIAIProvider
     {
         public string DisplayName => "Anthropic Claude";
-        public async UniTask<string> CompleteAsync(NexUIAIProviderRequest requestData)
+        public async Task<string> CompleteAsync(NexUIAIProviderRequest requestData)
         {
             NexUIAIProviderUtility.RequireRequest(requestData, "ANTHROPIC_API_KEY");
             var payload = JsonUtility.ToJson(new AnthropicRequest
@@ -81,7 +81,7 @@ namespace emiteat.NexUI.Designer.Editor.AI
             using var request = NexUIAIProviderUtility.CreatePost("https://api.anthropic.com/v1/messages", payload, 120);
             request.SetRequestHeader("x-api-key", requestData.ApiKey.Trim());
             request.SetRequestHeader("anthropic-version", "2023-06-01");
-            await request.SendWebRequest().ToUniTask();
+            await request.SendWebRequest();
             var response = JsonUtility.FromJson<AnthropicResponse>(NexUIAIProviderUtility.EnsureSuccess(request, DisplayName));
             if (response?.content != null)
                 foreach (var part in response.content)
@@ -97,7 +97,7 @@ namespace emiteat.NexUI.Designer.Editor.AI
     public sealed class GeminiGenerateContentProvider : INexUIAIProvider
     {
         public string DisplayName => "Google Gemini";
-        public async UniTask<string> CompleteAsync(NexUIAIProviderRequest requestData)
+        public async Task<string> CompleteAsync(NexUIAIProviderRequest requestData)
         {
             NexUIAIProviderUtility.RequireRequest(requestData, "GEMINI_API_KEY");
             var payload = JsonUtility.ToJson(new GeminiRequest
@@ -110,7 +110,7 @@ namespace emiteat.NexUI.Designer.Editor.AI
                 .Replace("{model}", UnityWebRequest.EscapeURL(requestData.Model));
             using var request = NexUIAIProviderUtility.CreatePost(endpoint, payload, 120);
             request.SetRequestHeader("x-goog-api-key", requestData.ApiKey.Trim());
-            await request.SendWebRequest().ToUniTask();
+            await request.SendWebRequest();
             var response = JsonUtility.FromJson<GeminiResponse>(NexUIAIProviderUtility.EnsureSuccess(request, DisplayName));
             if (response?.candidates != null)
                 foreach (var candidate in response.candidates)
@@ -130,7 +130,7 @@ namespace emiteat.NexUI.Designer.Editor.AI
     public sealed class OpenAICompatibleProvider : INexUIAIProvider
     {
         public string DisplayName => "OpenAI-compatible";
-        public async UniTask<string> CompleteAsync(NexUIAIProviderRequest requestData)
+        public async Task<string> CompleteAsync(NexUIAIProviderRequest requestData)
         {
             if (requestData == null) throw new ArgumentNullException(nameof(requestData));
             if (string.IsNullOrWhiteSpace(requestData.Model)) throw new InvalidOperationException("Choose a model before sending the request.");
@@ -143,7 +143,7 @@ namespace emiteat.NexUI.Designer.Editor.AI
             using var request = NexUIAIProviderUtility.CreatePost(requestData.Endpoint.Trim(), payload, 120);
             if (!string.IsNullOrWhiteSpace(requestData.ApiKey))
                 request.SetRequestHeader("Authorization", "Bearer " + requestData.ApiKey.Trim());
-            await request.SendWebRequest().ToUniTask();
+            await request.SendWebRequest();
             var response = JsonUtility.FromJson<CompatibleResponse>(NexUIAIProviderUtility.EnsureSuccess(request, DisplayName));
             if (response?.choices != null && response.choices.Length > 0 && !string.IsNullOrWhiteSpace(response.choices[0]?.message?.content))
                 return response.choices[0].message.content;

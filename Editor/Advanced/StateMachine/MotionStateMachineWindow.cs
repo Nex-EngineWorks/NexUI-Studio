@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Cysharp.Threading.Tasks;
 using emiteat.NexUI.Abstractions;
 using emiteat.NexUI.Designer.Editor.Commands;
 using emiteat.NexUI.Designer.Editor.Localization;
@@ -286,12 +285,31 @@ namespace emiteat.NexUI.Designer.Editor.StateMachine
             RefreshTransitions();
         }
 
-        private void PreviewTransition(UIMotionStateTransition transition)
+        private async void PreviewTransition(
+            UIMotionStateTransition transition)
         {
-            if (transition?.clip == null) return;
+            if (transition?.clip == null)
+                return;
+
             var surface = ResolvePreviewSurface();
-            if (surface == null) return;
-            _previewPlayer.PlayAsync(surface, transition.clip).Forget();
+
+            if (surface == null)
+                return;
+
+            try
+            {
+                await _previewPlayer.PlayAsync(
+                    surface,
+                    transition.clip);
+            }
+            catch (System.OperationCanceledException)
+            {
+                
+            }
+            catch (System.Exception exception)
+            {
+                Debug.LogException(exception);
+            }
         }
 
         private IUISurface ResolvePreviewSurface()

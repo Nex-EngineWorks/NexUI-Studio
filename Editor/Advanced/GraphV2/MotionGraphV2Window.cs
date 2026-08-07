@@ -1,6 +1,7 @@
+using System;
 using System.Linq;
 using System.Threading;
-using Cysharp.Threading.Tasks;
+using System.Threading.Tasks;
 using emiteat.NexUI.Abstractions;
 using emiteat.NexUI.Designer.Editor.Localization;
 using emiteat.NexUI.MotionGraph;
@@ -12,7 +13,7 @@ using UnityEngine.UIElements;
 namespace emiteat.NexUI.Designer.Editor.GraphV2
 {
     /// <summary>
-    /// Standalone editor window hosting <see cref="MotionGraphV2View"/> for a single
+    /// Standalone editor window hosting <see crsf="MotionGraphV2View"/> for a single
     /// <see cref="UIMotionGraphAsset"/>. "Preview" actually runs the graph (via
     /// <see cref="UIGraphExecutor"/>) against the connected NexUI Designer preview surface -
     /// live execution, not a read-only visualization, matching the Motion Clip Editor/Motion
@@ -54,7 +55,6 @@ namespace emiteat.NexUI.Designer.Editor.GraphV2
         {
             DesignerLocalization.LanguageChanged -= BuildUI;
             _previewCts?.Cancel();
-            _previewCts?.Dispose();
             _previewCts = null;
         }
 
@@ -157,23 +157,56 @@ namespace emiteat.NexUI.Designer.Editor.GraphV2
             BuildUI();
         }
 
-        private void PreviewEvent(string eventName)
+        private async void PreviewEvent(string eventName)
         {
-            if (_asset == null || string.IsNullOrEmpty(eventName)) return;
+            if (_asset == null || string.IsNullOrEmpty(eventName))
+                return;
+
             var surface = ResolvePreviewSurface();
-            if (surface == null) return;
 
+            if (surface == null)
+                return;
+            
             _previewCts?.Cancel();
-            _previewCts?.Dispose();
-            _previewCts = new CancellationTokenSource();
 
-            var executor = new UIGraphExecutor(_asset);
-            var context = new UIGraphExecutionContext
+            var cts = new CancellationTokenSource();
+            _previewCts = cts;
+
+            try
             {
-                Surface = surface,
-                EventTargetElementId = ResolveDesignerContext()?.SelectedMetadata?.elementId
-            };
-            executor.RunEventAsync(eventName, context, _previewCts.Token).Forget();
+                var executor = new UIGraphExecutor(_asset);
+
+                var context = new UIGraphExecutionContext
+                {
+                    Surface = surface,
+                    EventTargetElementId =
+                        ResolveDesignerContext()
+                            ?.SelectedMetadata
+                            ?.elementId
+                };
+
+                await executor.RunEventAsync(
+                    eventName,
+                    context,
+                    cts.Token);
+            }
+            catch (OperationCanceledException)
+                when (cts.IsCancellationRequested)
+            {
+                // cancel ignore
+            }
+            catch (System.Exception exception)
+            {
+                Debug.LogError(
+                    $"Motion Graph v2 preview failed: {exception}");
+            }
+            finally
+            {
+                if (ReferenceEquals(_previewCts, cts))
+                    _previewCts = null;
+
+                cts.Dispose();
+            }
         }
 
         private IUISurface ResolvePreviewSurface() => ResolveDesignerContext()?.PreviewSurface;

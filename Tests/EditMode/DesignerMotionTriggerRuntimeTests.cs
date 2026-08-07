@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Cysharp.Threading.Tasks;
+using System.Threading.Tasks;
 using emiteat.NexUI.Abstractions;
 using emiteat.NexUI.MotionClip;
 using NUnit.Framework;
@@ -49,8 +49,8 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
         {
             private readonly List<UIMotionClip> _played;
             public RecordingPlayer(List<UIMotionClip> played) => _played = played;
-            public UniTask PlayAsync(IUISurface surface, UIMotionClip clip, CancellationToken cancellationToken = default)
-            { _played.Add(clip); return UniTask.CompletedTask; }
+            public Task PlayAsync(IUISurface surface, UIMotionClip clip, CancellationToken cancellationToken = default)
+            { _played.Add(clip); return Task.CompletedTask; }
             public void Stop() { }
             public void Evaluate(IUISurface surface, UIMotionClip clip, float time) { }
         }

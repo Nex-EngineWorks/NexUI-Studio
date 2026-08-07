@@ -18,7 +18,7 @@ namespace emiteat.NexUI.Samples
         [SerializeField] private UIPromptGlyphTable _prompts;
         [SerializeField] private string _language = "ko-KR";
 
-        private async UniTask OpenInventoryForController()
+        private async Task OpenInventoryForController()
         {
             // Open the "ControllerMode" variant of the Inventory screen.
             // Bare `NexUI` resolves to the namespace inside the emiteat.NexUI.* tree, so

@@ -19,7 +19,6 @@
         "emiteat.NexUI.Designer.Tests.Fixtures",
         "emiteat.NexUI.Integrations.Figma",
         "emiteat.NexUI.Integrations.UGUI",
-        "UniTask",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "Unity.TextMeshPro",

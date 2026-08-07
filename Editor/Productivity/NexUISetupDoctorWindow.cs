@@ -169,10 +169,6 @@ namespace emiteat.NexUI.Designer.Editor.Productivity
             Add(runtimePackage != null, "NexUI Runtime package",
                 runtimePackage == null ? "The Runtime package could not be resolved." : $"Installed: {runtimePackage.version}", true);
 
-            var uniTask = Type.GetType("Cysharp.Threading.Tasks.UniTask, UniTask") != null;
-            Add(uniTask, "UniTask dependency",
-                uniTask ? "UniTask is available." : "Install UniTask 2.5.10 or newer before using NexUI.", true);
-
             CheckUnityVersion();
             CheckRenderPipeline();
         }

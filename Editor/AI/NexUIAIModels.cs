@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Cysharp.Threading.Tasks;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace emiteat.NexUI.Designer.Editor.AI
@@ -186,7 +186,7 @@ namespace emiteat.NexUI.Designer.Editor.AI
     public interface INexUIAIProvider
     {
         string DisplayName { get; }
-        UniTask<string> CompleteAsync(NexUIAIProviderRequest request);
+        Task<string> CompleteAsync(NexUIAIProviderRequest request);
     }
 
     public static class NexUIAIPlanParser

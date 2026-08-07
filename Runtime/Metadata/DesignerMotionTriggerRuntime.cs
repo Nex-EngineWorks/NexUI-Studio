@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Cysharp.Threading.Tasks;
 using emiteat.NexUI.Abstractions;
 using emiteat.NexUI.MotionClip;
 
@@ -144,7 +143,7 @@ namespace emiteat.NexUI.Designer
             var player = _playerFactory();
             if (player == null) return;
             _players.Add(player);
-            player.PlayAsync(_surface, clip).Forget();
+            player.PlayAsync(_surface, clip);
         }
     }
 }

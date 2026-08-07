@@ -24,7 +24,6 @@
         "emiteat.NexUI.Integrations.UIToolkit",
         "emiteat.NexUI.Integrations.UGUI",
         "emiteat.NexUI.Designer.Runtime",
-        "UniTask",
         "Unity.TextMeshPro",
         "UnityEngine.UI"
     ],
